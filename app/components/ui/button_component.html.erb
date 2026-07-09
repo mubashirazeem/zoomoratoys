@@ -1,0 +1,5 @@
+<% if link? %>
+  <%= tag.a content, href: href, class: classes, title: title, "aria-disabled": (disabled || nil), tabindex: (disabled ? -1 : nil) %>
+<% else %>
+  <%= tag.button content, type: type, class: classes, title: title, disabled: disabled || nil %>
+<% end %>

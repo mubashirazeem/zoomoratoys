@@ -1,0 +1,6 @@
+<p class="flex items-baseline gap-2 font-display <%= size_classes %> text-ink-950">
+  <span><%= formatted_price %></span>
+  <% if on_sale? %>
+    <span class="text-body-sm font-body font-normal text-grey-500 line-through"><%= formatted_compare_at %></span>
+  <% end %>
+</p>

@@ -1,0 +1,280 @@
+<% content_for :title, "#{@product.name} | Zoomora Toys" %>
+<% content_for :meta_description, @product.description %>
+
+<%# Presentational placeholders for this frontend pass — no cart, variants, %>
+<%# or promotions backend. Derived deterministically so a product looks the %>
+<%# same on every visit. %>
+<% on_sale = @product.id.even? %>
+<% compare_at_cents = on_sale ? (@product.price_cents * 1.27).round : nil %>
+<% viewers = (@product.id * 7) % 80 + 12 %>
+
+<div data-controller="sticky-bar">
+  <div class="max-w-7xl mx-auto px-[15px] py-8 lg:py-10">
+    <%= render Ui::BreadcrumbComponent.new(items: [
+      { label: "Home", url: root_path },
+      { label: "Shop", url: products_path },
+      { label: @product.category.name, url: products_path(category: @product.category.slug) },
+      { label: @product.name }
+    ]) %>
+
+    <%# ---- Buy box ---- %>
+    <div class="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-14" data-sticky-bar-target="anchor">
+      <%= render Catalog::ProductGalleryComponent.new(product: @product, badge: (on_sale ? :sale : nil)) %>
+
+      <div class="flex flex-col gap-5">
+        <div>
+          <%= link_to @product.category.name, products_path(category: @product.category.slug),
+                class: "text-[12px] uppercase font-semibold tracking-[0.08em] text-red-600 hover:text-red-700" %>
+          <h1 class="mt-2 text-[26px] lg:text-[30px] font-display font-bold text-ink-950 leading-tight"><%= @product.name %></h1>
+        </div>
+
+        <div class="flex items-center gap-3">
+          <%= render Ui::PriceComponent.new(price_cents: @product.price_cents, compare_at_cents: compare_at_cents, size: :lg) %>
+          <% if on_sale %>
+            <%= render Ui::BadgeComponent.new(variant: :sale, label: "Save 21%") %>
+          <% end %>
+        </div>
+
+        <p class="text-body text-grey-600 leading-relaxed border-b border-grey-200 pb-5"><%= @product.description %></p>
+
+        <div>
+          <p class="text-body-sm text-ink-950 mb-2"><span class="font-semibold">Color:</span> Classic</p>
+          <div class="flex items-center gap-3">
+            <% 3.times do |index| %>
+              <button type="button" aria-label="Colour option <%= index + 1 %>"
+                class="w-14 h-14 bg-grey-50 border-2 <%= index.zero? ? 'border-red-600' : 'border-grey-200' %> hover:border-red-600 transition-colors overflow-hidden focus-visible:outline focus-visible:outline-2 focus-visible:outline-red-600">
+                <%= image_tag "category-#{@product.placeholder_key}.jpg", alt: "", loading: "lazy", class: "w-full h-full object-cover" %>
+              </button>
+            <% end %>
+          </div>
+        </div>
+
+        <div data-controller="quantity">
+          <p class="text-body-sm font-semibold text-ink-950 mb-2">Quantity:</p>
+          <div class="inline-flex items-center border border-grey-300">
+            <button type="button" data-action="quantity#decrease" aria-label="Decrease quantity" class="w-11 h-11 flex items-center justify-center text-ink-950 hover:bg-grey-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-red-600">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" class="w-4 h-4" aria-hidden="true"><path d="M5 12h14"/></svg>
+            </button>
+            <input type="text" inputmode="numeric" value="1" data-quantity-target="input" aria-label="Quantity" class="w-14 h-11 text-center text-body text-ink-950 border-x border-grey-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-red-600" />
+            <button type="button" data-action="quantity#increase" aria-label="Increase quantity" class="w-11 h-11 flex items-center justify-center text-ink-950 hover:bg-grey-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-red-600">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" class="w-4 h-4" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-3">
+          <button type="button" class="flex-1 bg-red-600 text-white font-display font-bold uppercase tracking-[0.04em] text-[15px] py-4 hover:bg-red-700 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600">
+            Add to Cart
+          </button>
+          <button type="button" aria-label="Add to wishlist" class="w-14 h-14 flex items-center justify-center border border-grey-300 text-ink-950 hover:border-red-600 hover:text-red-600 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-red-600">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5" aria-hidden="true"><path d="M12 20s-7-4.3-7-9a4 4 0 0 1 7-2.6A4 4 0 0 1 19 11c0 4.7-7 9-7 9Z"/></svg>
+          </button>
+          <button type="button" aria-label="Share" class="w-14 h-14 flex items-center justify-center border border-grey-300 text-ink-950 hover:border-red-600 hover:text-red-600 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-red-600">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/></svg>
+          </button>
+        </div>
+
+        <button type="button" class="w-full bg-ink-950 text-white font-display font-bold uppercase tracking-[0.04em] text-[15px] py-4 hover:bg-ink-800 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600">
+          Buy It Now
+        </button>
+
+        <p class="flex items-center gap-2 text-body-sm text-grey-600">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 text-red-600" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+          <span><span class="font-semibold text-ink-950"><%= viewers %></span> customers are viewing this product</span>
+        </p>
+
+        <ul class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-body-sm text-grey-600 border-t border-grey-200 pt-5">
+          <li class="flex items-center gap-2"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" class="w-4 h-4 text-red-600" aria-hidden="true"><path d="M3 7h11v9H3z"/><path d="M14 10h4l3 3v3h-7z"/></svg> Free UAE delivery &amp; setup</li>
+          <li class="flex items-center gap-2"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" class="w-4 h-4 text-red-600" aria-hidden="true"><path d="M12 3.5 19 6.5v5c0 4.4-3 7.7-7 8.9-4-1.2-7-4.5-7-8.9v-5Z"/></svg> 12-month warranty</li>
+          <li class="flex items-center gap-2"><span class="text-grey-500">SKU:</span> <span class="text-ink-950 font-medium"><%= @product.sku %></span></li>
+          <li class="flex items-center gap-2"><span class="text-grey-500">Availability:</span> <span class="text-ink-950 font-medium"><%= @product.stock_status.humanize %></span></li>
+        </ul>
+      </div>
+    </div>
+
+    <%# ---- Description ---- %>
+    <div class="mt-16 max-w-4xl">
+      <h2 class="text-h2 font-display text-ink-950 mb-5">Description</h2>
+      <div class="flex flex-col gap-4 text-body text-grey-600 leading-relaxed">
+        <p>The <strong class="text-ink-950"><%= @product.name %></strong> is built around one idea: gear that holds up to the way families actually use it. From the first ride to the hundredth, it's made to keep going — every weekend, in real heat, for years, not just for the first month.</p>
+        <p>Every unit is checked before it ships and arrives ready to enjoy, with free delivery and setup across the UAE. Whether it's a birthday surprise or the next family weekend, this is a pick you can rely on.</p>
+      </div>
+
+      <h3 class="mt-8 mb-3 text-h3 font-display text-ink-950">Why Families Choose It</h3>
+      <ul class="flex flex-col gap-2 text-body text-grey-600 list-disc list-inside">
+        <li><strong class="text-ink-950">Built to last</strong> — durable materials chosen for real, repeated use.</li>
+        <li><strong class="text-ink-950">Ready out of the box</strong> — delivered assembled, tested, and set up for you.</li>
+        <li><strong class="text-ink-950">Safety first</strong> — designed with the right controls and stability for its age range.</li>
+        <li><strong class="text-ink-950">Backed by warranty</strong> — 12 months of manufacturer coverage on every model.</li>
+      </ul>
+    </div>
+
+    <%# ---- Accordion spec / info sections ---- %>
+    <div class="mt-12 max-w-4xl">
+      <%= render Ui::AccordionItemComponent.new(title: "Features", open: true) do |item| %>
+        <% item.with_body do %>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse text-body-sm">
+              <tbody>
+                <% [
+                  ["Brand", "Zoomora Toys"],
+                  ["Category", @product.category.name],
+                  ["Model / SKU", @product.sku],
+                  ["Frame", "Reinforced steel & alloy build"],
+                  ["Finish", "Weather-resistant coating"],
+                  ["Assembly", "Delivered assembled & tested"],
+                  ["Warranty", "12-month manufacturer warranty"]
+                ].each do |label, value| %>
+                  <tr class="border-b border-grey-200">
+                    <th class="py-2.5 pr-4 font-medium text-ink-950 align-top w-1/3"><%= label %></th>
+                    <td class="py-2.5 text-grey-600"><%= value %></td>
+                  </tr>
+                <% end %>
+              </tbody>
+            </table>
+          </div>
+        <% end %>
+      <% end %>
+
+      <%= render Ui::AccordionItemComponent.new(title: "Age, Weight & Delivery") do |item| %>
+        <% item.with_body do %>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse text-body-sm">
+              <thead>
+                <tr class="border-b border-grey-200 text-ink-950">
+                  <th class="py-2.5 pr-4 font-semibold">Age Group</th>
+                  <th class="py-2.5 pr-4 font-semibold">Weight Capacity</th>
+                  <th class="py-2.5 pr-4 font-semibold">Shipping Time</th>
+                  <th class="py-2.5 font-semibold">Delivery</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="py-2.5 pr-4 text-grey-600">All ages*</td>
+                  <td class="py-2.5 pr-4 text-grey-600">Up to 150 kg</td>
+                  <td class="py-2.5 pr-4 text-grey-600">3–5 working days</td>
+                  <td class="py-2.5 text-grey-600">Free across the UAE</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="mt-3 text-grey-500">*Suitability varies by model — check the age guidance on each product.</p>
+        <% end %>
+      <% end %>
+
+      <%= render Ui::AccordionItemComponent.new(title: "Why Order From Zoomora Toys?") do |item| %>
+        <% item.with_body do %>
+          <ul class="flex flex-col gap-2 list-disc list-inside">
+            <li>Free delivery and professional setup on every order across the Emirates.</li>
+            <li>Products checked and tested before they leave our warehouse.</li>
+            <li>Real support from people who know the products — before and after you buy.</li>
+            <li>Buy now, pay later options available at checkout.</li>
+          </ul>
+        <% end %>
+      <% end %>
+
+      <%= render Ui::AccordionItemComponent.new(title: "Delivery & Returns") do |item| %>
+        <% item.with_body do %>
+          <ul class="flex flex-col gap-2 list-disc list-inside">
+            <li>Free delivery and installation across the UAE.</li>
+            <li>Dispatched within 3–5 working days.</li>
+            <li>7-day return window on unused items in their original packaging.</li>
+            <li>Contact our team any time for help with your order.</li>
+          </ul>
+        <% end %>
+      <% end %>
+
+      <%= render Ui::AccordionItemComponent.new(title: "Safety & Cautions") do |item| %>
+        <% item.with_body do %>
+          <ul class="flex flex-col gap-2 list-disc list-inside">
+            <li>Always wear appropriate safety gear when riding.</li>
+            <li>Adult supervision is required for younger riders.</li>
+            <li>Charge only with the supplied charger and avoid overcharging.</li>
+            <li>Keep away from water and extreme heat.</li>
+            <li>Do not exceed the rated weight capacity.</li>
+            <li>Use on suitable, even surfaces only.</li>
+          </ul>
+        <% end %>
+      <% end %>
+
+      <%= render Ui::AccordionItemComponent.new(title: "Care & Storage") do |item| %>
+        <% item.with_body do %>
+          <ul class="flex flex-col gap-2 list-disc list-inside">
+            <li>Wipe down with a soft, damp cloth — avoid harsh solvents.</li>
+            <li>Store indoors, away from direct sunlight and damp.</li>
+            <li>Charge the battery before any long-term storage.</li>
+            <li>Check tyres, brakes, and fixings periodically.</li>
+          </ul>
+        <% end %>
+      <% end %>
+    </div>
+
+    <%# ---- Reviews (empty state) ---- %>
+    <div class="mt-16 border-t border-grey-200 pt-12 text-center">
+      <h2 class="text-h2 font-display text-ink-950">Customer Reviews</h2>
+      <div class="mt-4 flex items-center justify-center gap-1" aria-hidden="true">
+        <% 5.times do %>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="w-6 h-6 text-red-600"><path d="m12 3.5 2.6 5.2 5.8.8-4.2 4.1 1 5.8-5.2-2.8-5.2 2.8 1-5.8-4.2-4.1 5.8-.8Z"/></svg>
+        <% end %>
+      </div>
+      <p class="mt-3 text-body-sm text-grey-600">Be the first to review this product.</p>
+      <div class="mt-5">
+        <button type="button" class="inline-flex items-center bg-ink-950 text-white font-display font-bold uppercase tracking-[0.04em] text-[13px] px-8 py-3 hover:bg-ink-800 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600">
+          Write a Review
+        </button>
+      </div>
+    </div>
+
+    <%# ---- Related products ---- %>
+    <% if @related_products.any? %>
+      <div class="mt-16">
+        <%= render Marketing::CenteredHeadingComponent.new(title: "Related Products") %>
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-x-[30px] gap-y-10">
+          <% @related_products.each do |product| %>
+            <%= render Catalog::ProductCardComponent.new(product: product) %>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+
+    <%# ---- Recently viewed ---- %>
+    <% if @recently_viewed.any? %>
+      <div class="mt-16">
+        <%= render Marketing::CenteredHeadingComponent.new(title: "Recently Viewed") %>
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-x-[30px] gap-y-10">
+          <% @recently_viewed.each do |product| %>
+            <%= render Catalog::ProductCardComponent.new(product: product) %>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+  </div>
+
+  <%# ---- Sticky add-to-cart bar ---- %>
+  <div data-sticky-bar-target="bar" class="fixed inset-x-0 bottom-0 z-40 translate-y-full transition-transform duration-300 bg-white border-t border-grey-200 shadow-[0_-4px_16px_-8px_rgba(10,10,11,0.25)]">
+    <div class="max-w-7xl mx-auto px-[15px] py-3 flex items-center gap-4">
+      <div class="hidden sm:flex items-center gap-3 min-w-0">
+        <%= image_tag "category-#{@product.placeholder_key}.jpg", alt: "", class: "w-12 h-12 object-cover bg-grey-50 shrink-0" %>
+        <div class="min-w-0">
+          <p class="text-body-sm font-semibold text-ink-950 truncate max-w-[220px]"><%= @product.name %></p>
+          <%= render Ui::PriceComponent.new(price_cents: @product.price_cents, compare_at_cents: compare_at_cents, size: :card) %>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-3 ml-auto w-full sm:w-auto" data-controller="quantity">
+        <div class="hidden md:inline-flex items-center border border-grey-300">
+          <button type="button" data-action="quantity#decrease" aria-label="Decrease quantity" class="w-10 h-11 flex items-center justify-center text-ink-950 hover:bg-grey-50">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" class="w-4 h-4" aria-hidden="true"><path d="M5 12h14"/></svg>
+          </button>
+          <input type="text" inputmode="numeric" value="1" data-quantity-target="input" aria-label="Quantity" class="w-12 h-11 text-center text-body-sm text-ink-950 border-x border-grey-300" />
+          <button type="button" data-action="quantity#increase" aria-label="Increase quantity" class="w-10 h-11 flex items-center justify-center text-ink-950 hover:bg-grey-50">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" class="w-4 h-4" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+          </button>
+        </div>
+        <button type="button" class="flex-1 sm:flex-none bg-red-600 text-white font-display font-bold uppercase tracking-[0.04em] text-[14px] px-10 py-3 hover:bg-red-700 transition-colors">
+          Add to Cart
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

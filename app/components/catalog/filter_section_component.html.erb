@@ -1,0 +1,9 @@
+<details class="group border-b border-grey-200 py-4" <%= "open" if open %>>
+  <summary class="flex items-center justify-between cursor-pointer select-none list-none [&::-webkit-details-marker]:hidden text-[14px] font-bold uppercase tracking-[0.05em] text-ink-950 focus-visible:outline focus-visible:outline-2 focus-visible:outline-red-600">
+    <span><%= title %></span>
+    <svg class="w-4 h-4 text-grey-500 transition-transform group-open:rotate-180" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+  </summary>
+  <div class="mt-4">
+    <%= body %>
+  </div>
+</details>

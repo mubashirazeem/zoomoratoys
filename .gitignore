@@ -1,0 +1,37 @@
+/documents/
+
+# Ignore bundler config.
+/.bundle
+
+# Ignore all environment files.
+/.env*
+
+# Ignore all default log files and tempfiles.
+/log/*
+/tmp/*
+!/log/.keep
+!/tmp/.keep
+
+# Ignore pidfiles, but keep the directory.
+/tmp/pids/*
+!/tmp/pids/.keep
+
+# Ignore uploaded files in development.
+/storage/*
+!/storage/.keep
+/tmp/storage/*
+!/tmp/storage/.keep
+
+/public/assets
+
+# Ignore master key for decrypting credentials and any other unencrypted secrets.
+/config/master.key
+
+.byebug_history
+
+# macOS
+.DS_Store
+
+# Local tooling caches (Ruby LSP index, Playwright MCP session artifacts)
+/.ruby-lsp/
+/.playwright-mcp/

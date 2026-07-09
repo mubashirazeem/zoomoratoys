@@ -1,0 +1,53 @@
+<% content_for :title, "About Us | Zoomora Toys" %>
+<% content_for :meta_description, "Zoomora Toys is a family adventure store built around one idea: the best childhoods happen outside." %>
+
+<div class="max-w-7xl mx-auto px-[15px] py-8">
+  <%= render Ui::BreadcrumbComponent.new(items: [
+    { label: "Home", url: root_path },
+    { label: "About Us" }
+  ]) %>
+</div>
+
+<%# ---- Intro ---- %>
+<section class="max-w-7xl mx-auto px-[15px] pb-12 lg:pb-16 grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-14 items-center">
+  <div>
+    <p class="text-[12px] uppercase font-semibold tracking-[0.08em] text-red-600">About Zoomora Toys</p>
+    <h1 class="mt-3 text-[32px] lg:text-[40px] font-display font-bold text-ink-950 leading-tight">Adventure Starts Here.</h1>
+    <div class="mt-6 flex flex-col gap-4 text-body text-grey-600 leading-relaxed">
+      <p>Zoomora Toys exists around one simple idea: the best childhoods happen outside. Not in front of a screen, not stuck indoors waiting out the heat — outside, moving, steering something with a motor or pedals of its own.</p>
+      <p>We started as a small team of parents tired of choosing between products that looked exciting online and arrived feeling flimsy in the driveway. So we built a store around a narrower promise: every ride-on, scooter, bike, golf cart, and ATV we carry has to hold up to the way families actually use it — every weekend, in real heat, for years.</p>
+    </div>
+  </div>
+  <div class="relative overflow-hidden bg-grey-50">
+    <%= image_tag "hero-bicycle.jpg", alt: "", class: "w-full h-[280px] lg:h-[380px] object-cover" %>
+  </div>
+</section>
+
+<%# ---- Story band ---- %>
+<section class="bg-grey-50">
+  <div class="max-w-3xl mx-auto px-[15px] py-14 lg:py-16 flex flex-col gap-4 text-body text-grey-600 leading-relaxed">
+    <h2 class="text-h2 font-display text-ink-950">Built On A Promise</h2>
+    <p>That promise shapes everything else. We keep the catalog broad — from a toddler's first 6V ride-on to a full-size electric golf cart for the whole family — because adventure doesn't stop at one age group.</p>
+    <p>And we keep the buying experience simple: clear pricing, honest descriptions, and a team that answers when you have a real question about a real product, not a script. We're based in Dubai and shipping across the UAE, with a catalog that keeps growing as we find products worth standing behind.</p>
+  </div>
+</section>
+
+<%# ---- What we care about ---- %>
+<section class="max-w-7xl mx-auto px-[15px] py-14 lg:py-16">
+  <%= render Marketing::CenteredHeadingComponent.new(title: "What We Care About") %>
+  <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
+    <%= render Marketing::TrustBadgeComponent.new(icon: "quality", title: "Built to Last", description: "We choose products for durability first, features second.") %>
+    <%= render Marketing::TrustBadgeComponent.new(icon: "support", title: "Real Support", description: "Questions get answered by people who know the products.") %>
+    <%= render Marketing::TrustBadgeComponent.new(icon: "warranty", title: "Stand Behind It", description: "Every vehicle we sell is backed by a manufacturer warranty.") %>
+  </div>
+</section>
+
+<div class="max-w-7xl mx-auto px-[15px] pb-14 lg:pb-16">
+  <%= render Marketing::CtaBannerComponent.new(
+    title: "See What's New At Zoomora Toys",
+    description: "Browse the full catalog and find the perfect ride for your family.",
+    cta_label: "Shop All Products",
+    cta_url: products_path,
+    tone: :dark
+  ) %>
+</div>

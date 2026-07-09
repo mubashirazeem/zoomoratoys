@@ -1,0 +1,87 @@
+<% content_for :title, "Zoomora Toys — Adventure Starts Here" %>
+<% content_for :meta_description, "Shop electric ride-ons, scooters, golf carts, bicycles, ATVs, trampolines, pools and play sets at Zoomora Toys." %>
+
+<%= render Marketing::HeroComponent.new(slides: [
+  { image: "hero-bicycle.jpg", eyebrow: "Adventure Starts Here", headline: "Built For Every Adventure", cta_label: "Explore Collection", cta_url: products_path },
+  { image: "category-atv.jpg", eyebrow: "Best Sellers of 2026", headline: "Power. Performance. Play.", cta_label: "Shop Best Sellers", cta_url: products_path },
+  { image: "category-bicycle.jpg", eyebrow: "Trusted. Tested. Loved.", headline: "Gear The Whole Family Loves", cta_label: "Shop All", cta_url: products_path }
+]) %>
+
+<%# ---- Best Selling Products (grid + show more) ---- %>
+<section class="max-w-7xl mx-auto px-[15px] py-14 lg:py-16">
+  <%= render Marketing::CenteredHeadingComponent.new(title: "Best Selling Products") %>
+  <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-x-[30px] gap-y-10">
+    <% @best_selling_grid.each do |product| %>
+      <%= render Catalog::ProductCardComponent.new(product: product) %>
+    <% end %>
+  </div>
+  <div class="flex justify-center mt-12">
+    <%= link_to "Show More", products_path, class: "inline-flex items-center bg-ink-950 text-white font-semibold uppercase tracking-[0.06em] text-[13px] px-12 py-4 hover:bg-ink-800 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600" %>
+  </div>
+</section>
+
+<%# ---- Promotional banner ---- %>
+<div class="max-w-7xl mx-auto px-[15px] pb-14 lg:pb-16">
+  <%= render Marketing::CtaBannerComponent.new(
+    title: "Free Delivery & Assembly on Every Order",
+    description: "From ride-ons to golf carts, we deliver across the UAE and set it up for you — no extra tools, no extra cost.",
+    cta_label: "Shop All",
+    cta_url: products_path,
+    tone: :light
+  ) %>
+</div>
+
+<%# ---- New Arrivals (carousel) ---- %>
+<% if @new_arrivals.any? %>
+  <section class="max-w-7xl mx-auto px-[15px] py-14 lg:py-16">
+    <%= render Marketing::ProductRailComponent.new(title: "New Arrivals", products: @new_arrivals, view_all_url: products_path) %>
+  </section>
+<% end %>
+
+<%# ---- Explore Categories (tiles) ---- %>
+<section class="max-w-7xl mx-auto px-[15px] py-14 lg:py-16">
+  <%= render Marketing::CenteredHeadingComponent.new(title: "Explore Categories") %>
+  <div class="grid grid-cols-1 sm:grid-cols-2 gap-[30px]">
+    <% @featured_categories.each do |category| %>
+      <%= render Catalog::CategoryTileComponent.new(category: category) %>
+    <% end %>
+  </div>
+</section>
+
+<%# ---- Featured Picks (carousel) ---- %>
+<% if @featured_products.any? %>
+  <section class="bg-grey-50">
+    <div class="max-w-7xl mx-auto px-[15px] py-14 lg:py-16">
+      <%= render Marketing::ProductRailComponent.new(title: "Featured Picks", products: @featured_products, view_all_url: products_path) %>
+    </div>
+  </section>
+<% end %>
+
+<%# ---- Official Brand Partners ---- %>
+<%= render Marketing::BrandPartnersComponent.new %>
+
+<%# ---- Customer Reviews ---- %>
+<div class="bg-grey-50">
+  <%= render Marketing::ReviewsComponent.new %>
+</div>
+
+<%# ---- Trust badges ---- %>
+<section class="max-w-7xl mx-auto px-[15px] py-14 lg:py-16">
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <%= render Marketing::TrustBadgeComponent.new(icon: "shipping", title: "Free UAE Delivery", description: "On every order, delivered across the Emirates.") %>
+    <%= render Marketing::TrustBadgeComponent.new(icon: "support", title: "24/7 Support", description: "Real people, ready to help whenever you need us.") %>
+    <%= render Marketing::TrustBadgeComponent.new(icon: "quality", title: "Quality Assured", description: "Every product is checked before it ships.") %>
+    <%= render Marketing::TrustBadgeComponent.new(icon: "warranty", title: "Manufacturer Warranty", description: "Backed by warranty coverage on every vehicle.") %>
+  </div>
+</section>
+
+<%= render Marketing::NewsletterComponent.new %>
+
+<div class="max-w-7xl mx-auto px-[15px] py-14 lg:py-16">
+  <%= render Marketing::CtaBannerComponent.new(
+    title: "Ready for your next adventure?",
+    description: "Browse the full Zoomora Toys catalog and find the perfect ride for your family.",
+    cta_label: "Shop All Products",
+    cta_url: products_path
+  ) %>
+</div>

@@ -1,0 +1,40 @@
+<div data-controller="carousel">
+  <%= render Marketing::SectionHeadingComponent.new(title: title, view_all_url: view_all_url, view_all_label: view_all_label) do |heading| %>
+    <% heading.with_actions do %>
+      <div class="hidden sm:flex items-center gap-2">
+        <button
+          type="button"
+          data-action="carousel#prev"
+          aria-label="Previous"
+          class="w-9 h-9 flex items-center justify-center border border-grey-300 text-ink-950 hover:bg-grey-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-red-600"
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4" aria-hidden="true">
+            <path d="M15 18l-6-6 6-6" />
+          </svg>
+        </button>
+        <button
+          type="button"
+          data-action="carousel#next"
+          aria-label="Next"
+          class="w-9 h-9 flex items-center justify-center border border-grey-300 text-ink-950 hover:bg-grey-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-red-600"
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4" aria-hidden="true">
+            <path d="M9 18l6-6-6-6" />
+          </svg>
+        </button>
+      </div>
+    <% end %>
+  <% end %>
+
+  <div
+    data-carousel-target="track"
+    class="flex gap-[30px] overflow-x-auto snap-x snap-mandatory scroll-smooth pb-2"
+    style="scrollbar-width: none;"
+  >
+    <% products.each do |product| %>
+      <div class="snap-start shrink-0 w-[calc(50%-15px)] sm:w-[calc(33.333%-20px)] lg:w-[calc(25%-22.5px)]">
+        <%= render Catalog::ProductCardComponent.new(product: product) %>
+      </div>
+    <% end %>
+  </div>
+</div>

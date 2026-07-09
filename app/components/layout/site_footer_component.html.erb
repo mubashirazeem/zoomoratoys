@@ -1,0 +1,44 @@
+<footer class="bg-ink-950 text-grey-300">
+  <div class="max-w-7xl mx-auto px-[15px] py-16 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
+    <div>
+      <%= image_tag "logo-transparent.png", alt: "Zoomora Toys", class: "h-10 w-auto" %>
+      <p class="mt-4 text-body-sm max-w-xs">
+        Electric ride-ons, scooters, golf carts, bicycles, ATVs, trampolines, pools and play sets for family adventure.
+      </p>
+    </div>
+
+    <nav aria-label="Footer">
+      <h2 class="text-label uppercase font-display font-semibold text-white mb-4">Explore</h2>
+      <ul class="flex flex-col gap-2 text-body-sm">
+        <li><%= link_to "Shop All", products_path, class: "hover:text-white" %></li>
+        <li><%= link_to "Categories", categories_path, class: "hover:text-white" %></li>
+        <li><%= link_to "About Us", about_path, class: "hover:text-white" %></li>
+        <li><%= link_to "Contact Us", contact_path, class: "hover:text-white" %></li>
+      </ul>
+    </nav>
+
+    <nav aria-label="Shop by category">
+      <h2 class="text-label uppercase font-display font-semibold text-white mb-4">Shop by Category</h2>
+      <ul class="flex flex-col gap-2 text-body-sm">
+        <% categories.each do |category| %>
+          <li><%= link_to category.name, products_path(category: category.slug), class: "hover:text-white" %></li>
+        <% end %>
+      </ul>
+    </nav>
+
+    <div>
+      <h2 class="text-label uppercase font-display font-semibold text-white mb-4">Contact</h2>
+      <ul class="flex flex-col gap-2 text-body-sm">
+        <li><%= link_to Layout::SiteFooterComponent::SUPPORT_EMAIL, "mailto:#{Layout::SiteFooterComponent::SUPPORT_EMAIL}", class: "hover:text-white" %></li>
+        <li><%= link_to Layout::SiteFooterComponent::SUPPORT_PHONE, "tel:#{Layout::SiteFooterComponent::SUPPORT_PHONE.gsub(/\s+/, '')}", class: "hover:text-white" %></li>
+        <li>Dubai, United Arab Emirates</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="border-t border-ink-800">
+    <div class="max-w-7xl mx-auto px-[15px] py-6 text-body-sm text-grey-500">
+      &copy; <%= current_year %> Zoomora Toys. All rights reserved.
+    </div>
+  </div>
+</footer>

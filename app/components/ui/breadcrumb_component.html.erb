@@ -1,0 +1,14 @@
+<nav aria-label="Breadcrumb" class="text-body-sm">
+  <ol class="flex flex-wrap items-center gap-2 text-grey-500">
+    <% items.each do |item, current| %>
+      <li class="flex items-center gap-2">
+        <% if current %>
+          <span aria-current="page" class="text-ink-950 font-medium"><%= item.label %></span>
+        <% else %>
+          <%= link_to item.label, item.url, class: "hover:text-ink-950 hover:underline" %>
+          <span aria-hidden="true">/</span>
+        <% end %>
+      </li>
+    <% end %>
+  </ol>
+</nav>

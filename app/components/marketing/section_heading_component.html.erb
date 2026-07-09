@@ -1,0 +1,11 @@
+<div class="flex items-end justify-between gap-4 mb-8">
+  <h2 class="text-h2 font-display text-ink-950"><%= title %></h2>
+  <div class="flex items-center gap-5">
+    <% if view_all? %>
+      <%= link_to view_all_label, view_all_url, class: "text-body-sm font-display font-semibold text-red-600 hover:text-red-700 whitespace-nowrap" %>
+    <% end %>
+    <% if actions? %>
+      <%= actions %>
+    <% end %>
+  </div>
+</div>

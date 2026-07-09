@@ -1,0 +1,18 @@
+<section class="bg-ink-950">
+  <div class="max-w-7xl mx-auto px-[15px] py-16 lg:py-20 grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+    <div>
+      <h2 class="text-h2 font-display text-white"><%= title %></h2>
+      <p class="mt-3 text-body text-grey-300 max-w-md"><%= description %></p>
+    </div>
+
+    <%= form_with model: NewsletterSubscriber.new, url: newsletter_subscribers_path, class: "flex flex-col sm:flex-row gap-3" do |form| %>
+      <label for="newsletter_subscriber_email" class="sr-only">Email address</label>
+      <%= form.email_field :email,
+            id: "newsletter_subscriber_email",
+            placeholder: "you@example.com",
+            required: true,
+            class: "flex-1 px-4 py-3 text-body text-ink-950 bg-white border border-transparent focus-visible:outline focus-visible:outline-2 focus-visible:outline-red-600" %>
+      <%= render(Ui::ButtonComponent.new(variant: :primary, size: :base, type: "submit")) { "Subscribe" } %>
+    <% end %>
+  </div>
+</section>

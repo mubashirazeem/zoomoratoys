@@ -1,0 +1,11 @@
+<section class="max-w-7xl mx-auto px-[15px] py-14 lg:py-16">
+  <%= render Marketing::CenteredHeadingComponent.new(title: "Official Brand Partners") %>
+  <ul class="grid grid-cols-3 lg:grid-cols-6 gap-x-6 gap-y-10">
+    <% partners.each do |partner| %>
+      <li class="flex flex-col items-center gap-4 grayscale hover:grayscale-0 transition-all duration-200">
+        <span class="flex items-center justify-center w-20 h-20 border-2 border-ink-950 text-ink-950 font-display font-bold text-[34px]" aria-hidden="true"><%= partner.monogram %></span>
+        <span class="bg-red-600 text-white text-[12px] font-bold uppercase tracking-[0.1em] px-4 py-1"><%= partner.name %></span>
+      </li>
+    <% end %>
+  </ul>
+</section>

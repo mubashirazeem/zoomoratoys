@@ -1,0 +1,12 @@
+<details class="group border border-grey-200 -mt-px" <%= "open" if open %>>
+  <summary class="flex items-center justify-between gap-4 cursor-pointer select-none list-none [&::-webkit-details-marker]:hidden py-4 px-5 text-body font-semibold text-ink-950 bg-grey-50 group-open:bg-white hover:bg-white transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-red-600">
+    <span><%= title %></span>
+    <span class="shrink-0 text-grey-500" aria-hidden="true">
+      <svg class="w-5 h-5 block group-open:hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+      <svg class="w-5 h-5 hidden group-open:block" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12h14"/></svg>
+    </span>
+  </summary>
+  <div class="px-5 pb-6 pt-2 text-body-sm text-grey-600 leading-relaxed">
+    <%= body %>
+  </div>
+</details>

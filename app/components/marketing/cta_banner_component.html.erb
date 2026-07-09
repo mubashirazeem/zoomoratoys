@@ -1,0 +1,9 @@
+<section class="<%= tone[:bg] %> rounded-lg px-6 py-14 lg:py-20 text-center">
+  <h2 class="text-h1 font-display <%= tone[:title] %> text-balance"><%= title %></h2>
+  <% if description.present? %>
+    <p class="mt-4 text-body-lg <%= tone[:body] %> max-w-xl mx-auto"><%= description %></p>
+  <% end %>
+  <div class="mt-8">
+    <%= render(Ui::ButtonComponent.new(variant: tone[:button], size: :lg, href: cta_url)) { cta_label } %>
+  </div>
+</section>
