@@ -1,5 +1,5 @@
-<% content_for :title, "Shop by Category | Zoomora Toys" %>
-<% content_for :meta_description, "Browse every Zoomora Toys category — ride-ons, scooters, golf carts, bicycles, ATVs, trampolines, pools and play sets." %>
+<% content_for :title, "Shop by Category | Zoomora" %>
+<% content_for :meta_description, "Browse every Zoomora category — e-bikes, cargo scooters, ATVs, dirt bikes, and inflatables." %>
 
 <div class="max-w-7xl mx-auto px-[15px] py-10">
   <%= render Ui::BreadcrumbComponent.new(items: [
@@ -8,7 +8,7 @@
   ]) %>
 
   <h1 class="mt-4 text-h1 font-display text-ink-950">Shop by Category</h1>
-  <p class="mt-2 text-body text-grey-500 max-w-2xl">Every kind of adventure Zoomora Toys carries, in one place.</p>
+  <p class="mt-2 text-body text-grey-500 max-w-2xl">Every kind of adventure Zoomora carries, in one place.</p>
 
   <div class="mt-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-[30px]">
     <% @categories.each do |category| %>

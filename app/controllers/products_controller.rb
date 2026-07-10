@@ -12,10 +12,10 @@ class ProductsController < ApplicationController
     @related_products = Product.where(category: @product.category)
                                 .where.not(id: @product.id)
                                 .ordered
-                                .limit(4)
+                                .limit(3)
     @recently_viewed = Product.includes(:category)
                                .where.not(id: @product.id)
                                .newest_first
-                               .limit(4)
+                               .limit(3)
   end
 end

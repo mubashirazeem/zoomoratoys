@@ -1,49 +1,60 @@
 <section
   data-controller="slideshow"
+  data-action="mouseenter->slideshow#pause mouseleave->slideshow#resume focusin->slideshow#pause focusout->slideshow#resume"
   aria-label="Featured promotions"
   aria-roledescription="carousel"
-  class="relative w-full overflow-hidden h-[440px] md:h-[500px] lg:h-[560px] bg-ink-950"
+  class="hero relative w-full overflow-hidden h-[440px] md:h-[500px] lg:h-[560px] bg-ink-950"
 >
-  <% slides.each_with_index do |slide, index| %>
-    <div
-      data-slideshow-target="slide"
-      role="group"
-      aria-roledescription="slide"
-      aria-label="<%= index + 1 %> of <%= slides.size %>"
-      class="absolute inset-0 transition-opacity duration-700 ease-out <%= index.zero? ? 'opacity-100' : 'opacity-0 pointer-events-none' %>"
-    >
-      <%= image_tag slide[:image], alt: "", class: "absolute inset-0 w-full h-full object-cover object-center" %>
-      <div class="absolute inset-0 bg-gradient-to-r from-ink-950/85 via-ink-950/45 to-transparent" aria-hidden="true"></div>
+  <div data-slideshow-target="scene" class="hero-scene absolute inset-0 overflow-hidden">
+    <div data-slideshow-target="cube" class="hero-cube absolute inset-0">
+      <div data-slideshow-target="tilt" class="hero-cube-tilt absolute inset-0">
+        <% slides.each_with_index do |slide, index| %>
+          <div
+            data-slideshow-target="face"
+            role="group"
+            aria-roledescription="slide"
+            aria-label="<%= index + 1 %> of <%= slides.size %>"
+            aria-hidden="<%= index.zero? ? 'false' : 'true' %>"
+            class="hero-face absolute inset-0 <%= 'is-active' if index.zero? %>"
+          >
+            <%= image_tag slide[:image], alt: "", class: "hero-face__img absolute inset-0 w-full h-full object-cover object-center" %>
+            <div class="absolute inset-0 bg-gradient-to-r from-ink-950/85 via-ink-950/45 to-transparent" aria-hidden="true"></div>
+            <div class="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-ink-950/70 to-transparent pointer-events-none" aria-hidden="true"></div>
 
-      <div class="relative h-full max-w-7xl mx-auto px-[15px] flex items-center">
-        <div class="max-w-lg">
-          <p class="text-[13px] font-semibold uppercase tracking-[0.18em] text-red-500 mb-3"><%= slide[:eyebrow] %></p>
-          <h2 class="font-display font-bold uppercase text-white leading-[1.05] text-[36px] md:text-[46px] lg:text-[56px] text-balance"><%= slide[:headline] %></h2>
-          <div class="mt-8">
-            <%= link_to slide[:cta_url], class: "inline-flex items-center gap-3 bg-red-600 text-white font-display font-bold uppercase tracking-[0.04em] text-[15px] px-8 py-4 hover:bg-red-700 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white" do %>
-              <%= slide[:cta_label] %>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
-            <% end %>
+            <div class="hero-face__content relative h-full max-w-7xl mx-auto px-[15px] flex items-center">
+              <div class="max-w-lg">
+                <p class="hero-face__eyebrow text-[13px] font-semibold uppercase tracking-[0.18em] text-red-500 mb-3"><%= slide[:eyebrow] %></p>
+                <h2 class="hero-face__headline font-display font-bold uppercase text-white leading-[1.05] text-[36px] md:text-[46px] lg:text-[56px] text-balance"><%= slide[:headline] %></h2>
+                <div class="hero-face__cta mt-8">
+                  <%= link_to slide[:cta_url], class: "inline-flex items-center gap-3 bg-red-600 text-white font-display font-bold uppercase tracking-[0.04em] text-[15px] px-8 py-4 hover:bg-red-700 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white" do %>
+                    <%= slide[:cta_label] %>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+                  <% end %>
+                </div>
+              </div>
+            </div>
           </div>
-        </div>
+        <% end %>
       </div>
     </div>
-  <% end %>
+  </div>
 
   <button type="button" data-action="slideshow#prev" aria-label="Previous slide"
-    class="absolute left-3 lg:left-5 top-1/2 -translate-y-1/2 z-10 w-10 h-10 lg:w-12 lg:h-12 flex items-center justify-center rounded-full bg-white/85 text-ink-950 hover:bg-white transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-white">
+    class="hero-arrow absolute left-3 lg:left-5 top-1/2 -translate-y-1/2 z-10 w-10 h-10 lg:w-12 lg:h-12 flex items-center justify-center rounded-[3px] text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-white">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
   </button>
   <button type="button" data-action="slideshow#next" aria-label="Next slide"
-    class="absolute right-3 lg:right-5 top-1/2 -translate-y-1/2 z-10 w-10 h-10 lg:w-12 lg:h-12 flex items-center justify-center rounded-full bg-white/85 text-ink-950 hover:bg-white transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-white">
+    class="hero-arrow absolute right-3 lg:right-5 top-1/2 -translate-y-1/2 z-10 w-10 h-10 lg:w-12 lg:h-12 flex items-center justify-center rounded-[3px] text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-white">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg>
   </button>
 
-  <div class="absolute bottom-5 left-1/2 -translate-x-1/2 z-10 flex items-center gap-2.5">
+  <div class="absolute inset-x-0 bottom-0 z-10 flex">
     <% slides.each_with_index do |_slide, index| %>
-      <button type="button" data-action="slideshow#goto" data-index="<%= index %>" data-slideshow-target="dot"
-        aria-label="Go to slide <%= index + 1 %>"
-        class="w-2.5 h-2.5 rounded-full transition-colors <%= index.zero? ? 'bg-white' : 'bg-white/40' %> hover:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-white"></button>
+      <button type="button" data-action="slideshow#goto" data-index="<%= index %>" data-slideshow-target="segment"
+        aria-label="Go to slide <%= index + 1 %>" aria-current="<%= index.zero? ? 'true' : 'false' %>"
+        class="group relative flex-1 h-[3px] bg-white/25 overflow-hidden focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-white <%= 'border-r border-ink-950/40' unless index == slides.size - 1 %>">
+        <span data-slideshow-target="segmentFill" class="hero-segment__fill absolute inset-y-0 left-0 w-0 bg-red-600"></span>
+      </button>
     <% end %>
   </div>
 </section>

@@ -8,14 +8,11 @@ class Catalog::CategoryTileComponent < ViewComponent::Base
   # for both these tiles and the header nav (which references this constant),
   # so the two never drift.
   SHORT_LABELS = {
-    "rideon" => "Ride-Ons",
-    "scooter" => "Scooters",
-    "golf_cart" => "Golf Carts",
-    "bicycle" => "Bicycles",
-    "atv" => "ATVs",
-    "trampoline" => "Trampolines",
-    "pool" => "Pools",
-    "playset" => "Play Sets"
+    "bicycle" => "Ebike",
+    "scooter" => "Cargo Scooters",
+    "pool" => "Inflatables",
+    "dirtbike" => "Dirt Bikes",
+    "atv" => "ATVs & Quadbikes"
   }.freeze
 
   def initialize(category:)

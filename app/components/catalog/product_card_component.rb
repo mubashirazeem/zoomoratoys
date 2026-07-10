@@ -44,6 +44,13 @@ class Catalog::ProductCardComponent < ViewComponent::Base
     (product.price_cents * SALE_MULTIPLIER).round
   end
 
+  # Whole-number "% off" for the deal badge (e.g. 21 for a 1.27x markup).
+  def discount_percent
+    return unless on_sale?
+
+    (100 - (product.price_cents * 100.0 / compare_at_cents)).round
+  end
+
   def show_swatches?
     !sold_out? && bucket(2).zero?
   end

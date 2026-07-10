@@ -6,7 +6,7 @@ RSpec.describe "Pages", type: :request do
       get about_path
 
       expect(response).to have_http_status(:success)
-      expect(response.body).to include("Zoomora Toys")
+      expect(response.body).to include("Zoomora")
     end
   end
 end

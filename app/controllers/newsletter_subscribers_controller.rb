@@ -5,7 +5,7 @@ class NewsletterSubscribersController < ApplicationController
     if @subscriber.persisted?
       redirect_back fallback_location: root_path, notice: "You're already on the list — thanks for being with us."
     elsif @subscriber.save
-      redirect_back fallback_location: root_path, notice: "Thanks for subscribing! Watch your inbox for Zoomora Toys updates."
+      redirect_back fallback_location: root_path, notice: "Thanks for subscribing! Watch your inbox for Zoomora updates."
     else
       redirect_back fallback_location: root_path, alert: @subscriber.errors.full_messages.to_sentence
     end
