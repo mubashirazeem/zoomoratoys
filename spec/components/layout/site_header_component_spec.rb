@@ -6,7 +6,7 @@ RSpec.describe Layout::SiteHeaderComponent, type: :component do
   it "renders the logo image, linking home, with an accessible name" do
     render_inline(described_class.new)
 
-    expect(page).to have_css("a[href='/'] img[alt='Zoomora Toys — Adventure Starts Here']")
+    expect(page).to have_css("a[href='/'] img[alt='Zoomora — Adventure Starts Here']")
   end
 
   it "renders Home, About, and Contact around the category links" do

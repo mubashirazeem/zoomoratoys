@@ -23,7 +23,16 @@ class Ui::PriceComponent < ViewComponent::Base
   end
 
   def size_classes
-    { sm: "text-body-sm", card: "text-[14px] font-semibold", base: "text-h3", lg: "text-h2" }.fetch(@size)
+    { sm: "text-body-sm", card: "text-[16px] font-bold", base: "text-h3", lg: "text-h2" }.fetch(@size)
+  end
+
+  # On a card, a discounted price turns brand-red to contrast the grey struck
+  # original (the standard marketplace deal cue); a regular price stays dark.
+  # Every non-card context keeps the near-black body/heading ink.
+  def color_class
+    return "text-ink-950" unless @size == :card
+
+    on_sale? ? "text-red-600" : "text-ink-950"
   end
 
   private

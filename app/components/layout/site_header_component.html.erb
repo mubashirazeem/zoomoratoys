@@ -32,35 +32,38 @@
     <div class="bg-white">
       <div class="max-w-7xl mx-auto px-[15px] py-5 flex items-center gap-8">
         <%= link_to root_path, class: "shrink-0 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600" do %>
-          <%= image_tag "logo.jpeg", alt: "Zoomora Toys — Adventure Starts Here", class: "h-12 w-auto" %>
+          <%= image_tag "logo.jpeg", alt: "Zoomora — Adventure Starts Here", class: "h-16 lg:h-[68px] w-auto" %>
         <% end %>
 
-        <form action="<%= products_path %>" method="get" role="search" class="flex flex-1 max-w-2xl" data-turbo="false">
+        <form action="<%= products_path %>" method="get" role="search"
+          class="flex flex-1 max-w-2xl items-center gap-2 h-[52px] pl-5 pr-1.5 rounded-full border border-grey-300 bg-grey-50 transition focus-within:bg-white focus-within:border-red-600 focus-within:ring-4 focus-within:ring-red-600/10"
+          data-turbo="false">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 text-grey-500 shrink-0" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
           <label for="store-search" class="sr-only">Search the store</label>
           <input type="search" id="store-search" name="q" placeholder="Search the store"
-            class="flex-1 h-[52px] px-4 text-[13px] text-ink-950 border border-grey-300 border-r-0 focus-visible:outline focus-visible:outline-2 focus-visible:outline-red-600" />
-          <button type="submit" aria-label="Search" class="w-[60px] h-[52px] flex items-center justify-center bg-red-600 text-white hover:bg-red-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600">
+            class="flex-1 min-w-0 bg-transparent text-[13px] text-ink-950 placeholder:text-grey-500 focus:outline-none" />
+          <button type="submit" aria-label="Search" class="shrink-0 w-10 h-10 flex items-center justify-center rounded-full bg-red-600 text-white hover:bg-red-700 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
           </button>
         </form>
 
-        <div class="flex items-center gap-6 shrink-0 ml-auto text-[12px] text-ink-950">
-          <a href="#" class="flex items-center gap-2 hover:text-red-600">
+        <div class="flex items-center gap-2 shrink-0 ml-auto text-[12px] text-ink-950">
+          <a href="#" class="flex items-center gap-2 rounded-full px-3 py-2 hover:bg-grey-50 hover:text-red-600 transition-colors">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-3.3 3.6-6 8-6s8 2.7 8 6"/></svg>
             <span class="leading-tight"><span class="block text-grey-500">Hello</span><span class="block font-semibold">Sign In</span></span>
           </a>
-          <a href="#" class="flex items-center gap-2 hover:text-red-600">
+          <a href="#" class="flex items-center gap-2 rounded-full px-3 py-2 hover:bg-grey-50 hover:text-red-600 transition-colors">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6" aria-hidden="true"><path d="M12 20s-7-4.3-7-9a4 4 0 0 1 7-2.6A4 4 0 0 1 19 11c0 4.7-7 9-7 9Z"/></svg>
             <span class="font-semibold">Wish Lists</span>
           </a>
-          <a href="#" class="flex items-center gap-2 hover:text-red-600">
+          <a href="#" class="flex items-center gap-2 rounded-full px-3 py-2 hover:bg-grey-50 hover:text-red-600 transition-colors">
             <span class="relative">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6" aria-hidden="true"><path d="M4 5h2l2 12h9l2-8H7"/><circle cx="9" cy="20" r="1"/><circle cx="17" cy="20" r="1"/></svg>
               <span class="absolute -top-2 -right-2 min-w-[16px] h-4 px-1 flex items-center justify-center bg-red-600 text-white text-[10px] font-bold rounded-full">0</span>
             </span>
             <span class="font-semibold">Cart</span>
           </a>
-          <span class="flex items-center gap-1.5 border border-grey-300 px-2.5 py-1.5 text-[12px] font-semibold cursor-default select-none">
+          <span class="flex items-center gap-1.5 rounded-full border border-grey-300 px-3.5 py-2 text-[12px] font-semibold cursor-default select-none hover:border-red-600 transition-colors">
             🇦🇪 AED
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-3 h-3 text-grey-600" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
           </span>
@@ -77,7 +80,7 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" class="w-6 h-6" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" /></svg>
       </button>
       <%= link_to root_path, class: "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600" do %>
-        <%= image_tag "logo.jpeg", alt: "Zoomora Toys", class: "h-9 w-auto" %>
+        <%= image_tag "logo.jpeg", alt: "Zoomora", class: "h-11 w-auto" %>
       <% end %>
       <a href="#" aria-label="Cart" class="relative flex items-center justify-center w-10 h-10 -mr-2 text-ink-950">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6" aria-hidden="true"><path d="M4 5h2l2 12h9l2-8H7"/><circle cx="9" cy="20" r="1"/><circle cx="17" cy="20" r="1"/></svg>
@@ -85,12 +88,15 @@
       </a>
     </div>
     <div class="px-[15px] pb-3">
-      <form action="<%= products_path %>" method="get" role="search" class="flex" data-turbo="false">
+      <form action="<%= products_path %>" method="get" role="search"
+        class="flex items-center gap-2 h-11 pl-4 pr-1.5 rounded-full border border-grey-300 bg-grey-50 transition focus-within:bg-white focus-within:border-red-600 focus-within:ring-4 focus-within:ring-red-600/10"
+        data-turbo="false">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 text-grey-500 shrink-0" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
         <label for="store-search-mobile" class="sr-only">Search the store</label>
         <input type="search" id="store-search-mobile" name="q" placeholder="Search the store"
-          class="flex-1 h-11 px-4 text-[13px] text-ink-950 border border-grey-300 border-r-0 focus-visible:outline focus-visible:outline-2 focus-visible:outline-red-600" />
-        <button type="submit" aria-label="Search" class="w-12 h-11 flex items-center justify-center bg-red-600 text-white">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+          class="flex-1 min-w-0 bg-transparent text-[13px] text-ink-950 placeholder:text-grey-500 focus:outline-none" />
+        <button type="submit" aria-label="Search" class="shrink-0 w-9 h-9 flex items-center justify-center rounded-full bg-red-600 text-white hover:bg-red-700 transition-colors">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
         </button>
       </form>
     </div>
@@ -103,15 +109,60 @@
     <div class="nav3d">
       <div class="max-w-7xl mx-auto px-[15px] flex items-center gap-4 min-h-[56px]">
         <a href="<%= root_path %>" data-header-target="compact" class="hidden shrink-0 py-2">
-          <%= image_tag "logo-transparent.png", alt: "Zoomora Toys", class: "h-8 w-auto" %>
+          <%= image_tag "logo-transparent.png", alt: "Zoomora", class: "h-10 w-auto" %>
         </a>
 
         <ul class="flex flex-1 flex-wrap items-center justify-center gap-x-1.5 gap-y-1.5 py-2.5">
-          <% nav_items.each do |item| %>
-            <li>
+          <% nav_items.each_with_index do |item, index| %>
+            <% cat = item[:category] %>
+            <li class="<%= 'relative group/nav' if cat %>">
               <%= link_to item[:label], item[:url],
                     "aria-current": (helpers.current_page?(item[:url]) ? "page" : nil),
+                    "aria-haspopup": (cat ? "true" : nil),
                     class: "nav3d-link px-3.5 py-[7px] text-[12.5px] font-semibold uppercase tracking-[0.045em] whitespace-nowrap focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-400 #{'is-active' if helpers.current_page?(item[:url])}" %>
+
+              <% if cat %>
+                <% cat_products = products_for(cat) %>
+                <%# Anchor left-half items to their left edge and right-half items %>
+                <%# to their right edge so a wide panel never runs off-screen.  %>
+                <% edge = index < nav_items.size / 2 ? "left-0" : "right-0" %>
+                <div class="invisible opacity-0 translate-y-1 group-hover/nav:visible group-hover/nav:opacity-100 group-hover/nav:translate-y-0 group-focus-within/nav:visible group-focus-within/nav:opacity-100 group-focus-within/nav:translate-y-0 transition-all duration-200 absolute <%= edge %> top-full z-50 pt-3">
+                  <div class="flex <%= cat_products.any? ? 'w-[480px]' : 'w-[280px]' %> rounded-[18px] border border-grey-200 bg-white shadow-[0_28px_56px_-24px_rgba(10,10,11,0.55)] overflow-hidden text-left">
+                    <div class="relative w-[190px] shrink-0">
+                      <%= image_tag "category-#{cat.placeholder_key}.jpg", alt: "", loading: "lazy", class: "absolute inset-0 w-full h-full object-cover" %>
+                      <div class="absolute inset-0 bg-gradient-to-t from-ink-950/90 via-ink-950/35 to-ink-950/10" aria-hidden="true"></div>
+                      <div class="relative h-full flex flex-col justify-end p-4 gap-3">
+                        <h3 class="text-white font-display font-bold text-[18px] leading-tight"><%= cat.name %></h3>
+                        <%= link_to products_path(category: cat.slug), class: "inline-flex items-center gap-1.5 self-start rounded-full bg-red-600 text-white px-3.5 py-1.5 text-[11px] font-display font-bold uppercase tracking-[0.04em] hover:bg-red-700 transition-colors" do %>
+                          Shop all
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="w-3.5 h-3.5" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+                        <% end %>
+                      </div>
+                    </div>
+
+                    <% if cat_products.any? %>
+                      <div class="flex-1 min-w-0 p-3">
+                        <p class="px-2 py-1.5 text-[10px] font-semibold uppercase tracking-[0.1em] text-grey-500">Popular in <%= item[:label] %></p>
+                        <ul class="flex flex-col">
+                          <% cat_products.each do |product| %>
+                            <li>
+                              <%= link_to product_path(product), class: "group/prod flex items-center gap-3 rounded-[12px] p-2 hover:bg-grey-50 transition-colors" do %>
+                                <span class="shrink-0 w-12 h-12 rounded-[10px] overflow-hidden bg-grey-50">
+                                  <%= image_tag "category-#{product.placeholder_key}.jpg", alt: "", loading: "lazy", class: "w-full h-full object-cover" %>
+                                </span>
+                                <span class="flex-1 min-w-0">
+                                  <span class="block text-[12.5px] font-medium text-ink-950 truncate group-hover/prod:text-red-600 transition-colors"><%= product.name %></span>
+                                  <span class="block text-[12px] font-semibold text-grey-600"><%= formatted_price(product.price_cents) %></span>
+                                </span>
+                              <% end %>
+                            </li>
+                          <% end %>
+                        </ul>
+                      </div>
+                    <% end %>
+                  </div>
+                </div>
+              <% end %>
             </li>
           <% end %>
         </ul>

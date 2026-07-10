@@ -1,4 +1,4 @@
-<% content_for :title, "#{@product.name} | Zoomora Toys" %>
+<% content_for :title, "#{@product.name} | Zoomora" %>
 <% content_for :meta_description, @product.description %>
 
 <%# Presentational placeholders for this frontend pass — no cart, variants, %>
@@ -21,74 +21,93 @@
     <div class="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-14" data-sticky-bar-target="anchor">
       <%= render Catalog::ProductGalleryComponent.new(product: @product, badge: (on_sale ? :sale : nil)) %>
 
-      <div class="flex flex-col gap-5">
+      <div class="flex flex-col gap-6">
         <div>
           <%= link_to @product.category.name, products_path(category: @product.category.slug),
                 class: "text-[12px] uppercase font-semibold tracking-[0.08em] text-red-600 hover:text-red-700" %>
-          <h1 class="mt-2 text-[26px] lg:text-[30px] font-display font-bold text-ink-950 leading-tight"><%= @product.name %></h1>
+          <h1 class="mt-2 text-[26px] lg:text-[32px] font-display font-bold text-ink-950 leading-tight"><%= @product.name %></h1>
         </div>
 
-        <div class="flex items-center gap-3">
+        <div class="flex flex-wrap items-center gap-3">
           <%= render Ui::PriceComponent.new(price_cents: @product.price_cents, compare_at_cents: compare_at_cents, size: :lg) %>
           <% if on_sale %>
-            <%= render Ui::BadgeComponent.new(variant: :sale, label: "Save 21%") %>
+            <span class="inline-flex items-center rounded-full bg-red-600 text-white px-3 py-1 text-[13px] font-semibold shadow-[0_4px_14px_-4px_rgba(192,24,39,.5)]">−21%</span>
+            <span class="text-body-sm font-medium text-grey-500">You save AED <%= number_with_delimiter((compare_at_cents - @product.price_cents) / 100) %></span>
           <% end %>
         </div>
 
-        <p class="text-body text-grey-600 leading-relaxed border-b border-grey-200 pb-5"><%= @product.description %></p>
+        <p class="text-body text-grey-600 leading-relaxed"><%= @product.description %></p>
 
-        <div>
-          <p class="text-body-sm text-ink-950 mb-2"><span class="font-semibold">Color:</span> Classic</p>
-          <div class="flex items-center gap-3">
-            <% 3.times do |index| %>
-              <button type="button" aria-label="Colour option <%= index + 1 %>"
-                class="w-14 h-14 bg-grey-50 border-2 <%= index.zero? ? 'border-red-600' : 'border-grey-200' %> hover:border-red-600 transition-colors overflow-hidden focus-visible:outline focus-visible:outline-2 focus-visible:outline-red-600">
-                <%= image_tag "category-#{@product.placeholder_key}.jpg", alt: "", loading: "lazy", class: "w-full h-full object-cover" %>
+        <%# ---- Purchase panel ---- %>
+        <div class="rounded-[16px] border border-grey-200 bg-white p-5 lg:p-6 flex flex-col gap-6 shadow-[0_10px_30px_-20px_rgba(10,10,11,0.35)]">
+          <div>
+            <p class="text-body-sm text-ink-950 mb-2.5"><span class="font-semibold">Color:</span> Classic</p>
+            <div class="flex items-center gap-3">
+              <% 3.times do |index| %>
+                <button type="button" aria-label="Colour option <%= index + 1 %>"
+                  class="w-14 h-14 rounded-[12px] bg-grey-50 border-2 <%= index.zero? ? 'border-red-600' : 'border-grey-200' %> hover:border-red-600 transition-colors overflow-hidden focus-visible:outline focus-visible:outline-2 focus-visible:outline-red-600">
+                  <%= image_tag "category-#{@product.placeholder_key}.jpg", alt: "", loading: "lazy", class: "w-full h-full object-cover" %>
+                </button>
+              <% end %>
+            </div>
+          </div>
+
+          <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3" data-controller="quantity">
+            <div class="inline-flex items-center rounded-full border border-grey-300 overflow-hidden shrink-0 self-start sm:self-auto">
+              <button type="button" data-action="quantity#decrease" aria-label="Decrease quantity" class="w-11 h-12 flex items-center justify-center text-ink-950 hover:bg-grey-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-red-600">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" class="w-4 h-4" aria-hidden="true"><path d="M5 12h14"/></svg>
               </button>
-            <% end %>
+              <input type="text" inputmode="numeric" value="1" data-quantity-target="input" aria-label="Quantity" class="w-12 h-12 text-center text-body font-semibold text-ink-950 focus-visible:outline focus-visible:outline-2 focus-visible:outline-red-600" />
+              <button type="button" data-action="quantity#increase" aria-label="Increase quantity" class="w-11 h-12 flex items-center justify-center text-ink-950 hover:bg-grey-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-red-600">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" class="w-4 h-4" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+              </button>
+            </div>
+            <button type="button" class="flex-1 flex items-center justify-center gap-2 rounded-full bg-red-600 text-white font-display font-bold uppercase tracking-[0.04em] text-[15px] h-12 hover:bg-red-700 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5" aria-hidden="true"><path d="M4 5h2l2 12h9l2-8H7"/><circle cx="9" cy="20" r="1"/><circle cx="17" cy="20" r="1"/></svg>
+              Add to Cart
+            </button>
+          </div>
+
+          <div class="flex items-center gap-3">
+            <button type="button" class="flex-1 rounded-full bg-ink-950 text-white font-display font-bold uppercase tracking-[0.04em] text-[15px] h-12 hover:bg-ink-800 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600">
+              Buy It Now
+            </button>
+            <button type="button" aria-label="Add to wishlist" class="w-12 h-12 shrink-0 flex items-center justify-center rounded-full border border-grey-300 text-ink-950 hover:border-red-600 hover:text-red-600 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-red-600">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5" aria-hidden="true"><path d="M12 20s-7-4.3-7-9a4 4 0 0 1 7-2.6A4 4 0 0 1 19 11c0 4.7-7 9-7 9Z"/></svg>
+            </button>
+            <button type="button" aria-label="Share" class="w-12 h-12 shrink-0 flex items-center justify-center rounded-full border border-grey-300 text-ink-950 hover:border-red-600 hover:text-red-600 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-red-600">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/></svg>
+            </button>
+          </div>
+
+          <p class="flex items-center gap-2 text-body-sm text-grey-600">
+            <span class="relative flex w-2 h-2" aria-hidden="true">
+              <span class="absolute inline-flex w-full h-full rounded-full bg-red-500 opacity-60 animate-ping"></span>
+              <span class="relative inline-flex w-2 h-2 rounded-full bg-red-600"></span>
+            </span>
+            <span><span class="font-semibold text-ink-950"><%= viewers %></span> customers are viewing this product</span>
+          </p>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div class="flex items-center gap-2.5 rounded-[12px] border border-grey-200 px-3.5 py-3">
+            <span class="shrink-0 flex items-center justify-center w-9 h-9 rounded-full bg-red-600/10 text-red-600">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" class="w-4 h-4" aria-hidden="true"><path d="M3 7h11v9H3z"/><path d="M14 10h4l3 3v3h-7z"/></svg>
+            </span>
+            <span class="text-body-sm font-medium text-ink-950 leading-tight">Free UAE delivery &amp; setup</span>
+          </div>
+          <div class="flex items-center gap-2.5 rounded-[12px] border border-grey-200 px-3.5 py-3">
+            <span class="shrink-0 flex items-center justify-center w-9 h-9 rounded-full bg-red-600/10 text-red-600">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" class="w-4 h-4" aria-hidden="true"><path d="M12 3.5 19 6.5v5c0 4.4-3 7.7-7 8.9-4-1.2-7-4.5-7-8.9v-5Z"/></svg>
+            </span>
+            <span class="text-body-sm font-medium text-ink-950 leading-tight">12-month warranty</span>
           </div>
         </div>
 
-        <div data-controller="quantity">
-          <p class="text-body-sm font-semibold text-ink-950 mb-2">Quantity:</p>
-          <div class="inline-flex items-center border border-grey-300">
-            <button type="button" data-action="quantity#decrease" aria-label="Decrease quantity" class="w-11 h-11 flex items-center justify-center text-ink-950 hover:bg-grey-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-red-600">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" class="w-4 h-4" aria-hidden="true"><path d="M5 12h14"/></svg>
-            </button>
-            <input type="text" inputmode="numeric" value="1" data-quantity-target="input" aria-label="Quantity" class="w-14 h-11 text-center text-body text-ink-950 border-x border-grey-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-red-600" />
-            <button type="button" data-action="quantity#increase" aria-label="Increase quantity" class="w-11 h-11 flex items-center justify-center text-ink-950 hover:bg-grey-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-red-600">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" class="w-4 h-4" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
-            </button>
-          </div>
+        <div class="flex items-center gap-6 text-body-sm border-t border-grey-200 pt-4">
+          <span><span class="text-grey-500">SKU:</span> <span class="text-ink-950 font-medium"><%= @product.sku %></span></span>
+          <span><span class="text-grey-500">Availability:</span> <span class="text-green-700 font-semibold"><%= @product.stock_status.humanize %></span></span>
         </div>
-
-        <div class="flex items-center gap-3">
-          <button type="button" class="flex-1 bg-red-600 text-white font-display font-bold uppercase tracking-[0.04em] text-[15px] py-4 hover:bg-red-700 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600">
-            Add to Cart
-          </button>
-          <button type="button" aria-label="Add to wishlist" class="w-14 h-14 flex items-center justify-center border border-grey-300 text-ink-950 hover:border-red-600 hover:text-red-600 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-red-600">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5" aria-hidden="true"><path d="M12 20s-7-4.3-7-9a4 4 0 0 1 7-2.6A4 4 0 0 1 19 11c0 4.7-7 9-7 9Z"/></svg>
-          </button>
-          <button type="button" aria-label="Share" class="w-14 h-14 flex items-center justify-center border border-grey-300 text-ink-950 hover:border-red-600 hover:text-red-600 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-red-600">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/></svg>
-          </button>
-        </div>
-
-        <button type="button" class="w-full bg-ink-950 text-white font-display font-bold uppercase tracking-[0.04em] text-[15px] py-4 hover:bg-ink-800 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600">
-          Buy It Now
-        </button>
-
-        <p class="flex items-center gap-2 text-body-sm text-grey-600">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 text-red-600" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
-          <span><span class="font-semibold text-ink-950"><%= viewers %></span> customers are viewing this product</span>
-        </p>
-
-        <ul class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-body-sm text-grey-600 border-t border-grey-200 pt-5">
-          <li class="flex items-center gap-2"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" class="w-4 h-4 text-red-600" aria-hidden="true"><path d="M3 7h11v9H3z"/><path d="M14 10h4l3 3v3h-7z"/></svg> Free UAE delivery &amp; setup</li>
-          <li class="flex items-center gap-2"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" class="w-4 h-4 text-red-600" aria-hidden="true"><path d="M12 3.5 19 6.5v5c0 4.4-3 7.7-7 8.9-4-1.2-7-4.5-7-8.9v-5Z"/></svg> 12-month warranty</li>
-          <li class="flex items-center gap-2"><span class="text-grey-500">SKU:</span> <span class="text-ink-950 font-medium"><%= @product.sku %></span></li>
-          <li class="flex items-center gap-2"><span class="text-grey-500">Availability:</span> <span class="text-ink-950 font-medium"><%= @product.stock_status.humanize %></span></li>
-        </ul>
       </div>
     </div>
 
@@ -117,7 +136,7 @@
             <table class="w-full text-left border-collapse text-body-sm">
               <tbody>
                 <% [
-                  ["Brand", "Zoomora Toys"],
+                  ["Brand", "Zoomora"],
                   ["Category", @product.category.name],
                   ["Model / SKU", @product.sku],
                   ["Frame", "Reinforced steel & alloy build"],
@@ -162,7 +181,7 @@
         <% end %>
       <% end %>
 
-      <%= render Ui::AccordionItemComponent.new(title: "Why Order From Zoomora Toys?") do |item| %>
+      <%= render Ui::AccordionItemComponent.new(title: "Why Order From Zoomora?") do |item| %>
         <% item.with_body do %>
           <ul class="flex flex-col gap-2 list-disc list-inside">
             <li>Free delivery and professional setup on every order across the Emirates.</li>
@@ -219,7 +238,7 @@
       </div>
       <p class="mt-3 text-body-sm text-grey-600">Be the first to review this product.</p>
       <div class="mt-5">
-        <button type="button" class="inline-flex items-center bg-ink-950 text-white font-display font-bold uppercase tracking-[0.04em] text-[13px] px-8 py-3 hover:bg-ink-800 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600">
+        <button type="button" class="inline-flex items-center rounded-full bg-ink-950 text-white font-display font-bold uppercase tracking-[0.04em] text-[13px] px-8 py-3 hover:bg-ink-800 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600">
           Write a Review
         </button>
       </div>
@@ -229,7 +248,7 @@
     <% if @related_products.any? %>
       <div class="mt-16">
         <%= render Marketing::CenteredHeadingComponent.new(title: "Related Products") %>
-        <div class="grid grid-cols-2 lg:grid-cols-4 gap-x-[30px] gap-y-10">
+        <div class="grid grid-cols-2 lg:grid-cols-3 gap-x-[30px] gap-y-10">
           <% @related_products.each do |product| %>
             <%= render Catalog::ProductCardComponent.new(product: product) %>
           <% end %>
@@ -241,7 +260,7 @@
     <% if @recently_viewed.any? %>
       <div class="mt-16">
         <%= render Marketing::CenteredHeadingComponent.new(title: "Recently Viewed") %>
-        <div class="grid grid-cols-2 lg:grid-cols-4 gap-x-[30px] gap-y-10">
+        <div class="grid grid-cols-2 lg:grid-cols-3 gap-x-[30px] gap-y-10">
           <% @recently_viewed.each do |product| %>
             <%= render Catalog::ProductCardComponent.new(product: product) %>
           <% end %>
@@ -262,16 +281,16 @@
       </div>
 
       <div class="flex items-center gap-3 ml-auto w-full sm:w-auto" data-controller="quantity">
-        <div class="hidden md:inline-flex items-center border border-grey-300">
+        <div class="hidden md:inline-flex items-center rounded-full border border-grey-300 overflow-hidden">
           <button type="button" data-action="quantity#decrease" aria-label="Decrease quantity" class="w-10 h-11 flex items-center justify-center text-ink-950 hover:bg-grey-50">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" class="w-4 h-4" aria-hidden="true"><path d="M5 12h14"/></svg>
           </button>
-          <input type="text" inputmode="numeric" value="1" data-quantity-target="input" aria-label="Quantity" class="w-12 h-11 text-center text-body-sm text-ink-950 border-x border-grey-300" />
+          <input type="text" inputmode="numeric" value="1" data-quantity-target="input" aria-label="Quantity" class="w-12 h-11 text-center text-body-sm font-semibold text-ink-950" />
           <button type="button" data-action="quantity#increase" aria-label="Increase quantity" class="w-10 h-11 flex items-center justify-center text-ink-950 hover:bg-grey-50">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" class="w-4 h-4" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
           </button>
         </div>
-        <button type="button" class="flex-1 sm:flex-none bg-red-600 text-white font-display font-bold uppercase tracking-[0.04em] text-[14px] px-10 py-3 hover:bg-red-700 transition-colors">
+        <button type="button" class="flex-1 sm:flex-none rounded-full bg-red-600 text-white font-display font-bold uppercase tracking-[0.04em] text-[14px] px-10 py-3 hover:bg-red-700 transition-colors">
           Add to Cart
         </button>
       </div>

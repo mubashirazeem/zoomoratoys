@@ -7,14 +7,14 @@ RSpec.describe Marketing::CtaBannerComponent, type: :component do
     render_inline(
       described_class.new(
         title: "Ready for your next adventure?",
-        description: "Browse the full Zoomora Toys catalog.",
+        description: "Browse the full Zoomora catalog.",
         cta_label: "Shop All",
         cta_url: "/shop"
       )
     )
 
     expect(page).to have_css("h2", text: "Ready for your next adventure?")
-    expect(page).to have_text("Browse the full Zoomora Toys catalog.")
+    expect(page).to have_text("Browse the full Zoomora catalog.")
     expect(page).to have_link("Shop All", href: "/shop")
   end
 

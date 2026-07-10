@@ -6,7 +6,7 @@ RSpec.describe Layout::SiteFooterComponent, type: :component do
   it "renders the logo image" do
     render_inline(described_class.new)
 
-    expect(page).to have_css("img[alt='Zoomora Toys']")
+    expect(page).to have_css("img[alt='Zoomora']")
   end
 
   it "renders the primary footer nav links" do
@@ -31,8 +31,8 @@ RSpec.describe Layout::SiteFooterComponent, type: :component do
   it "renders contact details and the current year in the copyright line" do
     render_inline(described_class.new)
 
-    expect(page).to have_link(href: "mailto:hello@zoomoratoys.com")
+    expect(page).to have_link(href: "mailto:hello@zoomora.com")
     expect(page).to have_text("Dubai, United Arab Emirates")
-    expect(page).to have_text("#{Date.current.year} Zoomora Toys")
+    expect(page).to have_text("#{Date.current.year} Zoomora")
   end
 end

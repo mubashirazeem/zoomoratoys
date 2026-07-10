@@ -1,47 +1,47 @@
-<article class="group relative flex flex-col text-center bg-white">
+<article class="group relative flex flex-col w-full h-full bg-white border border-grey-200 rounded-[14px] overflow-hidden transition duration-300 ease-out hover:-translate-y-1 hover:border-transparent hover:shadow-[0_6px_16px_-8px_rgba(192,24,39,0.16),0_28px_50px_-24px_rgba(10,10,11,0.4)]">
   <div class="relative overflow-hidden bg-grey-50">
     <%= link_to product_path(product), class: "block focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600", "aria-label": product.name do %>
-      <%= image_tag "category-#{product.placeholder_key}.jpg", alt: "", loading: "lazy", class: "aspect-square w-full object-cover transition-transform duration-500 group-hover:scale-105" %>
+      <%= image_tag "category-#{product.placeholder_key}.jpg", alt: "", loading: "lazy", class: "aspect-square w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105" %>
     <% end %>
 
-    <% if badge_variant %>
-      <div class="absolute top-2.5 left-2.5 z-10">
+    <div class="absolute top-3 left-3 z-10">
+      <% if on_sale? && discount_percent %>
+        <%= render Ui::BadgeComponent.new(variant: :sale, label: "-#{discount_percent}%") %>
+      <% elsif badge_variant %>
         <%= render Ui::BadgeComponent.new(variant: badge_variant) %>
-      </div>
-    <% end %>
-
-    <div class="absolute top-2.5 right-2.5 z-10 flex flex-col gap-2 opacity-0 translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-200">
-      <button type="button" aria-label="Add to wishlist" class="w-8 h-8 flex items-center justify-center bg-white shadow-elevated text-ink-950 hover:bg-red-600 hover:text-white transition-colors">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4" aria-hidden="true"><path d="M12 20s-7-4.3-7-9a4 4 0 0 1 7-2.6A4 4 0 0 1 19 11c0 4.7-7 9-7 9Z"/></svg>
-      </button>
-      <button type="button" aria-label="Quick view" class="w-8 h-8 flex items-center justify-center bg-white shadow-elevated text-ink-950 hover:bg-red-600 hover:text-white transition-colors">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
-      </button>
+      <% end %>
     </div>
 
-    <% unless sold_out? %>
-      <div class="absolute inset-x-0 bottom-0 translate-y-full group-hover:translate-y-0 transition-transform duration-200">
-        <button type="button" class="w-full bg-white border-t border-grey-200 py-3 text-[13px] font-semibold uppercase tracking-[0.04em] text-red-600 hover:bg-red-600 hover:text-white transition-colors">
-          Add to Cart
-        </button>
-      </div>
-    <% end %>
+    <button type="button" aria-label="Add to wishlist" class="action-btn absolute top-3 right-3 z-10 w-9 h-9 flex items-center justify-center">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4" aria-hidden="true"><path d="M12 20s-7-4.3-7-9a4 4 0 0 1 7-2.6A4 4 0 0 1 19 11c0 4.7-7 9-7 9Z"/></svg>
+    </button>
   </div>
 
-  <div class="pt-4 px-2 pb-1 flex flex-col items-center gap-1.5">
-    <h3 class="text-[13px] leading-[1.5] text-ink-950 line-clamp-2 min-h-[39px]">
+  <div class="flex flex-col flex-grow p-4">
+    <h3 class="text-[13.5px] font-medium leading-[1.45] text-ink-900 line-clamp-2 min-h-[40px]">
       <%= link_to product.name, product_path(product), class: "hover:text-red-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-red-600" %>
     </h3>
 
-    <%= render Ui::PriceComponent.new(price_cents: product.price_cents, compare_at_cents: compare_at_cents, size: :card) %>
-
     <% if show_swatches? %>
-      <div class="flex items-center gap-1.5 mt-1.5">
+      <div class="mt-3 flex items-center gap-1.5">
         <% swatches.each do |color| %>
-          <span class="w-4 h-4 rounded-full border border-grey-300" style="background: <%= color %>" aria-hidden="true"></span>
+          <span class="w-[18px] h-[18px] rounded-full border border-grey-300 ring-1 ring-white" style="background: <%= color %>" aria-hidden="true"></span>
         <% end %>
         <span class="text-[11px] text-grey-500 ml-0.5">+<%= swatch_overflow %></span>
       </div>
     <% end %>
+
+    <div class="mt-auto pt-3.5 flex items-end justify-between gap-2">
+      <%= render Ui::PriceComponent.new(price_cents: product.price_cents, compare_at_cents: compare_at_cents, size: :card) %>
+
+      <% if sold_out? %>
+        <span class="text-[11px] font-semibold uppercase tracking-[0.04em] text-grey-500">Sold Out</span>
+      <% else %>
+        <button type="button" aria-label="Add to cart"
+          class="shrink-0 w-9 h-9 flex items-center justify-center rounded-full bg-red-600 text-white hover:bg-red-700 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-[18px] h-[18px]" aria-hidden="true"><path d="M4 5h2l2 12h9l2-8H7"/><circle cx="9" cy="20" r="1"/><circle cx="17" cy="20" r="1"/></svg>
+        </button>
+      <% end %>
+    </div>
   </div>
 </article>

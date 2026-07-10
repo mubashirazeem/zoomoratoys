@@ -1,5 +1,5 @@
-<% content_for :title, "Zoomora Toys — Adventure Starts Here" %>
-<% content_for :meta_description, "Shop electric ride-ons, scooters, golf carts, bicycles, ATVs, trampolines, pools and play sets at Zoomora Toys." %>
+<% content_for :title, "Zoomora — Adventure Starts Here" %>
+<% content_for :meta_description, "Shop electric bikes, cargo scooters, ATVs, dirt bikes, and inflatables at Zoomora." %>
 
 <%= render Marketing::HeroComponent.new(slides: [
   { image: "hero-bicycle.jpg", eyebrow: "Adventure Starts Here", headline: "Built For Every Adventure", cta_label: "Explore Collection", cta_url: products_path },
@@ -7,10 +7,13 @@
   { image: "category-bicycle.jpg", eyebrow: "Trusted. Tested. Loved.", headline: "Gear The Whole Family Loves", cta_label: "Shop All", cta_url: products_path }
 ]) %>
 
+<%# ---- About Zoomora (brand story teaser) ---- %>
+<%= render Marketing::BrandStoryComponent.new %>
+
 <%# ---- Best Selling Products (grid + show more) ---- %>
 <section class="max-w-7xl mx-auto px-[15px] py-14 lg:py-16">
   <%= render Marketing::CenteredHeadingComponent.new(title: "Best Selling Products") %>
-  <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-x-[30px] gap-y-10">
+  <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-[30px] gap-y-12">
     <% @best_selling_grid.each do |product| %>
       <%= render Catalog::ProductCardComponent.new(product: product) %>
     <% end %>
@@ -24,7 +27,7 @@
 <div class="max-w-7xl mx-auto px-[15px] pb-14 lg:pb-16">
   <%= render Marketing::CtaBannerComponent.new(
     title: "Free Delivery & Assembly on Every Order",
-    description: "From ride-ons to golf carts, we deliver across the UAE and set it up for you — no extra tools, no extra cost.",
+    description: "From e-bikes to ATVs, we deliver across the UAE and set it up for you — no extra tools, no extra cost.",
     cta_label: "Shop All",
     cta_url: products_path,
     tone: :light
@@ -80,7 +83,7 @@
 <div class="max-w-7xl mx-auto px-[15px] py-14 lg:py-16">
   <%= render Marketing::CtaBannerComponent.new(
     title: "Ready for your next adventure?",
-    description: "Browse the full Zoomora Toys catalog and find the perfect ride for your family.",
+    description: "Browse the full Zoomora catalog and find the perfect ride for your family.",
     cta_label: "Shop All Products",
     cta_url: products_path
   ) %>

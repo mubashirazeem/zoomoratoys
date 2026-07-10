@@ -5,7 +5,7 @@
 # Contact details below are placeholders pending real business information;
 # tracked in DEVELOPMENT_PROGRESS.md.
 class Layout::SiteFooterComponent < ViewComponent::Base
-  SUPPORT_EMAIL = "hello@zoomoratoys.com"
+  SUPPORT_EMAIL = "hello@zoomora.com"
   SUPPORT_PHONE = "+971 4 000 0000"
 
   def initialize(categories: [])

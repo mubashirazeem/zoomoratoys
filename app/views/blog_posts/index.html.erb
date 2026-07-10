@@ -1,0 +1,26 @@
+<% content_for :title, "Blog | Zoomora" %>
+<% content_for :meta_description, "Family adventure tips, safety guides, and buying advice from the Zoomora team." %>
+
+<div class="max-w-7xl mx-auto px-[15px] py-10">
+  <%= render Ui::BreadcrumbComponent.new(items: [
+    { label: "Home", url: root_path },
+    { label: "Blog" }
+  ]) %>
+
+  <h1 class="mt-4 text-h1 font-display text-ink-950">Zoomora Blog</h1>
+  <p class="mt-2 text-body text-grey-500 max-w-2xl">Adventure tips, safety guides, and buying advice for outdoor family gear.</p>
+
+  <div class="mt-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-[30px]">
+    <% @blog_posts.each do |post| %>
+      <%= link_to blog_post_path(post), class: "group flex flex-col" do %>
+        <div class="overflow-hidden">
+          <%= image_tag "category-#{post.cover_image_key}.jpg", alt: "", loading: "lazy",
+                class: "aspect-[16/10] w-full object-cover transition-transform duration-700 ease-out group-hover:scale-110" %>
+        </div>
+        <p class="mt-4 text-body-sm text-grey-500"><%= post.published_at.strftime("%B %-d, %Y") %></p>
+        <h2 class="mt-1 text-h3 font-display text-ink-950 group-hover:text-red-600 transition-colors"><%= post.title %></h2>
+        <p class="mt-2 text-body text-grey-600 leading-relaxed"><%= post.excerpt %></p>
+      <% end %>
+    <% end %>
+  </div>
+</div>

@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <title><%= content_for(:title) || "Zoomora Toys — Adventure Starts Here" %></title>
-    <meta name="description" content="<%= content_for(:meta_description) || "Zoomora Toys — electric ride-ons, scooters, golf carts, bicycles, ATVs, trampolines, pools and play sets for family adventure." %>">
+    <title><%= content_for(:title) || "Zoomora — Adventure Starts Here" %></title>
+    <meta name="description" content="<%= content_for(:meta_description) || "Zoomora — electric bikes, cargo scooters, ATVs, dirt bikes, and inflatables for family adventure." %>">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <%= csrf_meta_tags %>
@@ -59,6 +59,13 @@
     </script>
 
     <style>
+      /* ---- Shared 3D design tokens — one gradient recipe for every raised ---- */
+      /* red control (nav pills, header button, hero arrows, card actions),   */
+      /* so "the same control looks the same everywhere" instead of drifting.  */
+      :root {
+        --grad-red-3d: linear-gradient(180deg, #E24450 0%, #C01827 60%, #94101C 100%);
+      }
+
       @keyframes zoomLogoIn { from { opacity: 0; transform: translateY(14px) scale(.94); } to { opacity: 1; transform: none; } }
       @keyframes zoomTagline { from { opacity: 0; letter-spacing: .6em; } to { opacity: 1; letter-spacing: .35em; } }
       @keyframes zoomBar { 0% { transform: translateX(-140%); } 100% { transform: translateX(360%); } }
@@ -101,7 +108,7 @@
       .nav3d-link:hover {
         color: #fff;
         transform: translateY(-1px);
-        background: linear-gradient(180deg, #E24450 0%, #C01827 60%, #94101C 100%);
+        background: var(--grad-red-3d);
         text-shadow: 0 1px 2px rgba(0, 0, 0, .35);
         box-shadow:
           inset 0 1px 0 rgba(255, 255, 255, .4),
@@ -114,7 +121,7 @@
       }
       .nav3d-link.is-active {
         color: #fff;
-        background: linear-gradient(180deg, #E24450 0%, #C01827 60%, #94101C 100%);
+        background: var(--grad-red-3d);
         text-shadow: 0 1px 2px rgba(0, 0, 0, .35);
         box-shadow:
           inset 0 1px 0 rgba(255, 255, 255, .35),
@@ -138,7 +145,7 @@
 
       /* 3D red action button — same gradient family as the nav pills */
       .hdr-btn3d {
-        background: linear-gradient(180deg, #E24450 0%, #C01827 58%, #94101C 100%);
+        background: var(--grad-red-3d);
         box-shadow:
           inset 0 1px 0 rgba(255, 255, 255, .4),
           0 4px 10px -3px rgba(192, 24, 39, .55),
@@ -173,23 +180,180 @@
         .hdr-btn3d { transition: box-shadow .16s ease, filter .16s ease; }
         .hdr-btn3d:hover, .hdr-btn3d:active { transform: none; }
       }
+
+      /* ---- Hero slider: a genuine 3D rotating cube (perspective + real   ---- */
+      /* rotateY/translateZ geometry computed in JS), not a faked crossfade  */
+      /* or flat track. Each face carries a Ken Burns zoom, a staggered text  */
+      /* reveal on its own floating Z-depth layer, and the whole scene tilts  */
+      /* gently toward the cursor. A segmented bar (same red-fill language    */
+      /* as the preloader) sits flat above it all as progress + scrubber.     */
+      .hero-cube, .hero-cube-tilt { transform-style: preserve-3d; }
+      .hero-cube { transition: none; will-change: transform; }
+      .hero.is-ready .hero-cube { transition: transform 1.05s cubic-bezier(.65, 0, .35, 1); }
+      .hero-cube-tilt { transition: transform .2s ease-out; }
+      .hero-face { backface-visibility: hidden; -webkit-backface-visibility: hidden; }
+
+      /* no-JS fallback: hide non-first faces (flat-stacked, un-positioned) */
+      /* until the controller connects and takes over real 3D placement.    */
+      .hero:not(.js-ready) .hero-face:not(.is-active) { opacity: 0; pointer-events: none; }
+
+      @keyframes heroKenBurns { from { transform: scale(1); } to { transform: scale(1.1); } }
+      .hero-face.is-active .hero-face__img { animation: heroKenBurns 7s ease-out forwards; }
+
+      @keyframes heroReveal { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+      .hero-face__eyebrow, .hero-face__headline, .hero-face__cta { opacity: 0; }
+      .hero-face.is-active .hero-face__eyebrow { animation: heroReveal .75s cubic-bezier(.2, .7, .2, 1) .15s forwards; }
+      .hero-face.is-active .hero-face__headline { animation: heroReveal .75s cubic-bezier(.2, .7, .2, 1) .28s forwards; }
+      .hero-face.is-active .hero-face__cta { animation: heroReveal .75s cubic-bezier(.2, .7, .2, 1) .46s forwards; }
+
+      @keyframes heroProgress { from { width: 0%; } to { width: 100%; } }
+      .hero.is-paused .hero-segment__fill { animation-play-state: paused; }
+
+      /* tactile 3D arrow buttons — same raised-bevel language as the nav pills */
+      .hero-arrow {
+        background: linear-gradient(180deg, rgba(255, 255, 255, .16), rgba(255, 255, 255, .04));
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        border: 1px solid rgba(255, 255, 255, .22);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, .25), 0 6px 16px -6px rgba(0, 0, 0, .55);
+        transition: transform .16s ease, box-shadow .16s ease, background .16s ease, border-color .16s ease;
+      }
+      .hero-arrow:hover {
+        transform: translateY(-2px);
+        background: var(--grad-red-3d);
+        border-color: rgba(255, 255, 255, .4);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, .4), 0 10px 22px -8px rgba(192, 24, 39, .65);
+      }
+      .hero-arrow:active { transform: translateY(0); box-shadow: inset 0 2px 6px rgba(0, 0, 0, .45); }
+
+      @media (prefers-reduced-motion: reduce) {
+        .hero.is-ready .hero-cube { transition: none !important; }
+        .hero-cube-tilt { transition: none !important; }
+        .hero-face.is-active .hero-face__img { animation: none !important; }
+        .hero-face__eyebrow, .hero-face__headline, .hero-face__cta { animation: none !important; opacity: 1; transform: none; }
+        .hero-segment__fill { animation: none !important; }
+        .hero-arrow:hover, .hero-arrow:active { transform: none; }
+      }
+
+      /* ---- "About Zoomora" band: floating stat badge + trust chips, ---- */
+      /* reusing the raised-bevel language from the header/hero controls.  */
+      .brand-badge {
+        background: linear-gradient(180deg, #FFFFFF 0%, #F1F1F3 100%);
+        border: 1px solid #E2E3E6;
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, .8), 0 14px 28px -12px rgba(10, 10, 11, .35);
+        transition: transform .2s ease, box-shadow .2s ease;
+      }
+      .brand-badge:hover {
+        transform: translateY(-3px);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, .8), 0 18px 34px -12px rgba(192, 24, 39, .3);
+      }
+      .brand-chip {
+        display: inline-flex;
+        align-items: center;
+        background: linear-gradient(180deg, #FFFFFF 0%, #F1F1F3 100%);
+        border: 1px solid #D6D7DB;
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, .7), 0 2px 6px -2px rgba(10, 10, 11, .12);
+        transition: box-shadow .16s ease, border-color .16s ease, transform .16s ease;
+      }
+      .brand-chip:hover {
+        border-color: #C01827;
+        transform: translateY(-1px);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, .7), 0 6px 14px -4px rgba(192, 24, 39, .3);
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .brand-badge:hover, .brand-chip:hover { transform: none; }
+      }
+
+      /* ---- Product cards + rails (2026 refresh): flat, soft-glow controls ---- */
+      /* — frosted glass over photos, solid surfaces on plain backgrounds —   */
+      /* replacing the earlier glossy inset-highlight bevel look, which reads */
+      /* as dated skeuomorphism. Depth now comes from diffused, colored       */
+      /* shadows, not fake plastic highlights. See carousel_controller.js for */
+      /* the drag/momentum/edge-fade behavior that pairs with .rail-track.    */
+      :root {
+        --glow-red-hover: 0 3px 8px -2px rgba(192, 24, 39, .35), 0 14px 30px -10px rgba(192, 24, 39, .55);
+      }
+
+      /* floating over a photo (product card wishlist/quick-view) */
+      .action-btn {
+        background: rgba(255, 255, 255, .85);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, .6);
+        border-radius: 9999px;
+        color: #0A0A0B;
+        box-shadow: 0 6px 16px -8px rgba(10, 10, 11, .3);
+        transition: transform .2s ease, box-shadow .25s ease, background-color .2s ease, color .2s ease, border-color .2s ease;
+      }
+      .action-btn:hover {
+        background: #C01827;
+        border-color: transparent;
+        color: #fff;
+        transform: translateY(-3px);
+        box-shadow: var(--glow-red-hover);
+      }
+      .action-btn:active { transform: translateY(-1px); }
+      .action-btn:disabled { opacity: .35; pointer-events: none; box-shadow: none; transform: none; }
+
+      /* sitting on a plain section background (carousel prev/next arrows) */
+      .rail-arrow {
+        background: #FFFFFF;
+        border: 1px solid #E2E3E6;
+        border-radius: 9999px;
+        color: #0A0A0B;
+        box-shadow: 0 2px 6px -3px rgba(10, 10, 11, .18);
+        transition: transform .2s ease, box-shadow .25s ease, background-color .2s ease, color .2s ease, border-color .2s ease;
+      }
+      .rail-arrow:hover {
+        background: #C01827;
+        border-color: transparent;
+        color: #fff;
+        transform: translateY(-3px);
+        box-shadow: var(--glow-red-hover);
+      }
+      .rail-arrow:active { transform: translateY(-1px); }
+      .rail-arrow:disabled { opacity: .35; pointer-events: none; box-shadow: none; transform: none; }
+
+      /* full-width segmented fade at the scrollable edges of a product rail, */
+      /* hinting more content off-screen; clears once that edge is reached.   */
+      .rail-track {
+        -webkit-mask-image: linear-gradient(to right, transparent, black 32px, black calc(100% - 32px), transparent);
+        mask-image: linear-gradient(to right, transparent, black 32px, black calc(100% - 32px), transparent);
+      }
+      .rail.is-at-start .rail-track {
+        -webkit-mask-image: linear-gradient(to right, black, black calc(100% - 32px), transparent);
+        mask-image: linear-gradient(to right, black, black calc(100% - 32px), transparent);
+      }
+      .rail.is-at-end .rail-track {
+        -webkit-mask-image: linear-gradient(to right, transparent, black 32px, black);
+        mask-image: linear-gradient(to right, transparent, black 32px, black);
+      }
+      .rail.is-at-start.is-at-end .rail-track {
+        -webkit-mask-image: none;
+        mask-image: none;
+      }
+      .rail-track.is-dragging { cursor: grabbing; scroll-snap-type: none; }
+
+      @media (prefers-reduced-motion: reduce) {
+        .action-btn:hover, .action-btn:active, .rail-arrow:hover, .rail-arrow:active { transform: none; }
+      }
     </style>
 
     <%= yield :head %>
 
     <link rel="manifest" href="/manifest.json">
-    <link rel="icon" href="/icon.png" type="image/png">
-    <link rel="icon" href="/icon.svg" type="image/svg+xml">
-    <link rel="apple-touch-icon" href="/icon.png">
+    <link rel="icon" href="/icon.png?v=2" type="image/png">
+    <link rel="icon" href="/icon.svg?v=2" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="/icon.png?v=2">
     <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
     <%= javascript_importmap_tags %>
   </head>
 
   <body class="font-body text-body text-ink-950 bg-white antialiased">
-    <div data-controller="preloader" class="zoom-preloader fixed inset-0 z-[100] flex items-center justify-center bg-ink-950 overflow-hidden" role="status" aria-label="Loading Zoomora Toys">
+    <div data-controller="preloader" class="zoom-preloader fixed inset-0 z-[100] flex items-center justify-center bg-ink-950 overflow-hidden" role="status" aria-label="Loading Zoomora">
       <div class="zoom-preloader__glow pointer-events-none absolute w-[520px] h-[520px] rounded-full" style="background: radial-gradient(circle, rgba(192,24,39,.30), transparent 68%); filter: blur(24px);" aria-hidden="true"></div>
       <div class="relative flex flex-col items-center px-6 text-center">
-        <%= image_tag "logo-transparent.png", alt: "Zoomora Toys", class: "zoom-preloader__logo w-[240px] lg:w-[300px] h-auto" %>
+        <%= image_tag "logo-transparent.png", alt: "Zoomora", class: "zoom-preloader__logo w-[240px] lg:w-[300px] h-auto" %>
         <p class="zoom-preloader__tagline mt-5 text-[12px] lg:text-[14px] font-display font-semibold uppercase tracking-[0.35em] text-grey-300">Adventure Starts Here</p>
         <div class="mt-9 h-[3px] w-[170px] bg-white/10 overflow-hidden">
           <span class="zoom-preloader__bar-fill block h-full bg-red-600"></span>
@@ -201,7 +365,7 @@
       Skip to content
     </a>
 
-    <%= render Layout::SiteHeaderComponent.new(categories: @nav_categories) %>
+    <%= render Layout::SiteHeaderComponent.new(categories: @nav_categories, category_products: @nav_category_products) %>
 
     <main id="main-content">
       <% if notice.present? %>

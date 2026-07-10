@@ -1,28 +1,25 @@
 # frozen_string_literal: true
 
 #
-# Original Zoomora Toys catalog copy for Milestone 1. Prices are in AED,
+# Original Zoomora catalog copy for Milestone 1. Prices are in AED,
 # stored as price_cents (AED * 100) per DATABASE_GUIDELINES.md. Idempotent:
 # safe to run more than once (find_or_create_by! on the natural key).
 
 CATALOG = {
-  "Ride-On Vehicles" => {
-    placeholder_key: "rideon",
-    description: "Battery-powered cars, jeeps, and buggies built for small drivers, with parental remote override on every model.",
+  "Ebike" => {
+    placeholder_key: "bicycle",
+    description: "Electric-assist bikes for commuting, cargo hauling, and light trail riding, each with a removable battery and pedal-assist power modes.",
     products: [
-      { name: "Trailblazer Junior 4x4", price_aed: 1_299, description: "A 12V ride-on 4x4 with working headlights, a two-speed motor, and a padded roll bar for young off-roaders." },
-      { name: "Coastline Cruiser Convertible", price_aed: 1_899, description: "A stylish 12V convertible ride-on with a soft-touch steering wheel and built-in music player." },
-      { name: "Dune Racer Buggy", price_aed: 1_599, description: "A rugged 12V buggy with oversized tires and suspension tuned for backyard trails." },
-      { name: "Baby's First Cruiser", price_aed: 549, description: "A gentle 6V ride-on for toddlers, with a parent push-handle and a top speed capped for safety." },
-      { name: "Twin Seater Family Wagon", price_aed: 2_199, description: "A two-seat 24V ride-on built for siblings to share, with independent seatbelts and dual-zone lighting." },
-      { name: "Metro Police Patrol Jeep", price_aed: 1_349, description: "A themed 12V patrol jeep with a working siren, roof lights, and a radio-style dashboard toy." },
-      { name: "Alpine Explorer Mini Jeep", price_aed: 1_749, description: "A 12V mini jeep with a working trunk, roof rack, and a canopy for shaded rides." },
-      { name: "Thunderbolt Pit Racer", price_aed: 1_449, description: "A racing-styled 12V ride-on with racing decals, a sport steering wheel, and a low center of gravity." }
+      { name: "Harborfront Cargo Hauler", price_aed: 2_899, description: "A pedal-assist cargo e-bike with a front load bay rated for two children or grocery runs." },
+      { name: "Summit E-Trail 27.5", price_aed: 3_499, description: "An electric-assist mountain e-bike with a removable battery and a 60 km assisted range." },
+      { name: "Commuter Volt 350", price_aed: 2_999, description: "A 350W pedal-assist commuter e-bike with a 50 km range and integrated front and rear lights." },
+      { name: "Foldaway City E-Bike", price_aed: 2_599, description: "A folding pedal-assist e-bike with a quick-release frame and a 35 km range, built for mixed transit-and-ride commutes." },
+      { name: "Fat Tyre Trailblazer EB", price_aed: 4_299, description: "A fat-tyre electric bike with a 500W motor and front suspension, built for sand, gravel, and light trail riding." }
     ]
   },
-  "Electric Scooters" => {
+  "Cargo Scooters" => {
     placeholder_key: "scooter",
-    description: "Kick and seated electric scooters spanning first rides for kids through commuter-range models for teens and adults.",
+    description: "Kick and seated electric scooters with cargo-ready decks and racks, spanning first rides for kids through commuter-range models for teens and adults.",
     products: [
       { name: "Kidling Foldable Scooter", price_aed: 899, description: "A lightweight foldable electric scooter for kids, with a 12 km/h speed cap and a low 15cm deck height." },
       { name: "Commuter Pro X1", price_aed: 3_299, description: "A commuter electric scooter with a 45 km range, dual disc brakes, and a front suspension fork." },
@@ -32,53 +29,7 @@ CATALOG = {
       { name: "Longhaul Cargo Scooter", price_aed: 4_199, description: "A cargo-rated electric scooter with a rear basket and a reinforced deck for grocery runs." }
     ]
   },
-  "Electric Golf Carts" => {
-    placeholder_key: "golf_cart",
-    description: "Street-legal-style electric golf carts and buggies for family sightseeing, resorts, and large properties.",
-    products: [
-      { name: "Fairway Four Classic", price_aed: 24_999, description: "A 4-seat electric golf cart with a lithium battery pack, LED lighting, and a fold-flat rear bench." },
-      { name: "Sundowner Six Seater", price_aed: 34_500, description: "A 6-seat electric golf cart designed for resort shuttling, with a canopy roof and USB charging ports." },
-      { name: "Ridgeline Lifted Buggy", price_aed: 29_900, description: "A lifted 4-seat electric buggy with off-road suspension and all-terrain tires." },
-      { name: "Estate Two Seater", price_aed: 19_999, description: "A compact 2-seat electric golf cart sized for tighter driveways and garden paths." },
-      { name: "Marina Cargo Hauler", price_aed: 27_500, description: "A 2-seat electric golf cart with a rear cargo bed, built for property maintenance runs." }
-    ]
-  },
-  "Bicycles & Cargo Bikes" => {
-    placeholder_key: "bicycle",
-    description: "Pedal and electric-assist bicycles for kids learning to ride through adult commuters and cargo hauling.",
-    products: [
-      { name: "First Pedal 16-Inch", price_aed: 449, description: "A 16-inch kids' bicycle with training wheels and a low step-through frame for confident first rides." },
-      { name: "Trailblazer Mountain 26", price_aed: 1_299, description: "A 26-inch mountain bike with a 21-speed drivetrain and front suspension for light trail riding." },
-      { name: "Cityline Folding Commuter", price_aed: 1_599, description: "A folding commuter bicycle with a lightweight aluminum frame, built for mixed transit-and-ride commutes." },
-      { name: "Harborfront Cargo Hauler", price_aed: 2_899, description: "A pedal-assist cargo bike with a front load bay rated for two children or grocery runs." },
-      { name: "Summit E-Trail 27.5", price_aed: 3_499, description: "An electric-assist mountain bike with a removable battery and a 60 km assisted range." },
-      { name: "Boardwalk Cruiser", price_aed: 899, description: "A single-speed beach cruiser with a wide comfort saddle and swept-back handlebars." }
-    ]
-  },
-  "ATVs & Dirt Bikes" => {
-    placeholder_key: "atv",
-    description: "Fuel and electric ATVs, quad bikes, and dirt bikes for teens and adults, from starter models to trail-rated builds.",
-    products: [
-      { name: "Ridgecrest 110 Youth ATV", price_aed: 3_999, description: "A 110cc youth ATV with an automatic transmission and an adjustable speed limiter." },
-      { name: "Canyon Runner 200 Quad", price_aed: 7_499, description: "A 200cc automatic quad bike with a reverse gear and racked cargo mounts." },
-      { name: "Ember Trail Dirt Bike 125", price_aed: 5_299, description: "A 125cc dirt bike with a manual clutch, built for older teens progressing off starter models." },
-      { name: "Voltdash Electric Pit Bike", price_aed: 4_599, description: "An electric pit bike with a silent motor and three selectable power modes for supervised riders." },
-      { name: "Outback 250 Adventure ATV", price_aed: 11_900, description: "A 250cc adult ATV with long-travel suspension and dual headlamps for adventure trail riding." },
-      { name: "Scrambler Mini Dirt 50", price_aed: 2_299, description: "A 50cc automatic mini dirt bike sized for first-time young riders under close supervision." }
-    ]
-  },
-  "Trampolines" => {
-    placeholder_key: "trampoline",
-    description: "Backyard trampolines with enclosure nets, sized for small gardens through full family back yards.",
-    products: [
-      { name: "Backyard Bounce 8ft", price_aed: 899, description: "An 8ft round trampoline with a padded frame cover and a full-height safety enclosure net." },
-      { name: "Skyline Bounce 12ft", price_aed: 1_499, description: "A 12ft round trampoline rated for multiple jumpers, with galvanized-steel legs." },
-      { name: "Family Arena 14ft", price_aed: 1_899, description: "A 14ft trampoline with a reinforced jumping mat and a two-door zippered enclosure." },
-      { name: "Compact Hopper 6ft", price_aed: 549, description: "A 6ft junior trampoline sized for small gardens and younger jumpers." },
-      { name: "Rectangle Pro Bounce", price_aed: 2_299, description: "A rectangular trampoline with sport-grade spring tension, styled after competition frames." }
-    ]
-  },
-  "Pools & Inflatables" => {
+  "Inflatables" => {
     placeholder_key: "pool",
     description: "Above-ground frame pools, kayaks, and inflatable rafts for backyard summers and lakeside trips.",
     products: [
@@ -89,15 +40,22 @@ CATALOG = {
       { name: "Grand Rectangle Pool 16ft", price_aed: 2_699, description: "A 16ft rectangular frame pool with a reinforced liner and a sand-filter pump system." }
     ]
   },
-  "Play Sets" => {
-    placeholder_key: "playset",
-    description: "Climbing frames, playhouses, and activity sets for garden play at every age.",
+  "Dirt Bikes" => {
+    placeholder_key: "dirtbike",
+    description: "Fuel and electric dirt bikes and pit bikes for teens and adults, from supervised starter models to manual-clutch trail builds.",
     products: [
-      { name: "Fort Horizon Climbing Frame", price_aed: 2_199, description: "A wooden climbing frame with a slide, rope ladder, and a covered lookout deck." },
-      { name: "Meadow Playhouse Cottage", price_aed: 1_699, description: "A garden playhouse with working shutters, a Dutch door, and a flower-box ledge." },
-      { name: "Ball Pit Activity Dome", price_aed: 649, description: "A pop-up activity dome with a tunnel entrance, sold with 100 play balls included." },
-      { name: "Adventure Swing & Slide Set", price_aed: 1_899, description: "A combination swing set with a double swing bay, a wave slide, and a climbing wall panel." },
-      { name: "Sandcastle Builder Pit", price_aed: 549, description: "A covered sandpit with a bench-seat lid and a matched set of building tools." }
+      { name: "Ember Trail Dirt Bike 125", price_aed: 5_299, description: "A 125cc dirt bike with a manual clutch, built for older teens progressing off starter models." },
+      { name: "Voltdash Electric Pit Bike", price_aed: 4_599, description: "An electric pit bike with a silent motor and three selectable power modes for supervised riders." },
+      { name: "Scrambler Mini Dirt 50", price_aed: 2_299, description: "A 50cc automatic mini dirt bike sized for first-time young riders under close supervision." }
+    ]
+  },
+  "ATVs & Quadbikes" => {
+    placeholder_key: "atv",
+    description: "Fuel and electric ATVs and quad bikes for teens and adults, from starter models to trail-rated builds.",
+    products: [
+      { name: "Ridgecrest 110 Youth ATV", price_aed: 3_999, description: "A 110cc youth ATV with an automatic transmission and an adjustable speed limiter." },
+      { name: "Canyon Runner 200 Quad", price_aed: 7_499, description: "A 200cc automatic quad bike with a reverse gear and racked cargo mounts." },
+      { name: "Outback 250 Adventure ATV", price_aed: 11_900, description: "A 250cc adult ATV with long-travel suspension and dual headlamps for adventure trail riding." }
     ]
   }
 }.freeze
@@ -141,3 +99,91 @@ CATALOG.each_with_index do |(category_name, category_data), category_index|
 end
 
 puts "Seeded #{Category.count} categories and #{Product.count} products."
+
+BLOG_POSTS = [
+  {
+    title: "5 Ways to Get Your Kids Off Screens This Weekend",
+    cover_image_key: "scooter",
+    excerpt: "Simple, low-effort ideas for turning a Friday afternoon into an actual family adventure — no extra planning required.",
+    body: <<~TEXT.strip
+      It's 4pm on a Friday, the heat has finally started to break, and every kid in the house is staring at a screen. Sound familiar? The good news is that getting outside doesn't need a big plan or a special occasion — it just needs the right gear already sitting in the garage.
+
+      Start small. A twenty-minute scooter loop around the block or a quick splash in the pool before dinner is enough to reset a restless afternoon. The goal isn't a full day out — it's making outside the easy, default option instead of the effortful one.
+
+      Rotate what's available. Kids get bored of the same scooter route or the same bike loop just like they get bored of anything else. Keeping two or three different activities within easy reach — a scooter, a bike, an inflatable raft in the pool — means there's always something that feels new enough to be worth putting the tablet down for.
+
+      Make it a standing plan, not a one-off. "We ride bikes after school on Wednesdays" works better than waiting for motivation to strike. Once it's a habit, you stop having to convince anyone.
+    TEXT
+  },
+  {
+    title: "A Parent's Guide to ATV & Quad Bike Safety for Teens",
+    cover_image_key: "atv",
+    excerpt: "What to check before your teen's first ride, and the habits that keep every ride after it safe too.",
+    body: <<~TEXT.strip
+      An ATV or quad bike is often a teen's first taste of real off-road power, which makes it exciting — and it's exactly why a few basics matter before the first lap around the property.
+
+      Start with the space, not the machine. Walk the riding area first for holes, fencing, or slopes steeper than they look from a distance, and agree on clear boundaries before the engine even starts. Most incidents come from unfamiliar terrain, not the vehicle itself.
+
+      Use the adjustable speed limiter on youth and starter models, especially in the first few weeks. It's tempting to let a confident rider open it up right away, but keeping the ceiling lower at first builds the reflexes — braking, weight-shifting through turns — before the top speed does.
+
+      Make helmets, gloves, and boots non-negotiable from ride one, even on the smallest-engine models. The gear habit matters more than the specific machine it started on, since it carries over to a dirt bike or a full-size ATV later.
+    TEXT
+  },
+  {
+    title: "ATV vs Dirt Bike vs Quad Bike: Which One Is Right for Your Teen?",
+    cover_image_key: "dirtbike",
+    excerpt: "Three very different riding experiences that often get lumped together — here's how to actually tell them apart.",
+    body: <<~TEXT.strip
+      "ATV," "quad," and "dirt bike" get used almost interchangeably in casual conversation, but they ride nothing alike, and picking the wrong one for your teen's experience level is the most common mistake we see.
+
+      A quad bike (four wheels) is the most forgiving starting point. It's inherently stable at low speeds, doesn't require balance to stay upright at a stop, and most youth models come with an automatic transmission and an adjustable speed limiter — which is why we'd point a first-time rider here.
+
+      A dirt bike (two wheels) demands balance and a manual clutch on most models, which means a real learning curve before it's actually fun rather than stressful. It rewards riders who already have some two-wheel experience, whether from a bicycle or a scooter, and want to step up to something with a throttle.
+
+      Whichever you choose, match the engine size to the rider, not the other way around — a 50cc starter model and a 250cc adventure ATV are not the same category of decision, and neither is something to size up early "for growing room."
+    TEXT
+  },
+  {
+    title: "Getting Your Backyard Pool Ready for Summer",
+    cover_image_key: "pool",
+    excerpt: "A short pre-season checklist so the first hot weekend doesn't turn into a setup scramble.",
+    body: <<~TEXT.strip
+      The first real heatwave always seems to arrive faster than expected, and an above-ground pool that's been folded in storage since last year needs a bit of attention before anyone jumps in.
+
+      Inspect the liner and frame before filling. Small punctures are far easier to patch on an empty pool than a full one, and a frame that's slightly bent from storage is worth straightening now rather than after it's under water pressure.
+
+      Run the filter pump for a full cycle before the pool is in regular use, and check that the water is clear and the filter cartridge isn't still packed with dust from being in storage. A pump that's been sitting unused for months is worth testing on its own before anyone's relying on it.
+
+      And if inflatables — kayaks, rafts, pool floats — are part of the plan, check the seams and valves while they're still dry. A slow leak is a five-minute fix with a patch kit and a much bigger annoyance mid-afternoon with a raft full of kids.
+    TEXT
+  },
+  {
+    title: "E-Bike Commuting 101: What Families Should Know Before Buying",
+    cover_image_key: "bicycle",
+    excerpt: "Battery range, motor power, and the questions worth asking before an e-bike replaces the school run.",
+    body: <<~TEXT.strip
+      E-bikes have gone from a niche purchase to a genuine second-car replacement for a lot of families, but the spec sheet can be confusing if you haven't shopped for one before.
+
+      Range numbers are almost always best-case. A quoted 50 km range assumes flat ground, a lighter rider, and minimal use of the highest assist setting — in daily UAE heat with a loaded cargo rack, expect meaningfully less. Buy for your actual commute distance with room to spare, not the number on the box.
+
+      Motor placement matters more than motor wattage. A mid-drive motor (built into the pedals) handles hills and cargo weight better than a hub motor of the same wattage, which is worth knowing if your route includes any real incline or you're planning to carry a child seat.
+
+      Finally, check what's actually removable. A battery that locks in place for charging on the bike itself is far less convenient than a quick-release pack you can bring inside — a small detail that matters every single day, not just at purchase time.
+    TEXT
+  }
+].freeze
+
+BLOG_POSTS.each_with_index do |post_data, index|
+  post = BlogPost.find_or_initialize_by(title: post_data[:title])
+  post.assign_attributes(
+    excerpt: post_data[:excerpt],
+    body: post_data[:body],
+    cover_image_key: post_data[:cover_image_key],
+    # Staggered so the index reads as a real publishing history rather than
+    # a single batch, newest (index 0) landing most recently.
+    published_at: post.published_at || (index * 6 + 2).days.ago
+  )
+  post.save!
+end
+
+puts "Seeded #{BlogPost.count} blog posts."

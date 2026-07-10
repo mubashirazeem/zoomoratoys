@@ -11,7 +11,9 @@ Rails.application.routes.draw do
 
   resources :categories, only: [ :index ]
   resources :products, only: [ :index, :show ], param: :slug, path: "shop"
+  resources :blog_posts, only: [ :index, :show ], param: :slug, path: "blog"
 
+  get "rentals", to: "pages#rentals", as: :rentals
   get "about", to: "pages#about", as: :about
 
   get "contact", to: "contact_messages#new", as: :contact

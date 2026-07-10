@@ -38,7 +38,7 @@ class Ui::ButtonComponent < ViewComponent::Base
 
   def classes
     [
-      "inline-flex items-center justify-center gap-2 rounded-md font-display transition-colors duration-150",
+      "inline-flex items-center justify-center gap-2 rounded-full font-display transition-colors duration-150",
       "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600",
       VARIANT_CLASSES.fetch(@variant),
       SIZE_CLASSES.fetch(@size),

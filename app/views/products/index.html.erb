@@ -1,5 +1,5 @@
 <% page_title = @selected_category ? @selected_category.name : "Shop All" %>
-<% content_for :title, "#{page_title} | Zoomora Toys" %>
+<% content_for :title, "#{page_title} | Zoomora" %>
 
 <% products = @products.to_a %>
 <% in_stock_count = products.count(&:in_stock?) %>
@@ -13,116 +13,123 @@
     { label: page_title }
   ]) %>
 
-  <div data-controller="grid-density" class="mt-6 grid grid-cols-1 lg:grid-cols-[250px_1fr] gap-8 lg:gap-12">
+  <div data-controller="grid-density" class="mt-6 grid grid-cols-1 lg:grid-cols-[260px_1fr] gap-8 lg:gap-12">
     <%# ---- Sidebar filters ---- %>
     <aside>
-      <%= render Catalog::FilterSectionComponent.new(title: "Categories") do |section| %>
-        <% section.with_body do %>
-          <ul class="flex flex-col gap-1">
-            <li>
-              <%= link_to "All Products", products_path,
-                    class: "block px-3 py-2 text-body-sm #{@selected_category.nil? ? 'bg-red-600 text-white font-semibold' : 'text-ink-950 hover:bg-grey-50'}" %>
-            </li>
-            <% @categories.each do |category| %>
+      <div class="rounded-[16px] border border-grey-200 bg-white p-5 lg:p-6 shadow-[0_10px_30px_-24px_rgba(10,10,11,0.4)]">
+        <%= render Catalog::FilterSectionComponent.new(title: "Categories") do |section| %>
+          <% section.with_body do %>
+            <ul class="flex flex-col gap-1">
               <li>
-                <%= link_to category.name, products_path(category: category.slug),
-                      class: "block px-3 py-2 text-body-sm #{@selected_category == category ? 'bg-red-600 text-white font-semibold' : 'text-ink-950 hover:bg-grey-50'}" %>
+                <%= link_to "All Products", products_path,
+                      class: "block rounded-[10px] px-3 py-2 text-body-sm transition-colors #{@selected_category.nil? ? 'bg-red-600 text-white font-semibold' : 'text-ink-950 hover:bg-grey-50'}" %>
               </li>
-            <% end %>
-          </ul>
+              <% @categories.each do |category| %>
+                <li>
+                  <%= link_to category.name, products_path(category: category.slug),
+                        class: "block rounded-[10px] px-3 py-2 text-body-sm transition-colors #{@selected_category == category ? 'bg-red-600 text-white font-semibold' : 'text-ink-950 hover:bg-grey-50'}" %>
+                </li>
+              <% end %>
+            </ul>
+          <% end %>
         <% end %>
-      <% end %>
 
-      <%= render Catalog::FilterSectionComponent.new(title: "Color") do |section| %>
-        <% section.with_body do %>
-          <div class="grid grid-cols-5 gap-3">
-            <% ["#3D7A4A", "#EFE9DD", "#0A0A0B", "#26282B", "#43454B", "#FFFFFF", "#6D28D9", "#C01827", "#F5C518", "#7E8189"].each_with_index do |color, index| %>
-              <button type="button" aria-label="Filter by colour <%= index + 1 %>"
-                class="w-8 h-8 rounded-full border border-grey-300 hover:ring-2 hover:ring-red-600 hover:ring-offset-1 transition-shadow focus-visible:outline focus-visible:outline-2 focus-visible:outline-red-600"
-                style="background: <%= color %>"></button>
-            <% end %>
-          </div>
-          <button type="button" class="mt-4 flex items-center gap-1.5 text-body-sm text-ink-950 hover:text-red-600">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4" aria-hidden="true"><path d="m7 9 5 5 5-5"/></svg>
-            Show All
-          </button>
-        <% end %>
-      <% end %>
-
-      <%= render Catalog::FilterSectionComponent.new(title: "Availability") do |section| %>
-        <% section.with_body do %>
-          <div class="flex flex-col gap-3 text-body-sm text-ink-950">
-            <label class="flex items-center gap-3 cursor-pointer">
-              <input type="checkbox" class="w-4 h-4 accent-red-600" />
-              <span>In Stock <span class="text-grey-500">(<%= in_stock_count %>)</span></span>
-            </label>
-            <label class="flex items-center gap-3 cursor-pointer">
-              <input type="checkbox" class="w-4 h-4 accent-red-600" />
-              <span>Out Of Stock <span class="text-grey-500">(<%= out_of_stock_count %>)</span></span>
-            </label>
-          </div>
-        <% end %>
-      <% end %>
-
-      <%= render Catalog::FilterSectionComponent.new(title: "Price") do |section| %>
-        <% section.with_body do %>
-          <input type="range" min="0" max="<%= max_price %>" value="<%= max_price %>" aria-label="Maximum price"
-            class="w-full accent-red-600" />
-          <div class="mt-4 flex items-center gap-2">
-            <div class="flex-1 flex items-center border border-grey-300 px-2">
-              <span class="text-grey-400 text-body-sm">AED</span>
-              <input type="text" inputmode="numeric" value="0" aria-label="Minimum price" class="w-full h-9 px-2 text-body-sm text-ink-950 focus:outline-none" />
+        <%= render Catalog::FilterSectionComponent.new(title: "Color") do |section| %>
+          <% section.with_body do %>
+            <div class="grid grid-cols-5 gap-3">
+              <% ["#3D7A4A", "#EFE9DD", "#0A0A0B", "#26282B", "#43454B", "#FFFFFF", "#6D28D9", "#C01827", "#F5C518", "#7E8189"].each_with_index do |color, index| %>
+                <button type="button" aria-label="Filter by colour <%= index + 1 %>"
+                  class="w-8 h-8 rounded-full border border-grey-300 hover:ring-2 hover:ring-red-600 hover:ring-offset-1 transition-shadow focus-visible:outline focus-visible:outline-2 focus-visible:outline-red-600"
+                  style="background: <%= color %>"></button>
+              <% end %>
             </div>
-            <span class="text-grey-400 text-body-sm">to</span>
-            <div class="flex-1 flex items-center border border-grey-300 px-2">
-              <span class="text-grey-400 text-body-sm">AED</span>
-              <input type="text" inputmode="numeric" value="<%= max_price %>" aria-label="Maximum price" class="w-full h-9 px-2 text-body-sm text-ink-950 focus:outline-none" />
-            </div>
-          </div>
-          <button type="button" class="mt-4 w-full bg-ink-950 text-white text-[13px] font-semibold uppercase tracking-[0.06em] py-3 hover:bg-ink-800 transition-colors">
-            Apply
-          </button>
+            <button type="button" class="mt-4 flex items-center gap-1.5 text-body-sm text-ink-950 hover:text-red-600">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4" aria-hidden="true"><path d="m7 9 5 5 5-5"/></svg>
+              Show All
+            </button>
+          <% end %>
         <% end %>
-      <% end %>
+
+        <%= render Catalog::FilterSectionComponent.new(title: "Availability") do |section| %>
+          <% section.with_body do %>
+            <div class="flex flex-col gap-3 text-body-sm text-ink-950">
+              <label class="flex items-center gap-3 cursor-pointer">
+                <input type="checkbox" class="w-4 h-4 accent-red-600" />
+                <span>In Stock <span class="text-grey-500">(<%= in_stock_count %>)</span></span>
+              </label>
+              <label class="flex items-center gap-3 cursor-pointer">
+                <input type="checkbox" class="w-4 h-4 accent-red-600" />
+                <span>Out Of Stock <span class="text-grey-500">(<%= out_of_stock_count %>)</span></span>
+              </label>
+            </div>
+          <% end %>
+        <% end %>
+
+        <%= render Catalog::FilterSectionComponent.new(title: "Price", open: true) do |section| %>
+          <% section.with_body do %>
+            <input type="range" min="0" max="<%= max_price %>" value="<%= max_price %>" aria-label="Maximum price"
+              class="w-full accent-red-600" />
+            <div class="mt-4 flex items-center gap-2">
+              <div class="flex-1 flex items-center rounded-[10px] border border-grey-300 px-2">
+                <span class="text-grey-400 text-body-sm">AED</span>
+                <input type="text" inputmode="numeric" value="0" aria-label="Minimum price" class="w-full h-9 px-2 text-body-sm text-ink-950 focus:outline-none bg-transparent" />
+              </div>
+              <span class="text-grey-400 text-body-sm">to</span>
+              <div class="flex-1 flex items-center rounded-[10px] border border-grey-300 px-2">
+                <span class="text-grey-400 text-body-sm">AED</span>
+                <input type="text" inputmode="numeric" value="<%= max_price %>" aria-label="Maximum price" class="w-full h-9 px-2 text-body-sm text-ink-950 focus:outline-none bg-transparent" />
+              </div>
+            </div>
+            <button type="button" class="mt-4 w-full rounded-full bg-ink-950 text-white text-[13px] font-semibold uppercase tracking-[0.06em] py-3 hover:bg-ink-800 transition-colors">
+              Apply
+            </button>
+          <% end %>
+        <% end %>
+      </div>
     </aside>
 
-    <%# ---- Main: banner, title, toolbar, grid ---- %>
+    <%# ---- Main: hero banner, toolbar, grid ---- %>
     <div>
-      <div class="relative overflow-hidden bg-grey-50">
-        <%= image_tag banner_image, alt: "", class: "w-full h-[200px] lg:h-[260px] object-cover" %>
+      <div class="relative overflow-hidden rounded-[16px] bg-ink-950">
+        <%= image_tag banner_image, alt: "", class: "w-full h-[220px] lg:h-[300px] object-cover" %>
+        <div class="absolute inset-0 bg-gradient-to-r from-ink-950/85 via-ink-950/45 to-transparent" aria-hidden="true"></div>
+        <div class="absolute inset-0 flex flex-col justify-end p-6 lg:p-10">
+          <p class="text-[12px] uppercase font-semibold tracking-[0.12em] text-red-400 mb-2">Zoomora</p>
+          <h1 class="text-[30px] lg:text-[44px] font-display font-bold text-white leading-[1.1]"><%= page_title %></h1>
+          <% if @selected_category&.description.present? %>
+            <p class="mt-2 text-body text-grey-200 max-w-xl"><%= @selected_category.description %></p>
+          <% end %>
+        </div>
       </div>
 
-      <h1 class="mt-6 text-h1 font-display text-ink-950"><%= page_title %></h1>
-      <% if @selected_category&.description.present? %>
-        <p class="mt-2 text-body text-grey-500 max-w-2xl"><%= @selected_category.description %></p>
-      <% end %>
-
-      <hr class="mt-5 border-grey-200" />
-
-      <div class="mt-5 flex flex-wrap items-center justify-between gap-4">
-        <div class="flex items-center gap-3">
-          <span class="text-[12px] uppercase font-semibold tracking-[0.06em] text-grey-500">View As</span>
-          <div class="flex items-center gap-1.5">
-            <% [[2, "M4 4h6v16H4zM14 4h6v16h-6z"], [3, "M3 4h4v16H3zM10 4h4v16h-4zM17 4h4v16h-4z"], [4, "M3 4h3v16H3zM8.5 4h3v16h-3zM14 4h3v16h-3zM19.5 4h1.5v16h-1.5z"]].each_with_index do |(cols, path), index| %>
-              <button type="button" data-cols="<%= cols %>" data-action="grid-density#set" data-grid-density-target="option"
-                aria-label="View <%= cols %> per row"
-                class="w-8 h-8 flex items-center justify-center <%= cols == 3 ? 'text-red-600' : 'text-grey-400' %> hover:text-red-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-red-600">
-                <svg viewBox="0 0 24 24" fill="currentColor" class="w-4 h-4" aria-hidden="true"><path d="<%= path %>"/></svg>
-              </button>
-            <% end %>
+      <div class="mt-6 flex flex-wrap items-center justify-between gap-4 rounded-[12px] border border-grey-200 bg-grey-50 px-4 py-3">
+        <div class="flex items-center gap-4">
+          <span class="text-body-sm text-grey-600"><span class="font-semibold text-ink-950"><%= products.size %></span> products</span>
+          <span class="hidden sm:block h-5 w-px bg-grey-300" aria-hidden="true"></span>
+          <div class="hidden sm:flex items-center gap-2">
+            <span class="text-[12px] uppercase font-semibold tracking-[0.06em] text-grey-500">View</span>
+            <div class="flex items-center gap-1">
+              <% [[2, "M4 4h6v16H4zM14 4h6v16h-6z"], [3, "M3 4h4v16H3zM10 4h4v16h-4zM17 4h4v16h-4z"], [4, "M3 4h3v16H3zM8.5 4h3v16h-3zM14 4h3v16h-3zM19.5 4h1.5v16h-1.5z"]].each_with_index do |(cols, path), index| %>
+                <button type="button" data-cols="<%= cols %>" data-action="grid-density#set" data-grid-density-target="option"
+                  aria-label="View <%= cols %> per row"
+                  class="w-8 h-8 flex items-center justify-center rounded-[8px] hover:text-red-600 transition-colors <%= cols == 3 ? 'bg-red-600 text-white' : 'text-grey-400' %> focus-visible:outline focus-visible:outline-2 focus-visible:outline-red-600">
+                  <svg viewBox="0 0 24 24" fill="currentColor" class="w-4 h-4" aria-hidden="true"><path d="<%= path %>"/></svg>
+                </button>
+              <% end %>
+            </div>
           </div>
         </div>
 
-        <div class="flex items-center gap-5 text-body-sm">
+        <div class="flex items-center gap-3 text-body-sm">
           <label class="flex items-center gap-2 text-grey-500">
-            <span class="uppercase text-[12px] font-semibold tracking-[0.06em]">Items</span>
-            <select class="border border-grey-300 h-9 px-2 text-ink-950 focus-visible:outline focus-visible:outline-2 focus-visible:outline-red-600">
+            <span class="hidden sm:inline uppercase text-[12px] font-semibold tracking-[0.06em]">Items</span>
+            <select class="rounded-[8px] border border-grey-300 bg-white h-9 px-2.5 text-ink-950 focus-visible:outline focus-visible:outline-2 focus-visible:outline-red-600">
               <option>12</option><option selected>24</option><option>48</option>
             </select>
           </label>
           <label class="flex items-center gap-2 text-grey-500">
-            <span class="uppercase text-[12px] font-semibold tracking-[0.06em]">Sort By</span>
-            <select class="border border-grey-300 h-9 px-2 text-ink-950 focus-visible:outline focus-visible:outline-2 focus-visible:outline-red-600">
+            <span class="hidden sm:inline uppercase text-[12px] font-semibold tracking-[0.06em]">Sort</span>
+            <select class="rounded-[8px] border border-grey-300 bg-white h-9 px-2.5 text-ink-950 focus-visible:outline focus-visible:outline-2 focus-visible:outline-red-600">
               <option>Featured</option>
               <option>Price: Low to High</option>
               <option>Price: High to Low</option>

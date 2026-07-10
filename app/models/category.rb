@@ -6,7 +6,7 @@ class Category < ApplicationRecord
   # with Product so a product stays visually consistent with its category.
   # See DESIGN_SYSTEM.md and Catalog::CategoryTileComponent::SHORT_LABELS.
   PLACEHOLDER_KEYS = %w[
-    rideon scooter golf_cart bicycle atv trampoline pool playset
+    bicycle scooter pool dirtbike atv
   ].freeze
 
   has_many :products, dependent: :restrict_with_error

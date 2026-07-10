@@ -13,7 +13,8 @@ export default class extends Controller {
     )
     this.optionTargets.forEach((option) => {
       const active = option === event.currentTarget
-      option.classList.toggle("text-red-600", active)
+      option.classList.toggle("bg-red-600", active)
+      option.classList.toggle("text-white", active)
       option.classList.toggle("text-grey-400", !active)
     })
   }
