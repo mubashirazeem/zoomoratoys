@@ -1,0 +1,24 @@
+<% content_for :title, "Reset Password | Zoomora" %>
+
+<% field_classes = "w-full rounded-[12px] border border-grey-300 bg-grey-50 px-4 py-3 text-body text-ink-950 placeholder:text-grey-400 transition focus:bg-white focus:border-red-600 focus:ring-4 focus:ring-red-600/10 focus:outline-none" %>
+
+<%= render Ui::AuthCardComponent.new(eyebrow: "Account Recovery", title: "Reset Your Password", breadcrumb_label: "Reset Password") do |card| %>
+  <% card.with_body do %>
+    <p class="text-body-sm text-grey-600 mb-5">We'll email you a link to reset your password.</p>
+
+    <%= render "devise/shared/error_messages", resource: resource %>
+
+    <%= form_for(resource, as: resource_name, url: password_path(resource_name), html: { method: :post, class: "flex flex-col gap-5" }) do |f| %>
+      <div>
+        <%= f.label :email, class: "block text-body-sm font-medium text-ink-950 mb-1.5" %>
+        <%= f.email_field :email, autofocus: true, autocomplete: "email", class: field_classes %>
+      </div>
+
+      <%= render(Ui::ButtonComponent.new(variant: :primary, size: :lg, full_width: true, type: "submit")) { "Send Reset Instructions" } %>
+    <% end %>
+
+    <div class="mt-6 pt-6 border-t border-grey-200">
+      <%= render "devise/shared/links" %>
+    </div>
+  <% end %>
+<% end %>

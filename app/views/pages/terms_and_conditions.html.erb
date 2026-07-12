@@ -1,0 +1,49 @@
+<% content_for :title, "Terms & Conditions | Zoomora" %>
+<% content_for :meta_description, "Zoomora's terms of use, warranty coverage, and account responsibilities." %>
+
+<div class="max-w-7xl mx-auto px-[15px] py-8 lg:py-14">
+  <%= render Ui::BreadcrumbComponent.new(items: [
+    { label: "Home", url: root_path },
+    { label: "Terms & Conditions" }
+  ]) %>
+
+  <div class="mt-6">
+    <p class="text-[12px] uppercase font-semibold tracking-[0.08em] text-red-600">Legal</p>
+    <h1 class="mt-2 text-[32px] lg:text-[40px] font-display font-bold text-ink-950 leading-tight">Terms & Conditions</h1>
+    <p class="mt-3 text-body-sm text-grey-500">Last updated July 2026</p>
+  </div>
+
+  <div class="mt-10 max-w-3xl flex flex-col gap-8 text-body-lg text-grey-600 leading-relaxed">
+    <div>
+      <h2 class="text-h2 font-display text-ink-950 mb-3">General Terms</h2>
+      <ul class="flex flex-col gap-2 list-disc list-inside">
+        <li>Zoomora operates as an online store based in Dubai, United Arab Emirates, and UAE law governs these terms. Any disputes are heard exclusively by a court of competent jurisdiction in the UAE.</li>
+        <li>Visa and Mastercard debit and credit cards in AED are accepted for payment. Additional methods may be offered at checkout from time to time.</li>
+        <li>You must be 18 or older to register an account or place an order on Zoomora. Purchases for minors must be made by a parent or guardian.</li>
+        <li>You're responsible for keeping your account credentials confidential and for any activity under your account.</li>
+        <li>We reserve the right to refuse service or cancel an order at our discretion — for example, in cases of suspected fraud or pricing errors.</li>
+      </ul>
+    </div>
+
+    <div>
+      <h2 class="text-h2 font-display text-ink-950 mb-3">Warranty Terms</h2>
+      <p class="mb-3">Every ride-on, e-bike, ATV, dirt bike, and powered product we sell is backed by a 12-month manufacturer warranty against defects, subject to the following:</p>
+      <ol class="flex flex-col gap-2 list-decimal list-inside">
+        <li>Warranty coverage applies to products assembled by Zoomora's delivery team. Self-assembly voids the warranty on that unit.</li>
+        <li>Coverage is limited to manufacturing defects — not damage from misuse, accidents, or normal wear (tyres, brake pads, upholstery).</li>
+        <li>Don't tamper with electrical connections or wiring unless you have the technical know-how — contact our support team for any repairs.</li>
+        <li>Overcharging a battery beyond the recommended time, or continuing to ride once speed noticeably drops, can permanently damage the battery — this isn't covered under warranty.</li>
+        <li>Don't exceed the maximum rider weight listed on the product page — doing so can cause damage not covered under warranty.</li>
+        <li>Warranty claims must be raised within 12 months of delivery, and cover the motor, battery, and electronics only — not cosmetic wear.</li>
+        <li>Spare parts (batteries, chargers, switches) can be purchased separately from Zoomora at any time, in or out of warranty.</li>
+      </ol>
+    </div>
+
+    <div>
+      <h2 class="text-h2 font-display text-ink-950 mb-3">Account Responsibility</h2>
+      <p>You agree to provide accurate information when creating an account or placing an order, and to keep your contact and delivery details up to date so we can reach you about your order.</p>
+    </div>
+
+    <p>For shipping timelines, returns, and cancellations, see our <%= link_to "Shipping & Return Policy", shipping_and_returns_path, class: "text-red-600 hover:text-red-700 font-medium" %>. For anything else, <%= link_to "contact us", contact_path, class: "text-red-600 hover:text-red-700 font-medium" %>.</p>
+  </div>
+</div>

@@ -1,0 +1,149 @@
+<% content_for :title, "Your Cart | Zoomora" %>
+
+<% subtotal_cents = @cart_products.sum(&:price_cents) %>
+
+<div class="max-w-7xl mx-auto px-[15px] py-8 lg:py-10">
+  <%= render Ui::BreadcrumbComponent.new(items: [
+    { label: "Home", url: root_path },
+    { label: "Your Cart" }
+  ]) %>
+
+  <h1 class="mt-4 text-[32px] lg:text-[40px] font-display font-bold text-ink-950 leading-tight">
+    Your Cart <span class="text-grey-400 font-normal text-[22px] lg:text-[26px]">(<%= @cart_products.size %> <%= "item".pluralize(@cart_products.size) %>)</span>
+  </h1>
+
+  <% if @cart_products.none? %>
+    <div class="mt-12 flex flex-col items-center text-center gap-4 py-16">
+      <span class="flex items-center justify-center w-16 h-16 rounded-full bg-grey-100 text-grey-400">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" class="w-7 h-7" aria-hidden="true"><path d="M4 5h2l2 12h9l2-8H7"/><circle cx="9" cy="20" r="1"/><circle cx="17" cy="20" r="1"/></svg>
+      </span>
+      <p class="text-body-lg text-grey-600">Your cart is empty.</p>
+      <%= render(Ui::ButtonComponent.new(variant: :primary, size: :lg, href: products_path)) { "Start Shopping" } %>
+    </div>
+  <% else %>
+    <%# ---- Free delivery banner (always full — delivery is free UAE-wide on every order, not a spend threshold) ---- %>
+    <div class="mt-6 rounded-[14px] bg-grey-50 border border-grey-200 p-4">
+      <p class="flex items-center gap-2 text-body-sm font-medium text-ink-950">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 text-red-600 shrink-0" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
+        You qualify for free UAE delivery on every order!
+      </p>
+      <div class="mt-3 h-2 rounded-full bg-red-600" aria-hidden="true"></div>
+    </div>
+
+    <div class="mt-8 grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-10" data-controller="cart" data-cart-gift-wrap-cents-value="<%= @gift_wrap_cents %>">
+      <div class="lg:col-span-2">
+        <div class="rounded-[18px] border border-grey-200 bg-white p-4 lg:p-6">
+          <div class="hidden lg:grid grid-cols-[2fr_1fr_1fr_1fr_auto] gap-4 pb-4 border-b border-grey-200 text-[11px] uppercase font-semibold tracking-[0.08em] text-grey-500">
+            <span>Product</span>
+            <span class="text-center">Price</span>
+            <span class="text-center">Quantity</span>
+            <span class="text-center">Total</span>
+            <span></span>
+          </div>
+
+          <% @cart_products.each do |product| %>
+            <div
+              data-cart-target="line"
+              data-price-cents="<%= product.price_cents %>"
+              class="grid grid-cols-1 lg:grid-cols-[2fr_1fr_1fr_1fr_auto] gap-4 items-center py-5 border-b border-grey-200 last:border-b-0"
+            >
+              <div class="flex items-center gap-4 min-w-0">
+                <%= link_to product_path(product), class: "shrink-0" do %>
+                  <%= image_tag "category-#{product.placeholder_key}.jpg", alt: "", class: "w-20 h-20 rounded-[12px] object-cover bg-grey-50" %>
+                <% end %>
+                <div class="min-w-0">
+                  <%= link_to product.name, product_path(product), class: "font-medium text-ink-950 hover:text-red-600 line-clamp-2" %>
+                  <p class="mt-1 text-body-sm text-grey-500"><%= product.category.name %></p>
+                </div>
+              </div>
+
+              <div class="lg:text-center text-body-sm">
+                <span class="lg:hidden text-grey-500">Price: </span><%= format_aed(product.price_cents) %>
+              </div>
+
+              <div class="lg:flex lg:justify-center" data-controller="quantity">
+                <div class="inline-flex items-center rounded-full border border-grey-300 overflow-hidden">
+                  <button type="button" data-action="quantity#decrease cart#recalculate" aria-label="Decrease quantity" class="w-9 h-9 flex items-center justify-center text-ink-950 hover:bg-grey-50">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" class="w-3.5 h-3.5" aria-hidden="true"><path d="M5 12h14"/></svg>
+                  </button>
+                  <input type="text" inputmode="numeric" value="1" data-quantity-target="input" data-action="input->cart#recalculate" aria-label="Quantity for <%= product.name %>" class="w-10 h-9 text-center text-body-sm font-semibold text-ink-950 focus:outline-none" />
+                  <button type="button" data-action="quantity#increase cart#recalculate" aria-label="Increase quantity" class="w-9 h-9 flex items-center justify-center text-ink-950 hover:bg-grey-50">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" class="w-3.5 h-3.5" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+                  </button>
+                </div>
+              </div>
+
+              <div class="lg:text-center font-semibold text-ink-950" data-cart-target="lineTotal"><%= format_aed(product.price_cents) %></div>
+
+              <button type="button" data-action="cart#removeLine" aria-label="Remove <%= product.name %> from cart" class="justify-self-end lg:justify-self-center w-9 h-9 flex items-center justify-center rounded-full text-grey-400 hover:bg-red-50 hover:text-red-600 transition-colors">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" class="w-4 h-4" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+              </button>
+            </div>
+          <% end %>
+        </div>
+
+        <%# ---- Gift wrap upsell ---- %>
+        <div class="mt-6 flex items-center gap-3 rounded-[12px] border border-grey-200 p-4">
+          <span class="shrink-0 flex items-center justify-center w-10 h-10 rounded-full bg-red-600/10 text-red-600">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5" aria-hidden="true"><rect x="3" y="8" width="18" height="13" rx="1"/><path d="M12 8v13M3 8l3.5-5h11L21 8M8 3.5c0 2.5 4 4.5 4 4.5s4-2 4-4.5"/></svg>
+          </span>
+          <span class="flex-1 text-body-sm text-ink-950">Add gift wrap for <span class="font-semibold"><%= format_aed(@gift_wrap_cents) %></span></span>
+          <label class="inline-flex items-center cursor-pointer">
+            <input type="checkbox" data-cart-target="giftWrapToggle" data-action="change->cart#recalculate" class="sr-only peer" />
+            <div class="w-11 h-6 bg-grey-200 rounded-full peer peer-checked:bg-red-600 transition-colors relative after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-transform peer-checked:after:translate-x-5"></div>
+          </label>
+        </div>
+
+        <div class="mt-6">
+          <label for="cart_comments" class="block text-body-sm font-medium text-ink-950 mb-1.5">Additional Comments</label>
+          <textarea id="cart_comments" rows="4" placeholder="Special instructions for your order..."
+            class="w-full rounded-[12px] border border-grey-300 bg-grey-50 px-4 py-3 text-body text-ink-950 placeholder:text-grey-400 transition focus:bg-white focus:border-red-600 focus:ring-4 focus:ring-red-600/10 focus:outline-none"></textarea>
+        </div>
+
+        <p class="mt-6 flex items-center gap-2 text-body-sm text-grey-600">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 text-red-600 shrink-0" aria-hidden="true"><path d="M12 3.5 19 6.5v5c0 4.4-3 7.7-7 8.9-4-1.2-7-4.5-7-8.9v-5Z"/><path d="m9.3 12 1.9 1.9 3.5-3.9"/></svg>
+          Secure checkout — your information is always protected.
+        </p>
+      </div>
+
+      <%# ---- Order summary ---- %>
+      <div class="lg:sticky lg:top-24 h-fit rounded-[18px] border border-grey-200 bg-white p-6 shadow-[0_10px_30px_-24px_rgba(10,10,11,0.4)] flex flex-col gap-5">
+        <h2 class="text-h3 font-display text-ink-950">Order Summary</h2>
+
+        <div class="flex flex-col gap-3 text-body-sm">
+          <div class="flex justify-between">
+            <span class="text-grey-600">Subtotal</span>
+            <span class="font-medium text-ink-950" data-cart-target="subtotal"><%= format_aed(subtotal_cents) %></span>
+          </div>
+          <div class="flex justify-between" data-cart-target="giftWrapRow" hidden>
+            <span class="text-grey-600">Gift wrap</span>
+            <span class="font-medium text-ink-950"><%= format_aed(@gift_wrap_cents) %></span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-grey-600">Delivery</span>
+            <span class="font-medium text-red-600">Free</span>
+          </div>
+          <p class="text-grey-500">Estimated delivery: 3–5 working days, free across the UAE.</p>
+        </div>
+
+        <div class="border-t border-grey-200 pt-4">
+          <label for="coupon_code" class="block text-body-sm font-medium text-ink-950 mb-1.5">Coupon Code</label>
+          <div class="flex gap-2">
+            <input type="text" id="coupon_code" placeholder="Enter code"
+              class="flex-1 min-w-0 rounded-[10px] border border-grey-300 bg-grey-50 px-3 py-2.5 text-body-sm text-ink-950 placeholder:text-grey-400 transition focus:bg-white focus:border-red-600 focus:ring-4 focus:ring-red-600/10 focus:outline-none" />
+            <button type="button" class="shrink-0 rounded-[10px] border border-grey-300 px-4 text-body-sm font-semibold text-ink-950 hover:border-red-600 hover:text-red-600 transition-colors">Apply</button>
+          </div>
+        </div>
+
+        <div class="border-t border-grey-200 pt-4 flex justify-between items-baseline">
+          <span class="font-display font-bold text-ink-950">Total</span>
+          <span class="font-display font-bold text-[22px] text-ink-950" data-cart-target="total"><%= format_aed(subtotal_cents) %></span>
+        </div>
+
+        <%# Checkout isn't wired yet — no order/payment backend this pass (see PROJECT_VISION.md non-goals), same placeholder boundary as Sign In. %>
+        <%= render(Ui::ButtonComponent.new(variant: :secondary, size: :lg, full_width: true, href: "#")) { "Proceed to Checkout" } %>
+        <%= render(Ui::ButtonComponent.new(variant: :ghost, size: :lg, full_width: true, href: products_path)) { "Continue Shopping" } %>
+      </div>
+    </div>
+  <% end %>
+</div>

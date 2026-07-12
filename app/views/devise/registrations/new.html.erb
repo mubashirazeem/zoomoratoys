@@ -1,0 +1,58 @@
+<% content_for :title, "Create Account | Zoomora" %>
+
+<% field_classes = "w-full rounded-[12px] border border-grey-300 bg-grey-50 px-4 py-3 text-body text-ink-950 placeholder:text-grey-400 transition focus:bg-white focus:border-red-600 focus:ring-4 focus:ring-red-600/10 focus:outline-none" %>
+
+<%= render Ui::AuthCardComponent.new(eyebrow: "Join Zoomora", title: "Create Account", breadcrumb_label: "Create Account") do |card| %>
+  <% card.with_body do %>
+    <%= render "devise/shared/error_messages", resource: resource %>
+
+    <%= form_for(resource, as: resource_name, url: registration_path(resource_name), html: { class: "flex flex-col gap-5 #{'mt-5' if resource.errors.any?}" }) do |f| %>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+        <div>
+          <%= f.label :first_name, class: "block text-body-sm font-medium text-ink-950 mb-1.5" %>
+          <%= f.text_field :first_name, autofocus: true, class: field_classes %>
+        </div>
+        <div>
+          <%= f.label :last_name, class: "block text-body-sm font-medium text-ink-950 mb-1.5" %>
+          <%= f.text_field :last_name, class: field_classes %>
+        </div>
+      </div>
+
+      <div>
+        <%= f.label :email, class: "block text-body-sm font-medium text-ink-950 mb-1.5" %>
+        <%= f.email_field :email, autocomplete: "email", class: field_classes %>
+      </div>
+
+      <div>
+        <%= f.label :password, class: "block text-body-sm font-medium text-ink-950 mb-1.5" %>
+        <%= f.password_field :password, autocomplete: "new-password", class: field_classes %>
+        <% if @minimum_password_length %>
+          <p class="mt-1.5 text-body-sm text-grey-500"><%= @minimum_password_length %> characters minimum</p>
+        <% end %>
+      </div>
+
+      <div>
+        <%= f.label :password_confirmation, "Confirm Password", class: "block text-body-sm font-medium text-ink-950 mb-1.5" %>
+        <%= f.password_field :password_confirmation, autocomplete: "new-password", class: field_classes %>
+      </div>
+
+      <label class="flex items-start gap-2.5 text-body-sm text-ink-950 cursor-pointer">
+        <input type="checkbox" name="user[subscribe_to_newsletter]" value="1" class="mt-0.5 w-4 h-4 accent-red-600" />
+        Subscribe to email marketing for new arrivals, restocks, and seasonal offers
+      </label>
+
+      <%= render(Ui::ButtonComponent.new(variant: :primary, size: :lg, full_width: true, type: "submit")) { "Create Account" } %>
+
+      <p class="text-body-sm text-grey-500 text-center -mt-2">
+        By creating an account, you agree to Zoomora's
+        <%= link_to "Terms & Conditions", terms_and_conditions_path, class: "text-red-600 hover:text-red-700 font-medium" %>
+        and
+        <%= link_to "Privacy Policy", privacy_policy_path, class: "text-red-600 hover:text-red-700 font-medium" %>.
+      </p>
+    <% end %>
+
+    <div class="mt-6 pt-6 border-t border-grey-200">
+      <%= render "devise/shared/links" %>
+    </div>
+  <% end %>
+<% end %>

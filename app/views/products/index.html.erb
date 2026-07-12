@@ -104,7 +104,7 @@
 
       <div class="mt-6 flex flex-wrap items-center justify-between gap-4 rounded-[12px] border border-grey-200 bg-grey-50 px-4 py-3">
         <div class="flex items-center gap-4">
-          <span class="text-body-sm text-grey-600"><span class="font-semibold text-ink-950"><%= products.size %></span> products</span>
+          <span class="text-body-sm text-grey-600"><span class="font-semibold text-ink-950"><%= @products.total_count %></span> products</span>
           <span class="hidden sm:block h-5 w-px bg-grey-300" aria-hidden="true"></span>
           <div class="hidden sm:flex items-center gap-2">
             <span class="text-[12px] uppercase font-semibold tracking-[0.06em] text-grey-500">View</span>
@@ -145,6 +145,8 @@
             <%= render Catalog::ProductCardComponent.new(product: product) %>
           <% end %>
         </div>
+
+        <%= render(Ui::PaginationComponent.new(scope: @products) { |page| products_path(category: @selected_category&.slug, page: page) }) %>
       <% else %>
         <p class="mt-8 text-body text-grey-500">No products found in this category yet.</p>
       <% end %>

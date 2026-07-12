@@ -75,6 +75,11 @@ RSpec.configure do |config|
   config.include ViewComponent::TestHelpers, type: :component
   config.include Capybara::RSpecMatchers, type: :component
   config.include FactoryBot::Syntax::Methods
+  # Enables `sign_in user` / `sign_out user` in request specs, instead of
+  # every spec hand-rolling a POST to session_path (see
+  # spec/requests/users/registrations_spec.rb for the one place that still
+  # does, since it's testing the sign-in endpoint itself).
+  config.include Devise::Test::IntegrationHelpers, type: :request
 end
 
 Shoulda::Matchers.configure do |config|

@@ -4,17 +4,6 @@
 # carrying the category name. The name is always real, visible text — never a
 # bare image link with no accessible name (see UI_UX_GUIDELINES.md).
 class Catalog::CategoryTileComponent < ViewComponent::Base
-  # Short, display-friendly labels keyed by placeholder_key. Canonical source
-  # for both these tiles and the header nav (which references this constant),
-  # so the two never drift.
-  SHORT_LABELS = {
-    "bicycle" => "Ebike",
-    "scooter" => "Cargo Scooters",
-    "pool" => "Inflatables",
-    "dirtbike" => "Dirt Bikes",
-    "atv" => "ATVs & Quadbikes"
-  }.freeze
-
   def initialize(category:)
     @category = category
   end
@@ -25,7 +14,12 @@ class Catalog::CategoryTileComponent < ViewComponent::Base
     products_path(category: category.slug)
   end
 
+  # Category names are already short, nav-ready display text (e.g. "Cargo
+  # Scooters", "Ride-Ons") — used directly rather than through a
+  # placeholder_key-keyed lookup, which broke once multiple categories
+  # started sharing a placeholder_key/photo (e.g. Scooters and Cargo
+  # Scooters both use "scooter" — a keyed lookup can't tell them apart).
   def label
-    SHORT_LABELS.fetch(category.placeholder_key, category.name)
+    category.name
   end
 end

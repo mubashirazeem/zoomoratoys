@@ -9,12 +9,26 @@ Rails.application.routes.draw do
 
   root "home#index"
 
+  devise_for :users, controllers: { registrations: "users/registrations" }
+
   resources :categories, only: [ :index ]
-  resources :products, only: [ :index, :show ], param: :slug, path: "shop"
+  resources :products, only: [ :index, :show ], param: :slug, path: "shop" do
+    resources :reviews, only: [ :create ]
+  end
   resources :blog_posts, only: [ :index, :show ], param: :slug, path: "blog"
+
+  get "cart", to: "carts#show", as: :cart
+  get "wishlist", to: "wishlists#show", as: :wishlist
+
+  get "account", to: "account#show", as: :account
+  get "account/orders", to: "orders#index", as: :account_orders
 
   get "rentals", to: "pages#rentals", as: :rentals
   get "about", to: "pages#about", as: :about
+  get "faq", to: "pages#faq", as: :faq
+  get "privacy-policy", to: "pages#privacy_policy", as: :privacy_policy
+  get "terms-and-conditions", to: "pages#terms_and_conditions", as: :terms_and_conditions
+  get "shipping-and-returns", to: "pages#shipping_and_returns", as: :shipping_and_returns
 
   get "contact", to: "contact_messages#new", as: :contact
   post "contact", to: "contact_messages#create"

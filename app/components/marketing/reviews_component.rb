@@ -12,7 +12,7 @@ class Marketing::ReviewsComponent < ViewComponent::Base
   REVIEWS = [
     Review.new(
       quote: "Delivery was quick and the team assembled everything in minutes. My kids were riding within the hour.",
-      author: "Layla A.", stars: 5, image: "category-rideon.jpg"
+      author: "Layla A.", stars: 5, image: "category-dirtbike.jpg"
     ),
     Review.new(
       quote: "Solid build quality and it handles the rough ground at the park really well. Worth every dirham.",
@@ -36,9 +36,7 @@ class Marketing::ReviewsComponent < ViewComponent::Base
     REVIEW_COUNT
   end
 
-  # Hand-rolled thousands delimiter — ActionView number helpers aren't
-  # reliably mixed into ViewComponent (matches Ui::PriceComponent's approach).
   def formatted_review_count
-    REVIEW_COUNT.to_s.reverse.gsub(/(\d{3})(?=\d)/, '\1,').reverse
+    helpers.number_with_thousands(REVIEW_COUNT)
   end
 end

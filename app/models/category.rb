@@ -2,11 +2,12 @@
 
 class Category < ApplicationRecord
   # Visual "kind" for a category/product. Drives which placeholder photo
-  # (category-<key>.jpg) and short nav/tile label are used, and is shared
-  # with Product so a product stays visually consistent with its category.
-  # See DESIGN_SYSTEM.md and Catalog::CategoryTileComponent::SHORT_LABELS.
+  # (category-<key>.jpg) is used. Several categories intentionally share a
+  # key/photo (e.g. "scooter" is used by both Scooters and Cargo Scooters) —
+  # display labels come from Category#name directly, not from this key, so
+  # that sharing never causes two categories to show the same label.
   PLACEHOLDER_KEYS = %w[
-    bicycle scooter pool dirtbike atv
+    bicycle scooter pool dirtbike atv rideon golf_cart trampoline playset
   ].freeze
 
   has_many :products, dependent: :restrict_with_error

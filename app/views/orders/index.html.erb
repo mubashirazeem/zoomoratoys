@@ -1,0 +1,51 @@
+<% content_for :title, "Order History | Zoomora" %>
+
+<% status_classes = {
+  "pending" => "bg-grey-100 text-grey-700",
+  "processing" => "bg-grey-200 text-ink-950",
+  "shipped" => "bg-red-600/10 text-red-600",
+  "delivered" => "bg-ink-950 text-white",
+  "cancelled" => "bg-grey-100 text-grey-400"
+} %>
+
+<div class="max-w-7xl mx-auto px-[15px] py-8 lg:py-10">
+  <%= render Ui::BreadcrumbComponent.new(items: [
+    { label: "Home", url: root_path },
+    { label: "My Account", url: account_path },
+    { label: "Order History" }
+  ]) %>
+
+  <h1 class="mt-4 text-[32px] lg:text-[40px] font-display font-bold text-ink-950 leading-tight">
+    Order History
+  </h1>
+
+  <% if @orders.none? %>
+    <div class="mt-12 flex flex-col items-center text-center gap-4 py-16">
+      <span class="flex items-center justify-center w-16 h-16 rounded-full bg-grey-100 text-grey-400">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" class="w-7 h-7" aria-hidden="true"><path d="M20 7 12 3 4 7v10l8 4 8-4V7Z"/><path d="M4 7l8 4 8-4M12 11v10"/></svg>
+      </span>
+      <p class="text-body-lg text-grey-600">You haven't placed any orders yet.</p>
+      <%= render(Ui::ButtonComponent.new(variant: :primary, size: :lg, href: products_path)) { "Start Shopping" } %>
+    </div>
+  <% else %>
+    <div class="mt-8 rounded-[18px] border border-grey-200 bg-white overflow-hidden">
+      <div class="hidden lg:grid grid-cols-[1fr_1fr_1fr_1fr] gap-4 px-6 py-4 border-b border-grey-200 text-[11px] uppercase font-semibold tracking-[0.08em] text-grey-500">
+        <span>Order</span>
+        <span>Date</span>
+        <span>Status</span>
+        <span class="text-right">Total</span>
+      </div>
+
+      <% @orders.each do |order| %>
+        <div class="grid grid-cols-2 lg:grid-cols-[1fr_1fr_1fr_1fr] gap-4 items-center px-6 py-5 border-b border-grey-200 last:border-b-0">
+          <span class="font-medium text-ink-950"><%= order.order_number %></span>
+          <span class="text-body-sm text-grey-600"><%= order.placed_at.strftime("%b %-d, %Y") %></span>
+          <span class="justify-self-start">
+            <span class="inline-flex items-center rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.04em] <%= status_classes.fetch(order.status) %>"><%= order.status.humanize %></span>
+          </span>
+          <span class="lg:text-right font-semibold text-ink-950"><%= format_aed(order.total_cents) %></span>
+        </div>
+      <% end %>
+    </div>
+  <% end %>
+</div>
