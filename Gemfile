@@ -81,5 +81,5 @@ group :development do
   # a different version mid-process. Surfaced by bin/brakeman failing in CI
   # with "You have already activated error_highlight 0.6.0, but your
   # Gemfile requires 0.7.0."
-  gem "error_highlight", "0.6.0", platforms: [ :ruby ]
+  gem "error_highlight", "0.7.2", platforms: [ :ruby ]
 end
