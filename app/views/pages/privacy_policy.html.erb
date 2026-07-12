@@ -1,0 +1,56 @@
+<% content_for :title, "Privacy Policy | Zoomora" %>
+<% content_for :meta_description, "How Zoomora collects, uses, and protects your information." %>
+
+<div class="max-w-7xl mx-auto px-[15px] py-8 lg:py-14">
+  <%= render Ui::BreadcrumbComponent.new(items: [
+    { label: "Home", url: root_path },
+    { label: "Privacy Policy" }
+  ]) %>
+
+  <div class="mt-6">
+    <p class="text-[12px] uppercase font-semibold tracking-[0.08em] text-red-600">Legal</p>
+    <h1 class="mt-2 text-[32px] lg:text-[40px] font-display font-bold text-ink-950 leading-tight">Privacy Policy</h1>
+    <p class="mt-3 text-body-sm text-grey-500">Last updated July 2026</p>
+  </div>
+
+  <div class="mt-10 max-w-3xl flex flex-col gap-6 text-body-lg text-grey-600 leading-relaxed">
+    <p>Your card details and personal information are never stored, sold, shared, or leased to third parties. This page explains what we collect, why, and how it's protected.</p>
+
+    <div>
+      <h2 class="text-h3 font-display text-ink-950 mb-2">What We Collect</h2>
+      <p>When you browse, order, or contact us, we collect the information you provide directly — your name, email, phone number, delivery address, and order details. We also collect basic technical data (like browser type and pages visited) to keep the site working correctly and to understand what's popular.</p>
+    </div>
+
+    <div>
+      <h2 class="text-h3 font-display text-ink-950 mb-2">How We Use It</h2>
+      <p>We use your information to process and deliver orders, respond to questions, send order updates, and — only if you've opted in — let you know about new arrivals, restocks, and seasonal offers. We never pass your payment or personal details to third parties for their own marketing purposes.</p>
+    </div>
+
+    <div>
+      <h2 class="text-h3 font-display text-ink-950 mb-2">Payment Security</h2>
+      <p>All payments are processed through PCI-compliant payment providers. Zoomora does not store your full card number on our servers. We take reasonable technical and organizational steps to protect your data, though no method of transmission over the internet is ever 100% guaranteed.</p>
+    </div>
+
+    <div>
+      <h2 class="text-h3 font-display text-ink-950 mb-2">Cookies</h2>
+      <p>We use cookies to keep your cart and preferences working across pages. You can disable cookies in your browser settings, though some parts of the site — like checkout — may not work correctly without them.</p>
+    </div>
+
+    <div>
+      <h2 class="text-h3 font-display text-ink-950 mb-2">Third-Party Links</h2>
+      <p>Our site may link to third-party services (payment providers, social media, delivery partners). We aren't responsible for the privacy practices of those sites — please check their own policies before sharing information with them.</p>
+    </div>
+
+    <div>
+      <h2 class="text-h3 font-display text-ink-950 mb-2">Your Rights</h2>
+      <p>You can ask us at any time what information we hold about you, request a correction, or ask us to delete your account and associated data. Reach out via our <%= link_to "Contact page", contact_path, class: "text-red-600 hover:text-red-700 font-medium" %> and we'll respond promptly.</p>
+    </div>
+
+    <div>
+      <h2 class="text-h3 font-display text-ink-950 mb-2">Changes To This Policy</h2>
+      <p>We may update this policy as our business or the law changes. Updates take effect as soon as they're posted here, so check back occasionally if you have concerns.</p>
+    </div>
+
+    <p>Questions about this policy? <%= link_to "Get in touch", contact_path, class: "text-red-600 hover:text-red-700 font-medium" %> — we're happy to help.</p>
+  </div>
+</div>

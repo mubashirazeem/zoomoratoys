@@ -1,0 +1,15 @@
+<% if resource.errors.any? %>
+  <div id="error_explanation" data-turbo-temporary role="alert" class="rounded-[12px] bg-red-50 border border-red-200 px-4 py-3 text-body-sm text-red-700">
+    <p class="font-semibold">
+      <%= I18n.t("errors.messages.not_saved",
+                 count: resource.errors.count,
+                 resource: resource.class.model_name.human.downcase)
+       %>
+    </p>
+    <ul class="mt-1 list-disc list-inside">
+      <% resource.errors.full_messages.each do |message| %>
+        <li><%= message %></li>
+      <% end %>
+    </ul>
+  </div>
+<% end %>

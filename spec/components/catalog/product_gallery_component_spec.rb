@@ -8,7 +8,9 @@ RSpec.describe Catalog::ProductGalleryComponent, type: :component do
 
     render_inline(described_class.new(product: product))
 
-    image = page.find("img")
+    # Scoped to the main image: the gallery also renders four thumbnail
+    # <img> tags alongside it, so an unscoped find("img") is ambiguous.
+    image = page.find("[data-gallery-target='main']")
     expect(image["alt"]).to eq("Summit E-Trail 27.5")
     expect(image["src"]).to include("category-bicycle")
   end

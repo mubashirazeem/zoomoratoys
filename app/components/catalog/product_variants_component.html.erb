@@ -1,0 +1,62 @@
+<div class="flex flex-col gap-5">
+  <div data-controller="variant-selector">
+    <p class="text-body-sm text-ink-950 mb-2.5">
+      <span class="font-semibold">Color:</span>
+      <span data-variant-selector-target="label"><%= colors.first[:name] %></span>
+    </p>
+    <div class="flex items-center gap-3">
+      <% colors.each_with_index do |color, index| %>
+        <button type="button"
+          data-variant-selector-target="option"
+          data-action="variant-selector#select"
+          data-variant-name="<%= color[:name] %>"
+          aria-label="Color: <%= color[:name] %>"
+          aria-pressed="<%= index.zero? %>"
+          class="w-11 h-11 rounded-full border-2 <%= index.zero? ? "border-red-600" : "border-grey-200" %> hover:border-red-600 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600"
+          style="background-color: <%= color[:hex] %>"></button>
+      <% end %>
+    </div>
+  </div>
+
+  <% if sizes.size > 1 %>
+    <div data-controller="variant-selector">
+      <p class="text-body-sm text-ink-950 mb-2.5">
+        <span class="font-semibold">Size:</span>
+        <span data-variant-selector-target="label"><%= sizes.first %></span>
+      </p>
+      <div class="flex items-center gap-2">
+        <% sizes.each_with_index do |size, index| %>
+          <button type="button"
+            data-variant-selector-target="option"
+            data-action="variant-selector#select"
+            data-variant-name="<%= size %>"
+            aria-pressed="<%= index.zero? %>"
+            class="px-4 h-10 rounded-full border-2 text-body-sm font-medium <%= index.zero? ? "border-red-600 text-red-600" : "border-grey-200 text-ink-950" %> hover:border-red-600 hover:text-red-600 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600">
+            <%= size %>
+          </button>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+
+  <% if materials.size > 1 %>
+    <div data-controller="variant-selector">
+      <p class="text-body-sm text-ink-950 mb-2.5">
+        <span class="font-semibold">Material:</span>
+        <span data-variant-selector-target="label"><%= materials.first %></span>
+      </p>
+      <div class="flex items-center gap-2 flex-wrap">
+        <% materials.each_with_index do |material, index| %>
+          <button type="button"
+            data-variant-selector-target="option"
+            data-action="variant-selector#select"
+            data-variant-name="<%= material %>"
+            aria-pressed="<%= index.zero? %>"
+            class="px-4 h-10 rounded-full border-2 text-body-sm font-medium <%= index.zero? ? "border-red-600 text-red-600" : "border-grey-200 text-ink-950" %> hover:border-red-600 hover:text-red-600 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600">
+            <%= material %>
+          </button>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+</div>

@@ -6,6 +6,7 @@ RSpec.describe Product, type: :model do
   end
 
   it { is_expected.to belong_to(:category) }
+  it { is_expected.to have_many(:reviews).dependent(:destroy) }
   it { is_expected.to validate_presence_of(:name) }
   it { is_expected.to validate_presence_of(:slug) }
   it { is_expected.to validate_presence_of(:sku) }
@@ -73,6 +74,20 @@ RSpec.describe Product, type: :model do
       product = build(:product, slug: "kids-electric-jeep")
 
       expect(product.to_param).to eq("kids-electric-jeep")
+    end
+  end
+
+  describe "#average_rating" do
+    it "returns nil when there are no reviews" do
+      expect(create(:product).average_rating).to be_nil
+    end
+
+    it "returns the mean rating rounded to one decimal place" do
+      product = create(:product)
+      create(:review, product: product, rating: 5)
+      create(:review, product: product, rating: 4)
+
+      expect(product.average_rating).to eq(4.5)
     end
   end
 end

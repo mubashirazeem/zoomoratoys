@@ -2,7 +2,9 @@
 
 # Renders a price stored as integer cents (see DATABASE_GUIDELINES.md) in
 # AED, with optional "compare at" strikethrough pricing for a future sale
-# feature. Formatting lives here — nowhere else in the app formats currency.
+# feature. Formatting itself lives in ApplicationHelper#format_aed — the one
+# place in the app that formats currency; every component reaches it via
+# `helpers.format_aed` so they can never drift out of sync with each other.
 class Ui::PriceComponent < ViewComponent::Base
   def initialize(price_cents:, compare_at_cents: nil, size: :base)
     @price_cents = price_cents
@@ -15,11 +17,11 @@ class Ui::PriceComponent < ViewComponent::Base
   end
 
   def formatted_price
-    format_cents(@price_cents)
+    helpers.format_aed(@price_cents)
   end
 
   def formatted_compare_at
-    format_cents(@compare_at_cents)
+    helpers.format_aed(@compare_at_cents)
   end
 
   def size_classes
@@ -33,17 +35,5 @@ class Ui::PriceComponent < ViewComponent::Base
     return "text-ink-950" unless @size == :card
 
     on_sale? ? "text-red-600" : "text-ink-950"
-  end
-
-  private
-
-  # Deliberately hand-rolled rather than a Rails NumberHelper method: AED
-  # display has no decimal places at this catalog's price points, and this
-  # avoids depending on ActionView helper delegation working a particular
-  # way inside a ViewComponent.
-  def format_cents(cents)
-    whole_units = (cents / 100).to_s
-    grouped = whole_units.reverse.gsub(/(\d{3})(?=\d)/, '\1,').reverse
-    "AED #{grouped}"
   end
 end

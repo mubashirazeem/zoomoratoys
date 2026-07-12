@@ -62,7 +62,7 @@ class Catalog::ProductCardComponent < ViewComponent::Base
   end
 
   def swatch_overflow
-    [bucket(4), 1].max
+    [ bucket(4), 1 ].max
   end
 
   private

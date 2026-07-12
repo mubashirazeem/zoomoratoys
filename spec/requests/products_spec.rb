@@ -19,8 +19,13 @@ RSpec.describe "Products", type: :request do
 
       get products_path(category: matching_category.slug)
 
-      expect(response.body).to include("Boardwalk Cruiser")
-      expect(response.body).not_to include("Fairway Four Classic")
+      # Scoped to the product grid itself, not the full response body: the
+      # header's category mega-menu legitimately references every category's
+      # products on every page (by design), so a page-wide "not_to include"
+      # would false-positive on any other category's product name.
+      grid = Capybara.string(response.body).find("[data-grid-density-target='grid']")
+      expect(grid).to have_text("Boardwalk Cruiser")
+      expect(grid).not_to have_text("Fairway Four Classic")
     end
 
     it "ignores an unknown category filter instead of erroring" do
@@ -29,6 +34,26 @@ RSpec.describe "Products", type: :request do
       get products_path(category: "does-not-exist")
 
       expect(response).to have_http_status(:success)
+    end
+
+    it "paginates and shows a different set of products on page 2" do
+      stub_const("ProductsController::PER_PAGE", 2)
+      category = create(:category)
+      create(:product, category: category, name: "Page One Alpha")
+      create(:product, category: category, name: "Page One Beta")
+      create(:product, category: category, name: "Page Two Gamma")
+
+      get products_path
+      grid = Capybara.string(response.body).find("[data-grid-density-target='grid']")
+
+      expect(grid).to have_text("Page One Alpha")
+      expect(grid).not_to have_text("Page Two Gamma")
+
+      get products_path(page: 2)
+      grid = Capybara.string(response.body).find("[data-grid-density-target='grid']")
+
+      expect(grid).to have_text("Page Two Gamma")
+      expect(grid).not_to have_text("Page One Alpha")
     end
   end
 

@@ -2,6 +2,7 @@
 
 class Product < ApplicationRecord
   belongs_to :category
+  has_many :reviews, dependent: :destroy
 
   enum :stock_status, { in_stock: "in_stock", sold_out: "sold_out", preorder: "preorder" },
        default: "in_stock", validate: true
@@ -21,6 +22,10 @@ class Product < ApplicationRecord
 
   def to_param
     slug
+  end
+
+  def average_rating
+    reviews.average(:rating)&.round(1)
   end
 
   private

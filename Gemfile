@@ -18,6 +18,10 @@ gem "stimulus-rails"
 gem "jbuilder"
 # View-layer components with encapsulated templates and unit tests [https://viewcomponent.org]
 gem "view_component"
+# Flexible authentication solution for Rails with Warden [https://github.com/heartcombo/devise]
+gem "devise"
+# Pagination [https://github.com/kaminari/kaminari]
+gem "kaminari"
 # Use Redis adapter to run Action Cable in production
 # gem "redis", ">= 4.0.1"
 

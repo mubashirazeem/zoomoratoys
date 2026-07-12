@@ -24,5 +24,21 @@ RSpec.describe "Home", type: :request do
 
       expect(response).to have_http_status(:success)
     end
+
+    it "greets a signed-in user by name in the header, end to end through a real session" do
+      user = create(:user, first_name: "Layla")
+      sign_in user
+
+      get root_path
+
+      expect(response.body).to include("Hi, Layla")
+    end
+
+    it "prompts sign-in for an anonymous visitor" do
+      get root_path
+
+      expect(response.body).to include("Sign In")
+      expect(response.body).not_to include("Hi, ")
+    end
   end
 end

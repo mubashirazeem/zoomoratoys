@@ -1,0 +1,50 @@
+<% content_for :title, "Shipping & Return Policy | Zoomora" %>
+<% content_for :meta_description, "Zoomora's delivery timelines, return window, and cancellation policy." %>
+
+<div class="max-w-7xl mx-auto px-[15px] py-8 lg:py-14">
+  <%= render Ui::BreadcrumbComponent.new(items: [
+    { label: "Home", url: root_path },
+    { label: "Shipping & Return Policy" }
+  ]) %>
+
+  <div class="mt-6">
+    <p class="text-[12px] uppercase font-semibold tracking-[0.08em] text-red-600">Legal</p>
+    <h1 class="mt-2 text-[32px] lg:text-[40px] font-display font-bold text-ink-950 leading-tight">Shipping & Return Policy</h1>
+    <p class="mt-3 text-body-sm text-grey-500">Last updated July 2026</p>
+  </div>
+
+  <div class="mt-10 max-w-3xl flex flex-col gap-8 text-body-lg text-grey-600 leading-relaxed">
+    <div>
+      <h2 class="text-h2 font-display text-ink-950 mb-3">Delivery</h2>
+      <ul class="flex flex-col gap-2 list-disc list-inside">
+        <li>Free delivery and professional assembly on every order, anywhere in the UAE.</li>
+        <li>Delivery within the UAE takes 3–5 working days from order confirmation.</li>
+        <li>Shipping is handled by trusted third-party couriers; we'll share tracking details once your order is on its way.</li>
+        <li>Make sure your delivery address and contact number are correct at checkout — incorrect details can delay your order.</li>
+      </ul>
+    </div>
+
+    <div>
+      <h2 class="text-h2 font-display text-ink-950 mb-3">Returns</h2>
+      <p class="mb-3">We want you to be genuinely happy with your order. If something isn't right, here's how returns work:</p>
+      <ul class="flex flex-col gap-2 list-disc list-inside">
+        <li>You can request a return or exchange within 7 days of delivery for unused, undamaged items in their original packaging.</li>
+        <li>Once a product has been assembled or used, we can only accept a return if it arrives damaged or is the wrong item.</li>
+        <li>Contact our team before sending anything back — we'll confirm the return and arrange collection or a return address.</li>
+        <li>You're responsible for return shipping costs unless the item arrived damaged or incorrect.</li>
+      </ul>
+    </div>
+
+    <div>
+      <h2 class="text-h2 font-display text-ink-950 mb-3">Refunds</h2>
+      <p>Approved refunds are issued to your original payment method. Please allow up to 14 working days for the refund to reflect, depending on your bank. Shipping and assembly fees are non-refundable once service has been provided.</p>
+    </div>
+
+    <div>
+      <h2 class="text-h2 font-display text-ink-950 mb-3">Cancellations</h2>
+      <p>You can cancel an order free of charge within 24 hours of placing it. Once an order has been processed for shipping, it can no longer be cancelled — you're welcome to request a return instead once it arrives.</p>
+    </div>
+
+    <p>Questions about a specific order? <%= link_to "Contact our team", contact_path, class: "text-red-600 hover:text-red-700 font-medium" %> and we'll sort it out.</p>
+  </div>
+</div>

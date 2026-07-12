@@ -1,0 +1,35 @@
+<% content_for :title, "My Wishlist | Zoomora" %>
+
+<div class="max-w-7xl mx-auto px-[15px] py-8 lg:py-10">
+  <%= render Ui::BreadcrumbComponent.new(items: [
+    { label: "Home", url: root_path },
+    { label: "Wishlist" }
+  ]) %>
+
+  <h1 class="mt-4 text-[32px] lg:text-[40px] font-display font-bold text-ink-950 leading-tight">
+    My Wishlist <span class="text-grey-400 font-normal text-[22px] lg:text-[26px]">(<%= @wishlist_products.size %> <%= "item".pluralize(@wishlist_products.size) %>)</span>
+  </h1>
+
+  <div data-controller="wishlist" class="mt-8">
+    <div data-wishlist-target="empty" class="<%= "hidden" unless @wishlist_products.none? %> flex flex-col items-center text-center gap-4 py-16">
+      <span class="flex items-center justify-center w-16 h-16 rounded-full bg-grey-100 text-grey-400">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" class="w-7 h-7" aria-hidden="true"><path d="M12 20s-7-4.3-7-9a4 4 0 0 1 7-2.6A4 4 0 0 1 19 11c0 4.7-7 9-7 9Z"/></svg>
+      </span>
+      <p class="text-body-lg text-grey-600">Your wishlist is empty.</p>
+      <%= render(Ui::ButtonComponent.new(variant: :primary, size: :lg, href: products_path)) { "Start Shopping" } %>
+    </div>
+
+    <% if @wishlist_products.any? %>
+      <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-[30px] gap-y-12">
+        <% @wishlist_products.each do |product| %>
+          <div data-wishlist-target="item">
+            <%= render Catalog::ProductCardComponent.new(product: product) %>
+            <button type="button" data-action="wishlist#removeItem" class="mt-3 w-full text-center text-body-sm font-medium text-grey-500 hover:text-red-600 transition-colors">
+              Remove from Wishlist
+            </button>
+          </div>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+</div>
