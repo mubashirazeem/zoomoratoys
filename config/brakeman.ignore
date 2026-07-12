@@ -1,0 +1,21 @@
+{
+  "ignored_warnings": [
+    {
+      "warning_type": "Unmaintained Dependency",
+      "warning_code": 122,
+      "fingerprint": "98b26f60d776fd41ee6f088c833725145be9aac2d7c5b33780241c273622db42",
+      "check_name": "EOLRails",
+      "message": "Support for Rails 7.2.3.1 ends on 2026-08-09",
+      "file": "Gemfile.lock",
+      "line": 231,
+      "link": "https://brakemanscanner.org/docs/warning_types/unmaintained_dependency/",
+      "code": null,
+      "render_path": null,
+      "location": null,
+      "user_input": null,
+      "confidence": "Medium",
+      "note": "Explicitly acknowledged and accepted by the project owner (2026-07-12), not silently suppressed. Rails 7.2.3.1 reaches EOL 2026-08-09 — the upgrade itself is a separate, still-undecided item tracked in DEVELOPMENT_PROGRESS.md's 'Needs a decision' section. This entry only unblocks CI on this ONE specific, known warning; Brakeman still fails the build on any new or different warning. Remove this entry once Rails is upgraded past EOL."
+    }
+  ],
+  "updated": "2026-07-12 18:16:25 +0500"
+}
