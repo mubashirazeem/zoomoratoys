@@ -71,5 +71,15 @@ group :development do
   gem "web-console"
 
   # Highlight the fine-grained location where an error occurred [https://github.com/ruby/error_highlight]
-  gem "error_highlight", ">= 0.4.0", platforms: [ :ruby ]
+  # Pinned to exactly 0.6.0 (not ">= 0.4.0") to match the version actually
+  # baked into Ruby 3.3.5 as a default gem. A loose ">=" constraint lets
+  # Bundler resolve to the latest published version (0.7.0) instead, which
+  # installs and works fine on a machine that happens to already have it —
+  # but breaks on any *fresh* Ruby 3.3.5 (e.g. GitHub Actions' hosted
+  # runners), where 0.6.0 is already activated as a default gem before
+  # Bundler runs, and Ruby can't swap an already-activated default gem for
+  # a different version mid-process. Surfaced by bin/brakeman failing in CI
+  # with "You have already activated error_highlight 0.6.0, but your
+  # Gemfile requires 0.7.0."
+  gem "error_highlight", "0.6.0", platforms: [ :ruby ]
 end
