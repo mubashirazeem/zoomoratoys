@@ -9,12 +9,12 @@ RSpec.describe Layout::SiteHeaderComponent, type: :component do
     expect(page).to have_css("a[href='/'] img[alt='Zoomora — Adventure Starts Here']")
   end
 
-  it "renders Home, About, and Contact around the category links" do
+  it "renders Home, About Us, and Contact Us around the category links" do
     render_inline(described_class.new)
 
     expect(page).to have_link("Home", href: "/")
-    expect(page).to have_link("About", href: "/about")
-    expect(page).to have_link("Contact", href: "/contact")
+    expect(page).to have_link("About Us", href: "/about")
+    expect(page).to have_link("Contact Us", href: "/contact")
   end
 
   it "renders the category's own name as the nav label and shop link" do
