@@ -1,44 +1,41 @@
 <% content_for :title, "Account Settings | Zoomora" %>
 
 <% field_classes = "w-full rounded-[12px] border border-grey-300 bg-grey-50 px-4 py-3 text-body text-ink-950 placeholder:text-grey-400 transition focus:bg-white focus:border-red-600 focus:ring-4 focus:ring-red-600/10 focus:outline-none" %>
+<% label_classes = "block text-body-sm font-medium text-ink-950 mb-1.5" %>
 
-<%= render Ui::AuthCardComponent.new(eyebrow: "My Account", title: "Account Settings", breadcrumb_label: "Account Settings") do |card| %>
+<%= render Ui::AuthCardComponent.new(eyebrow: "My Account", title: "Account Settings") do |card| %>
   <% card.with_body do %>
     <%= render "devise/shared/error_messages", resource: resource %>
 
     <%= form_for(resource, as: resource_name, url: registration_path(resource_name), html: { method: :put, class: "flex flex-col gap-5" }) do |f| %>
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
         <div>
-          <%= f.label :first_name, class: "block text-body-sm font-medium text-ink-950 mb-1.5" %>
+          <%= f.label :first_name, class: label_classes %>
           <%= f.text_field :first_name, class: field_classes %>
         </div>
         <div>
-          <%= f.label :last_name, class: "block text-body-sm font-medium text-ink-950 mb-1.5" %>
+          <%= f.label :last_name, class: label_classes %>
           <%= f.text_field :last_name, class: field_classes %>
         </div>
       </div>
 
       <div>
-        <%= f.label :email, class: "block text-body-sm font-medium text-ink-950 mb-1.5" %>
+        <%= f.label :email, class: label_classes %>
         <%= f.email_field :email, autofocus: true, autocomplete: "email", class: field_classes %>
       </div>
 
       <div class="pt-2 border-t border-grey-200">
-        <%= f.label :password, class: "block text-body-sm font-medium text-ink-950 mb-1.5" %>
-        <p class="text-body-sm text-grey-500 mb-1.5">Leave blank if you don't want to change it</p>
-        <%= f.password_field :password, autocomplete: "new-password", class: field_classes %>
-        <% if @minimum_password_length %>
-          <p class="mt-1.5 text-body-sm text-grey-500"><%= @minimum_password_length %> characters minimum</p>
-        <% end %>
+        <%= render "devise/shared/password_field_with_strength", f: f, field_classes: field_classes,
+              hint: "Leave blank if you don't want to change it", minimum_length: @minimum_password_length %>
       </div>
 
       <div>
-        <%= f.label :password_confirmation, "Confirm New Password", class: "block text-body-sm font-medium text-ink-950 mb-1.5" %>
+        <%= f.label :password_confirmation, "Confirm New Password", class: label_classes %>
         <%= f.password_field :password_confirmation, autocomplete: "new-password", class: field_classes %>
       </div>
 
       <div>
-        <%= f.label :current_password, class: "block text-body-sm font-medium text-ink-950 mb-1.5" %>
+        <%= f.label :current_password, class: label_classes %>
         <p class="text-body-sm text-grey-500 mb-1.5">We need your current password to confirm these changes</p>
         <%= f.password_field :current_password, autocomplete: "current-password", class: field_classes %>
       </div>

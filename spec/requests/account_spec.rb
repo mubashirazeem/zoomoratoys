@@ -15,7 +15,7 @@ RSpec.describe "Account", type: :request do
       get account_path
 
       expect(response).to have_http_status(:success)
-      expect(response.body).to include("Hi, Layla")
+      expect(response.body).to include("Welcome back, Layla")
       expect(response.body).to include("Order History")
       expect(response.body).to include("Wishlist")
       expect(response.body).to include("Account Settings")
@@ -28,7 +28,8 @@ RSpec.describe "Account", type: :request do
 
       get account_path
 
-      expect(response.body).to include("2 orders")
+      expect(response.body).to include(">2</span>")
+      expect(response.body).to include("Orders")
     end
   end
 end

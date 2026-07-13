@@ -6,36 +6,72 @@
     { label: "My Account" }
   ]) %>
 
-  <h1 class="mt-4 text-[32px] lg:text-[40px] font-display font-bold text-ink-950 leading-tight">
-    Hi, <%= current_user.first_name %>
-  </h1>
-  <p class="mt-2 text-body text-grey-600"><%= current_user.email %></p>
+  <div class="mt-6 flex flex-col lg:flex-row gap-8 lg:gap-10">
+    <%# ---- Sidebar: profile + account nav — collapses to a horizontal ---- %>
+    <%# scrollable pill row on mobile. %>
+    <aside class="lg:w-[260px] shrink-0">
+      <div class="flex items-center gap-3">
+        <span class="flex items-center justify-center w-11 h-11 rounded-full bg-red-600 text-white font-display font-bold text-lg shrink-0">
+          <%= current_user.first_name.first.upcase %>
+        </span>
+        <div class="min-w-0">
+          <p class="font-display font-bold text-ink-950 truncate"><%= current_user.full_name %></p>
+          <p class="text-body-sm text-grey-500 truncate"><%= current_user.email %></p>
+        </div>
+      </div>
 
-  <div class="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-    <%= link_to account_orders_path, class: "group rounded-[18px] border border-grey-200 bg-white p-6 hover:border-red-600 transition-colors" do %>
-      <span class="flex items-center justify-center w-12 h-12 rounded-full bg-red-600/10 text-red-600">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6" aria-hidden="true"><path d="M20 7 12 3 4 7v10l8 4 8-4V7Z"/><path d="M4 7l8 4 8-4M12 11v10"/></svg>
-      </span>
-      <h2 class="mt-4 font-display font-bold text-ink-950 group-hover:text-red-600 transition-colors">Order History</h2>
-      <p class="mt-1 text-body-sm text-grey-500"><%= @order_count %> <%= "order".pluralize(@order_count) %></p>
-    <% end %>
+      <nav class="mt-6 flex lg:flex-col gap-1.5 overflow-x-auto lg:overflow-visible" aria-label="Account">
+        <%= link_to account_path, "aria-current": "page", class: "flex items-center gap-3 shrink-0 rounded-full lg:rounded-[10px] px-4 py-2.5 text-body-sm font-semibold bg-red-600 text-white" do %>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 shrink-0" aria-hidden="true"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+          Overview
+        <% end %>
+        <%= link_to account_orders_path, class: "flex items-center gap-3 shrink-0 rounded-full lg:rounded-[10px] px-4 py-2.5 text-body-sm font-medium text-ink-950 hover:bg-grey-50 transition-colors" do %>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 shrink-0" aria-hidden="true"><path d="M20 7 12 3 4 7v10l8 4 8-4V7Z"/><path d="M4 7l8 4 8-4M12 11v10"/></svg>
+          Order History
+        <% end %>
+        <%= link_to wishlist_path, class: "flex items-center gap-3 shrink-0 rounded-full lg:rounded-[10px] px-4 py-2.5 text-body-sm font-medium text-ink-950 hover:bg-grey-50 transition-colors" do %>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 shrink-0" aria-hidden="true"><path d="M12 20s-7-4.3-7-9a4 4 0 0 1 7-2.6A4 4 0 0 1 19 11c0 4.7-7 9-7 9Z"/></svg>
+          Wishlist
+        <% end %>
+        <%= link_to edit_user_registration_path, class: "flex items-center gap-3 shrink-0 rounded-full lg:rounded-[10px] px-4 py-2.5 text-body-sm font-medium text-ink-950 hover:bg-grey-50 transition-colors" do %>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 shrink-0" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-3.3 3.6-6 8-6s8 2.7 8 6"/></svg>
+          Account Settings
+        <% end %>
+      </nav>
 
-    <%= link_to wishlist_path, class: "group rounded-[18px] border border-grey-200 bg-white p-6 hover:border-red-600 transition-colors" do %>
-      <span class="flex items-center justify-center w-12 h-12 rounded-full bg-red-600/10 text-red-600">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6" aria-hidden="true"><path d="M12 20s-7-4.3-7-9a4 4 0 0 1 7-2.6A4 4 0 0 1 19 11c0 4.7-7 9-7 9Z"/></svg>
-      </span>
-      <h2 class="mt-4 font-display font-bold text-ink-950 group-hover:text-red-600 transition-colors">Wishlist</h2>
-      <p class="mt-1 text-body-sm text-grey-500"><%= @wishlist_item_count %> <%= "item".pluralize(@wishlist_item_count) %></p>
-    <% end %>
+      <div class="mt-6 pt-6 border-t border-grey-200">
+        <%= link_to destroy_user_session_path, data: { turbo_method: :delete }, class: "flex items-center gap-3 text-body-sm font-semibold text-grey-500 hover:text-red-600 transition-colors" do %>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 shrink-0" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/></svg>
+          Sign Out
+        <% end %>
+      </div>
+    </aside>
 
-    <%= link_to edit_user_registration_path, class: "group rounded-[18px] border border-grey-200 bg-white p-6 hover:border-red-600 transition-colors" do %>
-      <span class="flex items-center justify-center w-12 h-12 rounded-full bg-red-600/10 text-red-600">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-3.3 3.6-6 8-6s8 2.7 8 6"/></svg>
-      </span>
-      <h2 class="mt-4 font-display font-bold text-ink-950 group-hover:text-red-600 transition-colors">Account Settings</h2>
-      <p class="mt-1 text-body-sm text-grey-500">Name, email, password</p>
-    <% end %>
+    <%# ---- Main content: overview stats only — no product listings here, ---- %>
+    <%# the sidebar already links to Order History/Wishlist directly. %>
+    <div class="flex-1 min-w-0">
+      <h1 class="text-[28px] lg:text-[34px] font-display font-bold text-ink-950">Account Overview</h1>
+      <p class="mt-1 text-body text-grey-500">Welcome back, <%= current_user.first_name %>.</p>
+
+      <div class="mt-8 grid grid-cols-1 sm:grid-cols-3 gap-6">
+        <div class="rounded-[18px] border border-grey-200 bg-white p-6 flex flex-col items-center text-center gap-3">
+          <%= render "account/stat_ring", value: @order_count, max: 10, label: "Orders" %>
+          <%= link_to "View History", account_orders_path, class: "text-body-sm text-red-600 hover:text-red-700 font-medium" %>
+        </div>
+
+        <div class="rounded-[18px] border border-grey-200 bg-white p-6 flex flex-col items-center text-center gap-3">
+          <%= render "account/stat_ring", value: @wishlist_item_count, max: 10, label: "Wishlist" %>
+          <%= link_to "View Wishlist", wishlist_path, class: "text-body-sm text-red-600 hover:text-red-700 font-medium" %>
+        </div>
+
+        <div class="rounded-[18px] border border-grey-200 bg-white p-6 flex flex-col items-center text-center gap-3">
+          <span class="flex items-center justify-center w-20 h-20 rounded-full bg-red-600/10 text-red-600">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" class="w-8 h-8" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="1"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+          </span>
+          <p class="font-display font-bold text-ink-950">Member Since</p>
+          <p class="text-body-sm text-grey-500"><%= current_user.created_at.strftime("%B %Y") %></p>
+        </div>
+      </div>
+    </div>
   </div>
-
-  <%= link_to "Sign Out", destroy_user_session_path, data: { turbo_method: :delete }, class: "mt-8 inline-block text-body-sm font-semibold text-grey-500 hover:text-red-600 transition-colors" %>
 </div>
