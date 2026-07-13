@@ -42,8 +42,8 @@ class Layout::SiteHeaderComponent < ViewComponent::Base
       { label: "Rentals", url: rentals_path },
       *category_nav_items,
       { label: "Blogs", url: blog_posts_path },
-      { label: "About", url: about_path },
-      { label: "Contact", url: contact_path }
+      { label: "About Us", url: about_path },
+      { label: "Contact Us", url: contact_path }
     ]
   end
 
