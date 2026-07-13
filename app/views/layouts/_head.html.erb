@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title><%= content_for(:title) || "Zoomora — Adventure Starts Here" %></title>
+    <meta name="description" content="<%= content_for(:meta_description) || "Zoomora — electric bikes, cargo scooters, ATVs, dirt bikes, and inflatables for family adventure." %>">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <%# Tailwind CSS — Play CDN build. See ARCHITECTURE.md §3 for the documented %>
+    <%# production trade-off and the tracked pre-launch plan to replace this %>
+    <%# with a compiled pipeline. %>
+    <%# Grid/spacing/type values below are measured from rafplay.com's live %>
+    <%# computed styles per explicit project-owner instruction to match its %>
+    <%# structure precisely — see DESIGN_SYSTEM.md §0. %>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              red: {
+                50: "#FDF2F2", 100: "#FCE4E4", 200: "#F8C6C8", 300: "#F19A9E",
+                400: "#E85F66", 500: "#DC2430", 600: "#C01827", 700: "#9E1220",
+                800: "#7A0E19", 900: "#571014"
+              },
+              ink: { 950: "#0A0A0B", 900: "#17181A", 800: "#26282B", 700: "#3A3D42" },
+              grey: {
+                50: "#F7F7F8", 100: "#EEEEF0", 200: "#E2E3E6", 300: "#CBCCD1",
+                400: "#A8AAB2", 500: "#7E8189", 600: "#5B5E66", 700: "#43454B"
+              }
+            },
+            fontFamily: {
+              display: ["Poppins", "sans-serif"],
+              body: ["Poppins", "sans-serif"]
+            },
+            fontSize: {
+              display: ["40px", { lineHeight: "1.1", fontWeight: "700" }],
+              h1: ["40px", { lineHeight: "24px", fontWeight: "700", letterSpacing: "2px" }],
+              h2: ["24px", { lineHeight: "28px", fontWeight: "700", letterSpacing: "1.2px" }],
+              h3: ["16px", { lineHeight: "24px", fontWeight: "700", letterSpacing: "0.8px" }],
+              body: ["12px", { lineHeight: "22px" }],
+              "body-lg": ["16px", { lineHeight: "1.6" }],
+              "body-sm": ["11px", { lineHeight: "16px" }],
+              price: ["14px", { lineHeight: "1.4", fontWeight: "600" }],
+              label: ["13px", { lineHeight: "1.4", letterSpacing: "0.04em" }]
+            },
+            maxWidth: { "7xl": "1200px" },
+            borderRadius: { none: "0px", sm: "0px", DEFAULT: "0px", md: "0px", lg: "0px", xl: "0px", full: "9999px" },
+            boxShadow: { elevated: "0 8px 24px -8px rgba(10, 10, 11, 0.18)" }
+          }
+        }
+      }
+    </script>
+
+    <style>
+      /* ---- Shared 3D design tokens — one gradient recipe for every raised ---- */
+      /* red control (nav pills, header button, hero arrows, card actions),   */
+      /* so "the same control looks the same everywhere" instead of drifting.  */
+      :root {
+        --grad-red-3d: linear-gradient(180deg, #E24450 0%, #C01827 60%, #94101C 100%);
+      }
+
+      @keyframes zoomLogoIn { from { opacity: 0; transform: translateY(14px) scale(.94); } to { opacity: 1; transform: none; } }
+      @keyframes zoomTagline { from { opacity: 0; letter-spacing: .6em; } to { opacity: 1; letter-spacing: .35em; } }
+      @keyframes zoomBar { 0% { transform: translateX(-140%); } 100% { transform: translateX(360%); } }
+      @keyframes zoomGlow { 0%, 100% { opacity: .45; transform: scale(1); } 50% { opacity: .85; transform: scale(1.09); } }
+      .zoom-preloader { transition: opacity .55s ease, visibility .55s ease; }
+      .zoom-preloader.is-hidden { opacity: 0; visibility: hidden; }
+      .zoom-preloader__logo { animation: zoomLogoIn .85s cubic-bezier(.2,.7,.2,1) both; }
+      .zoom-preloader__tagline { animation: zoomTagline 1s ease-out .25s both; }
+      .zoom-preloader__glow { animation: zoomGlow 2.4s ease-in-out infinite; }
+      .zoom-preloader__bar-fill { width: 38%; animation: zoomBar 1.15s cubic-bezier(.65,.05,.36,1) infinite; }
+      @media (prefers-reduced-motion: reduce) {
+        .zoom-preloader__logo, .zoom-preloader__tagline, .zoom-preloader__glow, .zoom-preloader__bar-fill { animation: none; }
+      }
+
+      /* ---- 3D primary navigation (dark glossy bar + raised button-pills) ---- */
+      .nav3d {
+        background: linear-gradient(180deg, #2C2E32 0%, #17181A 58%, #0A0A0B 100%);
+        box-shadow:
+          inset 0 1px 0 rgba(255, 255, 255, .09),
+          inset 0 -1px 0 rgba(0, 0, 0, .55),
+          0 12px 26px -12px rgba(0, 0, 0, .7);
+      }
+      /* red brand hairline sitting just under the bar for extra depth */
+      .nav3d::after {
+        content: "";
+        display: block;
+        height: 2px;
+        background: linear-gradient(90deg, transparent, rgba(192, 24, 39, .55) 20%, rgba(220, 36, 48, .9) 50%, rgba(192, 24, 39, .55) 80%, transparent);
+      }
+      .nav3d-link {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        border-radius: 3px;
+        color: #DDDEE2;
+        background: transparent;
+        text-shadow: 0 1px 1px rgba(0, 0, 0, .5);
+        transition: transform .16s ease, box-shadow .16s ease, color .16s ease, background-color .16s ease;
+      }
+      .nav3d-link:hover {
+        color: #fff;
+        transform: translateY(-1px);
+        background: var(--grad-red-3d);
+        text-shadow: 0 1px 2px rgba(0, 0, 0, .35);
+        box-shadow:
+          inset 0 1px 0 rgba(255, 255, 255, .4),
+          0 7px 16px -5px rgba(192, 24, 39, .7),
+          0 2px 3px rgba(0, 0, 0, .45);
+      }
+      .nav3d-link:active {
+        transform: translateY(0);
+        box-shadow: inset 0 2px 5px rgba(0, 0, 0, .5);
+      }
+      .nav3d-link.is-active {
+        color: #fff;
+        background: var(--grad-red-3d);
+        text-shadow: 0 1px 2px rgba(0, 0, 0, .35);
+        box-shadow:
+          inset 0 1px 0 rgba(255, 255, 255, .35),
+          0 5px 12px -4px rgba(192, 24, 39, .6);
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .nav3d-link { transition: color .16s ease, background-color .16s ease; }
+        .nav3d-link:hover, .nav3d-link:active { transform: none; }
+      }
+
+      /* ---- Premium header surfaces (tie the top bars to the 3D nav) ---- */
+      .hdr-announce {
+        background: var(--grad-red-3d);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, .35), 0 1px 2px rgba(0, 0, 0, .12);
+      }
+      .hdr-utility { background: linear-gradient(180deg, #FAFAFB 0%, #F0F0F2 100%); }
+      .hdr-main {
+        background: linear-gradient(180deg, #FFFFFF 0%, #F7F7F8 100%);
+        box-shadow: 0 6px 14px -12px rgba(10, 10, 11, .45);
+      }
+
+      /* 3D red action button — same gradient family as the nav pills */
+      .hdr-btn3d {
+        background: var(--grad-red-3d);
+        box-shadow:
+          inset 0 1px 0 rgba(255, 255, 255, .4),
+          0 4px 10px -3px rgba(192, 24, 39, .55),
+          0 1px 2px rgba(0, 0, 0, .3);
+        transition: transform .16s ease, box-shadow .16s ease, filter .16s ease;
+      }
+      .hdr-btn3d:hover {
+        filter: brightness(1.06);
+        transform: translateY(-1px);
+        box-shadow:
+          inset 0 1px 0 rgba(255, 255, 255, .5),
+          0 7px 16px -4px rgba(192, 24, 39, .65),
+          0 2px 3px rgba(0, 0, 0, .35);
+      }
+      .hdr-btn3d:active { transform: translateY(0); box-shadow: inset 0 2px 5px rgba(0, 0, 0, .4); }
+
+      /* recessed search "well" */
+      .hdr-search { box-shadow: inset 0 1px 3px rgba(10, 10, 11, .09); }
+
+      /* subtle 3D chip (currency selector) */
+      .hdr-chip {
+        background: linear-gradient(180deg, #FFFFFF 0%, #F1F1F3 100%);
+        border: 1px solid #D6D7DB;
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, .7), 0 1px 2px rgba(10, 10, 11, .06);
+        transition: box-shadow .16s ease, border-color .16s ease;
+      }
+      .hdr-chip:hover {
+        border-color: #C01827;
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, .7), 0 3px 8px -3px rgba(192, 24, 39, .35);
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .hdr-btn3d { transition: box-shadow .16s ease, filter .16s ease; }
+        .hdr-btn3d:hover, .hdr-btn3d:active { transform: none; }
+      }
+
+      /* ---- Hero slider: a genuine 3D rotating cube (perspective + real   ---- */
+      /* rotateY/translateZ geometry computed in JS), not a faked crossfade  */
+      /* or flat track. Each face carries a Ken Burns zoom, a staggered text  */
+      /* reveal on its own floating Z-depth layer, and the whole scene tilts  */
+      /* gently toward the cursor. A segmented bar (same red-fill language    */
+      /* as the preloader) sits flat above it all as progress + scrubber.     */
+      .hero-cube, .hero-cube-tilt { transform-style: preserve-3d; }
+      .hero-cube { transition: none; will-change: transform; }
+      .hero.is-ready .hero-cube { transition: transform 1.05s cubic-bezier(.65, 0, .35, 1); }
+      .hero-cube-tilt { transition: transform .2s ease-out; }
+      .hero-face { backface-visibility: hidden; -webkit-backface-visibility: hidden; }
+
+      /* no-JS fallback: hide non-first faces (flat-stacked, un-positioned) */
+      /* until the controller connects and takes over real 3D placement.    */
+      .hero:not(.js-ready) .hero-face:not(.is-active) { opacity: 0; pointer-events: none; }
+
+      @keyframes heroKenBurns { from { transform: scale(1); } to { transform: scale(1.1); } }
+      .hero-face.is-active .hero-face__img { animation: heroKenBurns 7s ease-out forwards; }
+
+      @keyframes heroReveal { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+      .hero-face__eyebrow, .hero-face__headline, .hero-face__cta { opacity: 0; }
+      .hero-face.is-active .hero-face__eyebrow { animation: heroReveal .75s cubic-bezier(.2, .7, .2, 1) .15s forwards; }
+      .hero-face.is-active .hero-face__headline { animation: heroReveal .75s cubic-bezier(.2, .7, .2, 1) .28s forwards; }
+      .hero-face.is-active .hero-face__cta { animation: heroReveal .75s cubic-bezier(.2, .7, .2, 1) .46s forwards; }
+
+      @keyframes heroProgress { from { width: 0%; } to { width: 100%; } }
+      .hero.is-paused .hero-segment__fill { animation-play-state: paused; }
+
+      /* tactile 3D arrow buttons — same raised-bevel language as the nav pills */
+      .hero-arrow {
+        background: linear-gradient(180deg, rgba(255, 255, 255, .16), rgba(255, 255, 255, .04));
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        border: 1px solid rgba(255, 255, 255, .22);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, .25), 0 6px 16px -6px rgba(0, 0, 0, .55);
+        transition: transform .16s ease, box-shadow .16s ease, background .16s ease, border-color .16s ease;
+      }
+      .hero-arrow:hover {
+        transform: translateY(-2px);
+        background: var(--grad-red-3d);
+        border-color: rgba(255, 255, 255, .4);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, .4), 0 10px 22px -8px rgba(192, 24, 39, .65);
+      }
+      .hero-arrow:active { transform: translateY(0); box-shadow: inset 0 2px 6px rgba(0, 0, 0, .45); }
+
+      @media (prefers-reduced-motion: reduce) {
+        .hero.is-ready .hero-cube { transition: none !important; }
+        .hero-cube-tilt { transition: none !important; }
+        .hero-face.is-active .hero-face__img { animation: none !important; }
+        .hero-face__eyebrow, .hero-face__headline, .hero-face__cta { animation: none !important; opacity: 1; transform: none; }
+        .hero-segment__fill { animation: none !important; }
+        .hero-arrow:hover, .hero-arrow:active { transform: none; }
+      }
+
+      /* ---- "About Zoomora" band: floating stat badge + trust chips, ---- */
+      /* reusing the raised-bevel language from the header/hero controls.  */
+      .brand-badge {
+        background: linear-gradient(180deg, #FFFFFF 0%, #F1F1F3 100%);
+        border: 1px solid #E2E3E6;
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, .8), 0 14px 28px -12px rgba(10, 10, 11, .35);
+        transition: transform .2s ease, box-shadow .2s ease;
+      }
+      .brand-badge:hover {
+        transform: translateY(-3px);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, .8), 0 18px 34px -12px rgba(192, 24, 39, .3);
+      }
+      .brand-chip {
+        display: inline-flex;
+        align-items: center;
+        background: linear-gradient(180deg, #FFFFFF 0%, #F1F1F3 100%);
+        border: 1px solid #D6D7DB;
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, .7), 0 2px 6px -2px rgba(10, 10, 11, .12);
+        transition: box-shadow .16s ease, border-color .16s ease, transform .16s ease;
+      }
+      .brand-chip:hover {
+        border-color: #C01827;
+        transform: translateY(-1px);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, .7), 0 6px 14px -4px rgba(192, 24, 39, .3);
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .brand-badge:hover, .brand-chip:hover { transform: none; }
+      }
+
+      /* ---- Product cards + rails (2026 refresh): flat, soft-glow controls ---- */
+      /* — frosted glass over photos, solid surfaces on plain backgrounds —   */
+      /* replacing the earlier glossy inset-highlight bevel look, which reads */
+      /* as dated skeuomorphism. Depth now comes from diffused, colored       */
+      /* shadows, not fake plastic highlights. See carousel_controller.js for */
+      /* the drag/momentum/edge-fade behavior that pairs with .rail-track.    */
+      :root {
+        --glow-red-hover: 0 3px 8px -2px rgba(192, 24, 39, .35), 0 14px 30px -10px rgba(192, 24, 39, .55);
+      }
+
+      /* floating over a photo (product card wishlist/quick-view) */
+      .action-btn {
+        background: rgba(255, 255, 255, .85);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, .6);
+        border-radius: 9999px;
+        color: #0A0A0B;
+        box-shadow: 0 6px 16px -8px rgba(10, 10, 11, .3);
+        transition: transform .2s ease, box-shadow .25s ease, background-color .2s ease, color .2s ease, border-color .2s ease;
+      }
+      .action-btn:hover {
+        background: #C01827;
+        border-color: transparent;
+        color: #fff;
+        transform: translateY(-3px);
+        box-shadow: var(--glow-red-hover);
+      }
+      .action-btn:active { transform: translateY(-1px); }
+      .action-btn:disabled { opacity: .35; pointer-events: none; box-shadow: none; transform: none; }
+
+      /* sitting on a plain section background (carousel prev/next arrows) */
+      .rail-arrow {
+        background: #FFFFFF;
+        border: 1px solid #E2E3E6;
+        border-radius: 9999px;
+        color: #0A0A0B;
+        box-shadow: 0 2px 6px -3px rgba(10, 10, 11, .18);
+        transition: transform .2s ease, box-shadow .25s ease, background-color .2s ease, color .2s ease, border-color .2s ease;
+      }
+      .rail-arrow:hover {
+        background: #C01827;
+        border-color: transparent;
+        color: #fff;
+        transform: translateY(-3px);
+        box-shadow: var(--glow-red-hover);
+      }
+      .rail-arrow:active { transform: translateY(-1px); }
+      .rail-arrow:disabled { opacity: .35; pointer-events: none; box-shadow: none; transform: none; }
+
+      /* full-width segmented fade at the scrollable edges of a product rail, */
+      /* hinting more content off-screen; clears once that edge is reached.   */
+      .rail-track {
+        -webkit-mask-image: linear-gradient(to right, transparent, black 32px, black calc(100% - 32px), transparent);
+        mask-image: linear-gradient(to right, transparent, black 32px, black calc(100% - 32px), transparent);
+      }
+      .rail.is-at-start .rail-track {
+        -webkit-mask-image: linear-gradient(to right, black, black calc(100% - 32px), transparent);
+        mask-image: linear-gradient(to right, black, black calc(100% - 32px), transparent);
+      }
+      .rail.is-at-end .rail-track {
+        -webkit-mask-image: linear-gradient(to right, transparent, black 32px, black);
+        mask-image: linear-gradient(to right, transparent, black 32px, black);
+      }
+      .rail.is-at-start.is-at-end .rail-track {
+        -webkit-mask-image: none;
+        mask-image: none;
+      }
+      .rail-track.is-dragging { cursor: grabbing; scroll-snap-type: none; }
+
+      @media (prefers-reduced-motion: reduce) {
+        .action-btn:hover, .action-btn:active, .rail-arrow:hover, .rail-arrow:active { transform: none; }
+      }
+    </style>
+
+    <%= yield :head %>
+
+    <link rel="manifest" href="/manifest.json">
+    <link rel="icon" href="/icon.png?v=2" type="image/png">
+    <link rel="icon" href="/icon.svg?v=2" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="/icon.png?v=2">
+    <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
+    <%= javascript_importmap_tags %>
+  </head>

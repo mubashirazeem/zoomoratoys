@@ -1,0 +1,24 @@
+<%# locals: value:, max:, label: — ring fill is value/max (capped at 1), a real proportional
+    signal, not decorative. Member-since isn't shown this way since a join date has no natural
+    scale to fill against. %>
+<% fill = [ value.to_f / max, 1.0 ].min %>
+<% circumference = 175.9 %>
+<div class="flex flex-col items-center gap-3">
+  <div class="relative w-20 h-20">
+    <svg viewBox="0 0 64 64" class="w-20 h-20 -rotate-90" aria-hidden="true">
+      <circle cx="32" cy="32" r="28" fill="none" stroke="rgba(10,10,11,0.08)" stroke-width="3"></circle>
+      <circle cx="32" cy="32" r="28" fill="none" stroke="url(#statRingGradient-<%= label.parameterize %>)" stroke-width="3"
+        stroke-dasharray="<%= circumference %>" stroke-dashoffset="<%= circumference * (1 - fill) %>" stroke-linecap="round"></circle>
+      <defs>
+        <linearGradient id="statRingGradient-<%= label.parameterize %>" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#E24450"></stop>
+          <stop offset="100%" stop-color="#7A0E19"></stop>
+        </linearGradient>
+      </defs>
+    </svg>
+    <div class="absolute inset-0 flex items-center justify-center">
+      <span class="font-display font-bold text-ink-950 text-xl"><%= value %></span>
+    </div>
+  </div>
+  <p class="text-body-sm text-grey-500"><%= label %></p>
+</div>

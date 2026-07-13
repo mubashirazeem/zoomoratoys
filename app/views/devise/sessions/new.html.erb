@@ -1,17 +1,18 @@
 <% content_for :title, "Sign In | Zoomora" %>
 
 <% field_classes = "w-full rounded-[12px] border border-grey-300 bg-grey-50 px-4 py-3 text-body text-ink-950 placeholder:text-grey-400 transition focus:bg-white focus:border-red-600 focus:ring-4 focus:ring-red-600/10 focus:outline-none" %>
+<% label_classes = "block text-body-sm font-medium text-ink-950 mb-1.5" %>
 
-<%= render Ui::AuthCardComponent.new(eyebrow: "Welcome Back", title: "Sign In", breadcrumb_label: "Sign In") do |card| %>
+<%= render Ui::AuthCardComponent.new(eyebrow: "Welcome Back", title: "Sign In") do |card| %>
   <% card.with_body do %>
     <%= form_for(resource, as: resource_name, url: session_path(resource_name), html: { class: "flex flex-col gap-5" }) do |f| %>
       <div>
-        <%= f.label :email, class: "block text-body-sm font-medium text-ink-950 mb-1.5" %>
+        <%= f.label :email, class: label_classes %>
         <%= f.email_field :email, autofocus: true, autocomplete: "email", class: field_classes %>
       </div>
 
       <div>
-        <%= f.label :password, class: "block text-body-sm font-medium text-ink-950 mb-1.5" %>
+        <%= f.label :password, class: label_classes %>
         <%= f.password_field :password, autocomplete: "current-password", class: field_classes %>
       </div>
 
