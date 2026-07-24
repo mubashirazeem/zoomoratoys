@@ -1,0 +1,536 @@
+---
+http_interactions:
+- request:
+    method: post
+    uri: https://api.stripe.com/v1/coupons
+    body:
+      encoding: UTF-8
+      string: name=SPRING10&duration=forever&percent_off=10
+    headers:
+      User-Agent:
+      - Stripe/v1 RubyBindings/19.3.1 AIAgent/claude_code
+      Authorization:
+      - Bearer <STRIPE_SECRET_KEY>
+      X-Stripe-Client-Telemetry:
+      - '{"last_request_metrics":{"request_id":"req_QicgpSYKnmRXuf","request_duration_ms":495}}'
+      Idempotency-Key:
+      - 74ca2ddc-b141-4e45-904e-1227be4722a0
+      Stripe-Version:
+      - 2026-06-24.dahlia
+      X-Stripe-Client-User-Agent:
+      - '{"bindings_version":"19.3.1","lang":"ruby","lang_version":"3.3.5 p100 (2024-09-03)","engine":"ruby","platform":"x86_64-darwin22","telemetry_id":"7151e879cade841520feca792817c87b","ai_agent":"claude_code"}'
+      Content-Type:
+      - application/x-www-form-urlencoded
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - "*/*"
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Server:
+      - nginx
+      Date:
+      - Sun, 19 Jul 2026 07:01:13 GMT
+      Content-Type:
+      - application/json
+      Content-Length:
+      - '338'
+      Connection:
+      - keep-alive
+      Access-Control-Allow-Credentials:
+      - 'true'
+      Access-Control-Allow-Methods:
+      - GET, HEAD, PUT, PATCH, POST, DELETE
+      Access-Control-Allow-Origin:
+      - "*"
+      Access-Control-Expose-Headers:
+      - Request-Id, Stripe-Manage-Version, Stripe-Should-Retry, X-Stripe-External-Auth-Required,
+        X-Stripe-Privileged-Session-Required
+      Access-Control-Max-Age:
+      - '300'
+      Cache-Control:
+      - no-cache, no-store
+      Content-Security-Policy:
+      - base-uri 'none'; default-src 'none'; form-action 'none'; frame-ancestors 'none';
+        img-src 'self'; script-src 'self' 'report-sample'; style-src 'self'; worker-src
+        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=aU0yCrFecJswQy4TC_4goD20WTlxXJybtZNrnmAEFBl2rhnyMia9Bi_kFP5snNEVFUnKCXwLcZmuzt9g;
+        report-to csp
+      Idempotency-Key:
+      - 74ca2ddc-b141-4e45-904e-1227be4722a0
+      Original-Request:
+      - req_unGPJnqGqa31AW
+      Report-To:
+      - '{"group":"csp","max_age":8640,"endpoints":[{"url":"https://q.stripe.com/csp-report-v2?q=aU0yCrFecJswQy4TC_4goD20WTlxXJybtZNrnmAEFBl2rhnyMia9Bi_kFP5snNEVFUnKCXwLcZmuzt9g&t=1"}],"include_subdomains":true}'
+      Reporting-Endpoints:
+      - csp="https://q.stripe.com/csp-report-v2?q=aU0yCrFecJswQy4TC_4goD20WTlxXJybtZNrnmAEFBl2rhnyMia9Bi_kFP5snNEVFUnKCXwLcZmuzt9g&t=1"
+      Request-Id:
+      - req_unGPJnqGqa31AW
+      Stripe-Should-Retry:
+      - 'false'
+      Stripe-Version:
+      - 2026-06-24.dahlia
+      Vary:
+      - Origin
+      X-Stripe-Priority-Routing-Enabled:
+      - 'true'
+      X-Stripe-Routing-Context-Priority-Tier:
+      - api-testmode
+      X-Wc:
+      - 3c3
+      Strict-Transport-Security:
+      - max-age=63072000; includeSubDomains; preload
+    body:
+      encoding: UTF-8
+      string: |-
+        {
+          "id": "0SAyAROK",
+          "object": "coupon",
+          "amount_off": null,
+          "created": 1784444473,
+          "currency": null,
+          "duration": "forever",
+          "duration_in_months": null,
+          "livemode": false,
+          "max_redemptions": null,
+          "metadata": {},
+          "name": "SPRING10",
+          "percent_off": 10.0,
+          "redeem_by": null,
+          "times_redeemed": 0,
+          "valid": true
+        }
+  recorded_at: Sun, 19 Jul 2026 07:01:09 GMT
+- request:
+    method: post
+    uri: https://api.stripe.com/v1/promotion_codes
+    body:
+      encoding: UTF-8
+      string: promotion[type]=coupon&promotion[coupon]=0SAyAROK&code=SPRING10&active=true
+    headers:
+      User-Agent:
+      - Stripe/v1 RubyBindings/19.3.1 AIAgent/claude_code
+      Authorization:
+      - Bearer <STRIPE_SECRET_KEY>
+      X-Stripe-Client-Telemetry:
+      - '{"last_request_metrics":{"request_id":"req_unGPJnqGqa31AW","request_duration_ms":448}}'
+      Idempotency-Key:
+      - be34a57a-ef32-4afd-8d45-edd290635bc5
+      Stripe-Version:
+      - 2026-06-24.dahlia
+      X-Stripe-Client-User-Agent:
+      - '{"bindings_version":"19.3.1","lang":"ruby","lang_version":"3.3.5 p100 (2024-09-03)","engine":"ruby","platform":"x86_64-darwin22","telemetry_id":"7151e879cade841520feca792817c87b","ai_agent":"claude_code"}'
+      Content-Type:
+      - application/x-www-form-urlencoded
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - "*/*"
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Server:
+      - nginx
+      Date:
+      - Sun, 19 Jul 2026 07:01:14 GMT
+      Content-Type:
+      - application/json
+      Content-Length:
+      - '493'
+      Connection:
+      - keep-alive
+      Access-Control-Allow-Credentials:
+      - 'true'
+      Access-Control-Allow-Methods:
+      - GET, HEAD, PUT, PATCH, POST, DELETE
+      Access-Control-Allow-Origin:
+      - "*"
+      Access-Control-Expose-Headers:
+      - Request-Id, Stripe-Manage-Version, Stripe-Should-Retry, X-Stripe-External-Auth-Required,
+        X-Stripe-Privileged-Session-Required
+      Access-Control-Max-Age:
+      - '300'
+      Cache-Control:
+      - no-cache, no-store
+      Content-Security-Policy:
+      - base-uri 'none'; default-src 'none'; form-action 'none'; frame-ancestors 'none';
+        img-src 'self'; script-src 'self' 'report-sample'; style-src 'self'; worker-src
+        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=aU0yCrFecJswQy4TC_4goD20WTlxXJybtZNrnmAEFBl2rhnyMia9Bi_kFP5snNEVFUnKCXwLcZmuzt9g;
+        report-to csp
+      Idempotency-Key:
+      - be34a57a-ef32-4afd-8d45-edd290635bc5
+      Original-Request:
+      - req_IhxNvdpJgZAzxf
+      Report-To:
+      - '{"group":"csp","max_age":8640,"endpoints":[{"url":"https://q.stripe.com/csp-report-v2?q=aU0yCrFecJswQy4TC_4goD20WTlxXJybtZNrnmAEFBl2rhnyMia9Bi_kFP5snNEVFUnKCXwLcZmuzt9g&t=1"}],"include_subdomains":true}'
+      Reporting-Endpoints:
+      - csp="https://q.stripe.com/csp-report-v2?q=aU0yCrFecJswQy4TC_4goD20WTlxXJybtZNrnmAEFBl2rhnyMia9Bi_kFP5snNEVFUnKCXwLcZmuzt9g&t=1"
+      Request-Id:
+      - req_IhxNvdpJgZAzxf
+      Stripe-Should-Retry:
+      - 'false'
+      Stripe-Version:
+      - 2026-06-24.dahlia
+      Vary:
+      - Origin
+      X-Stripe-Priority-Routing-Enabled:
+      - 'true'
+      X-Stripe-Routing-Context-Priority-Tier:
+      - api-testmode
+      X-Wc:
+      - 3c3
+      Strict-Transport-Security:
+      - max-age=63072000; includeSubDomains; preload
+    body:
+      encoding: UTF-8
+      string: |-
+        {
+          "id": "promo_1TuoisIvmGMpneAklAMzcKrO",
+          "object": "promotion_code",
+          "active": true,
+          "code": "SPRING10",
+          "created": 1784444474,
+          "customer": null,
+          "customer_account": null,
+          "expires_at": null,
+          "livemode": false,
+          "max_redemptions": null,
+          "metadata": {},
+          "promotion": {
+            "coupon": "0SAyAROK",
+            "type": "coupon"
+          },
+          "restrictions": {
+            "first_time_transaction": false,
+            "minimum_amount": null,
+            "minimum_amount_currency": null
+          },
+          "times_redeemed": 0
+        }
+  recorded_at: Sun, 19 Jul 2026 07:01:10 GMT
+- request:
+    method: post
+    uri: https://api.stripe.com/v1/promotion_codes/promo_1TuoisIvmGMpneAklAMzcKrO
+    body:
+      encoding: UTF-8
+      string: active=false
+    headers:
+      User-Agent:
+      - Stripe/v1 RubyBindings/19.3.1 AIAgent/claude_code
+      Authorization:
+      - Bearer <STRIPE_SECRET_KEY>
+      X-Stripe-Client-Telemetry:
+      - '{"last_request_metrics":{"request_id":"req_IhxNvdpJgZAzxf","request_duration_ms":501}}'
+      Idempotency-Key:
+      - a7ac27cf-908c-4cc5-a019-95c56b465e84
+      Stripe-Version:
+      - 2026-06-24.dahlia
+      X-Stripe-Client-User-Agent:
+      - '{"bindings_version":"19.3.1","lang":"ruby","lang_version":"3.3.5 p100 (2024-09-03)","engine":"ruby","platform":"x86_64-darwin22","telemetry_id":"7151e879cade841520feca792817c87b","ai_agent":"claude_code"}'
+      Content-Type:
+      - application/x-www-form-urlencoded
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - "*/*"
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Server:
+      - nginx
+      Date:
+      - Sun, 19 Jul 2026 07:01:14 GMT
+      Content-Type:
+      - application/json
+      Content-Length:
+      - '494'
+      Connection:
+      - keep-alive
+      Access-Control-Allow-Credentials:
+      - 'true'
+      Access-Control-Allow-Methods:
+      - GET, HEAD, PUT, PATCH, POST, DELETE
+      Access-Control-Allow-Origin:
+      - "*"
+      Access-Control-Expose-Headers:
+      - Request-Id, Stripe-Manage-Version, Stripe-Should-Retry, X-Stripe-External-Auth-Required,
+        X-Stripe-Privileged-Session-Required
+      Access-Control-Max-Age:
+      - '300'
+      Cache-Control:
+      - no-cache, no-store
+      Content-Security-Policy:
+      - base-uri 'none'; default-src 'none'; form-action 'none'; frame-ancestors 'none';
+        img-src 'self'; script-src 'self' 'report-sample'; style-src 'self'; worker-src
+        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=aU0yCrFecJswQy4TC_4goD20WTlxXJybtZNrnmAEFBl2rhnyMia9Bi_kFP5snNEVFUnKCXwLcZmuzt9g;
+        report-to csp
+      Idempotency-Key:
+      - a7ac27cf-908c-4cc5-a019-95c56b465e84
+      Original-Request:
+      - req_ao3Nik0CjLXNKN
+      Report-To:
+      - '{"group":"csp","max_age":8640,"endpoints":[{"url":"https://q.stripe.com/csp-report-v2?q=aU0yCrFecJswQy4TC_4goD20WTlxXJybtZNrnmAEFBl2rhnyMia9Bi_kFP5snNEVFUnKCXwLcZmuzt9g&t=1"}],"include_subdomains":true}'
+      Reporting-Endpoints:
+      - csp="https://q.stripe.com/csp-report-v2?q=aU0yCrFecJswQy4TC_4goD20WTlxXJybtZNrnmAEFBl2rhnyMia9Bi_kFP5snNEVFUnKCXwLcZmuzt9g&t=1"
+      Request-Id:
+      - req_ao3Nik0CjLXNKN
+      Stripe-Should-Retry:
+      - 'false'
+      Stripe-Version:
+      - 2026-06-24.dahlia
+      Vary:
+      - Origin
+      X-Stripe-Priority-Routing-Enabled:
+      - 'true'
+      X-Stripe-Routing-Context-Priority-Tier:
+      - api-testmode
+      X-Wc:
+      - 3c3
+      Strict-Transport-Security:
+      - max-age=63072000; includeSubDomains; preload
+    body:
+      encoding: UTF-8
+      string: |-
+        {
+          "id": "promo_1TuoisIvmGMpneAklAMzcKrO",
+          "object": "promotion_code",
+          "active": false,
+          "code": "SPRING10",
+          "created": 1784444474,
+          "customer": null,
+          "customer_account": null,
+          "expires_at": null,
+          "livemode": false,
+          "max_redemptions": null,
+          "metadata": {},
+          "promotion": {
+            "coupon": "0SAyAROK",
+            "type": "coupon"
+          },
+          "restrictions": {
+            "first_time_transaction": false,
+            "minimum_amount": null,
+            "minimum_amount_currency": null
+          },
+          "times_redeemed": 0
+        }
+  recorded_at: Sun, 19 Jul 2026 07:01:10 GMT
+- request:
+    method: post
+    uri: https://api.stripe.com/v1/coupons
+    body:
+      encoding: UTF-8
+      string: name=SPRING10&duration=forever&percent_off=25
+    headers:
+      User-Agent:
+      - Stripe/v1 RubyBindings/19.3.1 AIAgent/claude_code
+      Authorization:
+      - Bearer <STRIPE_SECRET_KEY>
+      X-Stripe-Client-Telemetry:
+      - '{"last_request_metrics":{"request_id":"req_ao3Nik0CjLXNKN","request_duration_ms":404}}'
+      Idempotency-Key:
+      - 9d6dea34-cd7a-457a-a689-f16a46253c98
+      Stripe-Version:
+      - 2026-06-24.dahlia
+      X-Stripe-Client-User-Agent:
+      - '{"bindings_version":"19.3.1","lang":"ruby","lang_version":"3.3.5 p100 (2024-09-03)","engine":"ruby","platform":"x86_64-darwin22","telemetry_id":"7151e879cade841520feca792817c87b","ai_agent":"claude_code"}'
+      Content-Type:
+      - application/x-www-form-urlencoded
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - "*/*"
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Server:
+      - nginx
+      Date:
+      - Sun, 19 Jul 2026 07:01:15 GMT
+      Content-Type:
+      - application/json
+      Content-Length:
+      - '338'
+      Connection:
+      - keep-alive
+      Access-Control-Allow-Credentials:
+      - 'true'
+      Access-Control-Allow-Methods:
+      - GET, HEAD, PUT, PATCH, POST, DELETE
+      Access-Control-Allow-Origin:
+      - "*"
+      Access-Control-Expose-Headers:
+      - Request-Id, Stripe-Manage-Version, Stripe-Should-Retry, X-Stripe-External-Auth-Required,
+        X-Stripe-Privileged-Session-Required
+      Access-Control-Max-Age:
+      - '300'
+      Cache-Control:
+      - no-cache, no-store
+      Content-Security-Policy:
+      - base-uri 'none'; default-src 'none'; form-action 'none'; frame-ancestors 'none';
+        img-src 'self'; script-src 'self' 'report-sample'; style-src 'self'; worker-src
+        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=aU0yCrFecJswQy4TC_4goD20WTlxXJybtZNrnmAEFBl2rhnyMia9Bi_kFP5snNEVFUnKCXwLcZmuzt9g;
+        report-to csp
+      Idempotency-Key:
+      - 9d6dea34-cd7a-457a-a689-f16a46253c98
+      Original-Request:
+      - req_nmCVxRTiQWSLOe
+      Report-To:
+      - '{"group":"csp","max_age":8640,"endpoints":[{"url":"https://q.stripe.com/csp-report-v2?q=aU0yCrFecJswQy4TC_4goD20WTlxXJybtZNrnmAEFBl2rhnyMia9Bi_kFP5snNEVFUnKCXwLcZmuzt9g&t=1"}],"include_subdomains":true}'
+      Reporting-Endpoints:
+      - csp="https://q.stripe.com/csp-report-v2?q=aU0yCrFecJswQy4TC_4goD20WTlxXJybtZNrnmAEFBl2rhnyMia9Bi_kFP5snNEVFUnKCXwLcZmuzt9g&t=1"
+      Request-Id:
+      - req_nmCVxRTiQWSLOe
+      Stripe-Should-Retry:
+      - 'false'
+      Stripe-Version:
+      - 2026-06-24.dahlia
+      Vary:
+      - Origin
+      X-Stripe-Priority-Routing-Enabled:
+      - 'true'
+      X-Stripe-Routing-Context-Priority-Tier:
+      - api-testmode
+      X-Wc:
+      - 3c3
+      Strict-Transport-Security:
+      - max-age=63072000; includeSubDomains; preload
+    body:
+      encoding: UTF-8
+      string: |-
+        {
+          "id": "6xl5fOSc",
+          "object": "coupon",
+          "amount_off": null,
+          "created": 1784444474,
+          "currency": null,
+          "duration": "forever",
+          "duration_in_months": null,
+          "livemode": false,
+          "max_redemptions": null,
+          "metadata": {},
+          "name": "SPRING10",
+          "percent_off": 25.0,
+          "redeem_by": null,
+          "times_redeemed": 0,
+          "valid": true
+        }
+  recorded_at: Sun, 19 Jul 2026 07:01:10 GMT
+- request:
+    method: post
+    uri: https://api.stripe.com/v1/promotion_codes
+    body:
+      encoding: UTF-8
+      string: promotion[type]=coupon&promotion[coupon]=6xl5fOSc&code=SPRING10&active=true
+    headers:
+      User-Agent:
+      - Stripe/v1 RubyBindings/19.3.1 AIAgent/claude_code
+      Authorization:
+      - Bearer <STRIPE_SECRET_KEY>
+      X-Stripe-Client-Telemetry:
+      - '{"last_request_metrics":{"request_id":"req_nmCVxRTiQWSLOe","request_duration_ms":393}}'
+      Idempotency-Key:
+      - 9d09c412-60a2-4bd1-8aed-2dc36aad4301
+      Stripe-Version:
+      - 2026-06-24.dahlia
+      X-Stripe-Client-User-Agent:
+      - '{"bindings_version":"19.3.1","lang":"ruby","lang_version":"3.3.5 p100 (2024-09-03)","engine":"ruby","platform":"x86_64-darwin22","telemetry_id":"7151e879cade841520feca792817c87b","ai_agent":"claude_code"}'
+      Content-Type:
+      - application/x-www-form-urlencoded
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - "*/*"
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Server:
+      - nginx
+      Date:
+      - Sun, 19 Jul 2026 07:01:15 GMT
+      Content-Type:
+      - application/json
+      Content-Length:
+      - '493'
+      Connection:
+      - keep-alive
+      Access-Control-Allow-Credentials:
+      - 'true'
+      Access-Control-Allow-Methods:
+      - GET, HEAD, PUT, PATCH, POST, DELETE
+      Access-Control-Allow-Origin:
+      - "*"
+      Access-Control-Expose-Headers:
+      - Request-Id, Stripe-Manage-Version, Stripe-Should-Retry, X-Stripe-External-Auth-Required,
+        X-Stripe-Privileged-Session-Required
+      Access-Control-Max-Age:
+      - '300'
+      Cache-Control:
+      - no-cache, no-store
+      Content-Security-Policy:
+      - base-uri 'none'; default-src 'none'; form-action 'none'; frame-ancestors 'none';
+        img-src 'self'; script-src 'self' 'report-sample'; style-src 'self'; worker-src
+        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=aU0yCrFecJswQy4TC_4goD20WTlxXJybtZNrnmAEFBl2rhnyMia9Bi_kFP5snNEVFUnKCXwLcZmuzt9g;
+        report-to csp
+      Idempotency-Key:
+      - 9d09c412-60a2-4bd1-8aed-2dc36aad4301
+      Original-Request:
+      - req_ooJ2cZ3q8fFVKs
+      Report-To:
+      - '{"group":"csp","max_age":8640,"endpoints":[{"url":"https://q.stripe.com/csp-report-v2?q=aU0yCrFecJswQy4TC_4goD20WTlxXJybtZNrnmAEFBl2rhnyMia9Bi_kFP5snNEVFUnKCXwLcZmuzt9g&t=1"}],"include_subdomains":true}'
+      Reporting-Endpoints:
+      - csp="https://q.stripe.com/csp-report-v2?q=aU0yCrFecJswQy4TC_4goD20WTlxXJybtZNrnmAEFBl2rhnyMia9Bi_kFP5snNEVFUnKCXwLcZmuzt9g&t=1"
+      Request-Id:
+      - req_ooJ2cZ3q8fFVKs
+      Stripe-Should-Retry:
+      - 'false'
+      Stripe-Version:
+      - 2026-06-24.dahlia
+      Vary:
+      - Origin
+      X-Stripe-Priority-Routing-Enabled:
+      - 'true'
+      X-Stripe-Routing-Context-Priority-Tier:
+      - api-testmode
+      X-Wc:
+      - 3c3
+      Strict-Transport-Security:
+      - max-age=63072000; includeSubDomains; preload
+    body:
+      encoding: UTF-8
+      string: |-
+        {
+          "id": "promo_1TuoitIvmGMpneAk8TsK2rrO",
+          "object": "promotion_code",
+          "active": true,
+          "code": "SPRING10",
+          "created": 1784444475,
+          "customer": null,
+          "customer_account": null,
+          "expires_at": null,
+          "livemode": false,
+          "max_redemptions": null,
+          "metadata": {},
+          "promotion": {
+            "coupon": "6xl5fOSc",
+            "type": "coupon"
+          },
+          "restrictions": {
+            "first_time_transaction": false,
+            "minimum_amount": null,
+            "minimum_amount_currency": null
+          },
+          "times_redeemed": 0
+        }
+  recorded_at: Sun, 19 Jul 2026 07:01:11 GMT
+recorded_with: VCR 6.4.0

@@ -1,0 +1,40 @@
+<% field_classes = "w-full rounded-[10px] border border-grey-300 bg-grey-50 px-3.5 py-2.5 text-body-sm text-ink-950 placeholder:text-grey-400 transition focus:bg-white focus:border-red-600 focus:ring-4 focus:ring-red-600/10 focus:outline-none" %>
+<% label_classes = "block text-body-sm font-medium text-ink-950 mb-1.5" %>
+
+<%= form_with model: [ :admin, category ], class: "flex flex-col gap-5 max-w-xl" do |f| %>
+  <% if category.errors.any? %>
+    <div role="alert" class="rounded-[12px] bg-red-50 border border-red-200 px-4 py-3 text-body-sm text-red-700">
+      <p class="font-semibold">Couldn't save this category:</p>
+      <ul class="mt-1 list-disc list-inside">
+        <% category.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div>
+    <%= f.label :name, class: label_classes %>
+    <%= f.text_field :name, class: field_classes %>
+  </div>
+
+  <div>
+    <%= f.label :description, class: label_classes %>
+    <%= f.text_area :description, rows: 3, class: field_classes %>
+  </div>
+
+  <div>
+    <%= f.label :placeholder_key, "Photo", class: label_classes %>
+    <%= f.select :placeholder_key, Category::PLACEHOLDER_KEYS, {}, class: field_classes %>
+  </div>
+
+  <div>
+    <%= f.label :position, "Nav order (lower shows first)", class: label_classes %>
+    <%= f.number_field :position, class: field_classes %>
+  </div>
+
+  <div class="flex items-center gap-3">
+    <%= render(Ui::ButtonComponent.new(variant: :primary, type: "submit")) { "Save Category" } %>
+    <%= link_to "Cancel", admin_categories_path, class: "text-body-sm font-medium text-grey-600 hover:text-ink-950" %>
+  </div>
+<% end %>

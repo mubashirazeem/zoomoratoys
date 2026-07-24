@@ -35,7 +35,7 @@
   >
     <% products.each do |product| %>
       <div class="snap-start shrink-0 flex w-[74%] sm:w-[42%] lg:w-[calc(33.333%-20px)]">
-        <%= render Catalog::ProductCardComponent.new(product: product) %>
+        <%= render Catalog::ProductCardComponent.new(product: product, wishlisted: wishlisted_product_ids.include?(product.id), signed_in: signed_in) %>
       </div>
     <% end %>
   </div>

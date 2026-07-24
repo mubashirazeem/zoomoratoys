@@ -1,0 +1,93 @@
+<% content_for :title, "Invoice #{@order.order_number} | Zoomora Admin" %>
+
+<%= render "print_header", title: "Invoice", label: "Invoice", date_label: "Issued" %>
+
+<div class="mt-6 grid grid-cols-2 gap-8">
+  <div>
+    <p class="text-[11px] uppercase font-semibold tracking-[0.08em] text-grey-500 mb-2">Billed To</p>
+    <p class="text-body-sm font-medium text-ink-950"><%= @order.shipping_name %></p>
+    <p class="text-body-sm text-grey-600"><%= @order.user.email %></p>
+    <p class="text-body-sm text-grey-600"><%= @order.shipping_phone %></p>
+  </div>
+  <div>
+    <p class="text-[11px] uppercase font-semibold tracking-[0.08em] text-grey-500 mb-2">Shipping Address</p>
+    <p class="text-body-sm text-grey-600">
+      <%= @order.shipping_address_line1 %><% if @order.shipping_address_line2.present? %>, <%= @order.shipping_address_line2 %><% end %><br>
+      <%= @order.shipping_city %>, <%= @order.shipping_emirate %><br>
+      United Arab Emirates
+    </p>
+  </div>
+</div>
+
+<table class="mt-8 w-full text-left text-body-sm">
+  <thead>
+    <tr class="border-b-2 border-ink-950 text-[11px] uppercase font-semibold tracking-[0.08em] text-grey-600">
+      <th class="py-3">Item</th>
+      <th class="py-3 text-center">Quantity</th>
+      <th class="py-3 text-right">Unit Price</th>
+      <th class="py-3 text-right">Amount</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% @line_items.each do |line_item| %>
+      <tr class="border-b border-grey-200">
+        <td class="py-3.5 font-medium text-ink-950"><%= line_item.product.name %></td>
+        <td class="py-3.5 text-center font-mono"><%= line_item.quantity %></td>
+        <td class="py-3.5 text-right font-mono"><%= format_aed(line_item.price_cents) %></td>
+        <td class="py-3.5 text-right font-mono"><%= format_aed(line_item.price_cents * line_item.quantity) %></td>
+      </tr>
+    <% end %>
+  </tbody>
+  <tfoot>
+    <tr>
+      <td colspan="3" class="pt-4 text-right text-grey-600">Subtotal</td>
+      <td class="pt-4 text-right font-mono"><%= format_aed(@order.subtotal_cents) %></td>
+    </tr>
+    <% if @order.gift_wrap_cents.to_i.positive? %>
+      <tr>
+        <td colspan="3" class="pt-1.5 text-right text-grey-600">Gift wrap</td>
+        <td class="pt-1.5 text-right font-mono"><%= format_aed(@order.gift_wrap_cents) %></td>
+      </tr>
+    <% end %>
+    <% if @order.discount_cents.to_i.positive? %>
+      <tr>
+        <td colspan="3" class="pt-1.5 text-right text-grey-600">Discount</td>
+        <td class="pt-1.5 text-right font-mono">&minus;<%= format_aed(@order.discount_cents) %></td>
+      </tr>
+    <% end %>
+    <tr>
+      <td colspan="3" class="pt-3 text-right text-grey-600 border-t border-grey-200">Amount excl. VAT</td>
+      <td class="pt-3 text-right font-mono border-t border-grey-200"><%= format_aed_precise(@order.amount_excluding_vat_cents) %></td>
+    </tr>
+    <tr>
+      <td colspan="3" class="pt-1.5 text-right text-grey-600">VAT (5%)</td>
+      <td class="pt-1.5 text-right font-mono"><%= format_aed_precise(@order.vat_cents) %></td>
+    </tr>
+    <tr>
+      <td colspan="3" class="pt-3 text-right font-display font-bold text-ink-950 text-[16px]">Total (incl. VAT)</td>
+      <td class="pt-3 text-right font-mono font-display font-bold text-ink-950 text-[16px]"><%= format_aed(@order.total_cents) %></td>
+    </tr>
+  </tfoot>
+</table>
+
+<div class="mt-8 pt-6 border-t border-grey-200 grid grid-cols-2 gap-8">
+  <div>
+    <p class="text-[11px] uppercase font-semibold tracking-[0.08em] text-grey-500 mb-1">Payment Method</p>
+    <p class="text-body-sm text-ink-950"><%= @order.payment_method.humanize %></p>
+    <% if @order.card? && @order.stripe_payment_intent_id.present? %>
+      <p class="mt-1 text-[12px] text-grey-500">Paid via Stripe &middot; <span class="font-mono"><%= @order.stripe_payment_intent_id %></span></p>
+      <p class="mt-1 text-[12px]"><%= link_to "View on Stripe", @order.stripe_dashboard_payment_intent_url, target: "_blank", rel: "noopener", class: "text-red-600" %></p>
+      <% if @order.stripe_hosted_invoice_url.present? %>
+        <p class="mt-1 text-[12px]"><%= link_to "View Invoice", @order.stripe_hosted_invoice_url, target: "_blank", rel: "noopener", class: "text-red-600" %></p>
+      <% end %>
+    <% end %>
+  </div>
+  <div>
+    <p class="text-[11px] uppercase font-semibold tracking-[0.08em] text-grey-500 mb-1">Order Status</p>
+    <p class="text-body-sm text-ink-950"><%= @order.status.humanize %></p>
+  </div>
+</div>
+
+<div class="mt-10 pt-6 border-t border-grey-200">
+  <p class="text-body-sm text-grey-500">Thank you for shopping with Zoomora — Adventure Starts Here.</p>
+</div>

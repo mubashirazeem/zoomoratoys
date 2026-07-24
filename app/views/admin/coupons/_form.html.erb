@@ -1,0 +1,54 @@
+<% field_classes = "w-full rounded-[10px] border border-grey-300 bg-grey-50 px-3.5 py-2.5 text-body-sm text-ink-950 placeholder:text-grey-400 transition focus:bg-white focus:border-red-600 focus:ring-4 focus:ring-red-600/10 focus:outline-none" %>
+<% label_classes = "block text-body-sm font-medium text-ink-950 mb-1.5" %>
+
+<%= form_with model: [ :admin, coupon ], class: "flex flex-col gap-5 max-w-lg" do |f| %>
+  <% if coupon.errors.any? %>
+    <div role="alert" class="rounded-[12px] bg-red-50 border border-red-200 px-4 py-3 text-body-sm text-red-700">
+      <p class="font-semibold">Couldn't save this coupon:</p>
+      <ul class="mt-1 list-disc list-inside">
+        <% coupon.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div>
+    <%= f.label :code, class: label_classes %>
+    <%= f.text_field :code, pattern: "[a-zA-Z0-9\\-_]+", title: "Letters, numbers, hyphens, and underscores only — no spaces", class: "#{field_classes} uppercase" %>
+    <p class="mt-1.5 text-body-sm text-grey-500">Letters, numbers, hyphens, and underscores only — no spaces, so it works as a real checkout promo code.</p>
+  </div>
+
+  <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+    <div>
+      <%= f.label :discount_type, class: label_classes %>
+      <%= f.select :discount_type, Coupon.discount_types.keys.map { |t| [ t.humanize, t ] }, {}, class: field_classes %>
+    </div>
+    <div>
+      <%= f.label :discount_value, "Discount value", class: label_classes %>
+      <%= f.number_field :discount_value, min: 1, class: field_classes %>
+      <p class="mt-1.5 text-body-sm text-grey-500">Percentage (1&ndash;100) or fixed AED amount, matching the type above.</p>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+    <div>
+      <%= f.label :usage_limit, "Usage limit (blank = unlimited)", class: label_classes %>
+      <%= f.number_field :usage_limit, min: 1, class: field_classes %>
+    </div>
+    <div>
+      <%= f.label :expires_at, "Expires (blank = never)", class: label_classes %>
+      <%= f.datetime_field :expires_at, class: field_classes %>
+    </div>
+  </div>
+
+  <label class="flex items-center gap-2.5 text-body-sm text-ink-950 cursor-pointer">
+    <%= f.check_box :active, class: "w-4 h-4 accent-red-600" %>
+    Active
+  </label>
+
+  <div class="flex items-center gap-3">
+    <%= render(Ui::ButtonComponent.new(variant: :primary, type: "submit")) { "Save Coupon" } %>
+    <%= link_to "Cancel", admin_coupons_path, class: "text-body-sm font-medium text-grey-600 hover:text-ink-950" %>
+  </div>
+<% end %>

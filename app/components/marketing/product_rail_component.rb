@@ -5,12 +5,14 @@
 # component. Receives fully-loaded Products; never queries itself (see
 # COMPONENT_GUIDELINES.md).
 class Marketing::ProductRailComponent < ViewComponent::Base
-  def initialize(title:, products:, view_all_url: nil, view_all_label: "View All")
+  def initialize(title:, products:, view_all_url: nil, view_all_label: "View All", wishlisted_product_ids: Set.new, signed_in: false)
     @title = title
     @products = products
     @view_all_url = view_all_url
     @view_all_label = view_all_label
+    @wishlisted_product_ids = wishlisted_product_ids
+    @signed_in = signed_in
   end
 
-  attr_reader :title, :products, :view_all_url, :view_all_label
+  attr_reader :title, :products, :view_all_url, :view_all_label, :wishlisted_product_ids, :signed_in
 end

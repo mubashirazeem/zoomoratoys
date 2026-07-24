@@ -1,10 +1,15 @@
 /documents/
+/docs/*
 
 # Ignore bundler config.
 /.bundle
 
-# Ignore all environment files.
+# Ignore all environment files except the ones deliberately committed:
+# .env.example (variable names only, no real values) and .env.test (dummy
+# values safe for VCR cassette replay — see spec/support/vcr.rb).
 /.env*
+!/.env.example
+!/.env.test
 
 # Ignore all default log files and tempfiles.
 /log/*
@@ -23,6 +28,10 @@
 !/tmp/storage/.keep
 
 /public/assets
+
+# Generated sitemap — regenerate with `bin/rails sitemap:refresh:no_ping`
+# after deploys or on a periodic schedule; not source, don't commit it.
+/public/sitemap*.xml.gz
 
 # Ignore master key for decrypting credentials and any other unencrypted secrets.
 /config/master.key

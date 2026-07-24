@@ -1,42 +1,41 @@
 # frozen_string_literal: true
 
-# "Let customers speak for us" social-proof section: aggregate rating plus a
-# row of review cards. All review copy, names, and ratings are original
-# placeholder content for this frontend pass.
+# "Let customers speak for us" social-proof section — real Review data
+# only. Featured reviews are the highest-rated ones (standard "put your
+# best reviews forward" marketing practice), never fabricated ones. Hides
+# itself entirely rather than show a hollow "0 reviews" state before the
+# store has any (see #render?).
 class Marketing::ReviewsComponent < ViewComponent::Base
-  Review = Struct.new(:quote, :author, :stars, :image, keyword_init: true)
+  FEATURED_COUNT = 3
 
-  AVERAGE_RATING = 4.8
-  REVIEW_COUNT = 1_240
-
-  REVIEWS = [
-    Review.new(
-      quote: "Delivery was quick and the team assembled everything in minutes. My kids were riding within the hour.",
-      author: "Layla A.", stars: 5, image: "category-dirtbike.jpg"
-    ),
-    Review.new(
-      quote: "Solid build quality and it handles the rough ground at the park really well. Worth every dirham.",
-      author: "Omar R.", stars: 5, image: "category-scooter.jpg"
-    ),
-    Review.new(
-      quote: "Ordered for a birthday and it arrived a day early, beautifully packed. The whole family loves it.",
-      author: "Sara M.", stars: 5, image: "category-bicycle.jpg"
-    )
-  ].freeze
+  def render?
+    review_count.positive?
+  end
 
   def reviews
-    REVIEWS
+    @reviews ||= Review.includes(:user).order(rating: :desc, created_at: :desc).limit(FEATURED_COUNT)
   end
 
   def average_rating
-    AVERAGE_RATING
+    @average_rating ||= Review.average(:rating)&.round(1)
   end
 
   def review_count
-    REVIEW_COUNT
+    @review_count ||= Review.count
   end
 
   def formatted_review_count
-    helpers.number_with_thousands(REVIEW_COUNT)
+    helpers.number_with_delimiter(review_count)
+  end
+
+  # First name + last initial — a real customer's name on a public
+  # homepage, without publishing their full legal name.
+  def reviewer_label(review)
+    last_initial = review.user.last_name.first
+    [ review.user.first_name, last_initial && "#{last_initial}." ].compact.join(" ")
+  end
+
+  def reviewer_initials(review)
+    "#{review.user.first_name.first}#{review.user.last_name.first}".upcase
   end
 end

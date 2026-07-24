@@ -33,9 +33,34 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 shrink-0" aria-hidden="true"><path d="M12 20s-7-4.3-7-9a4 4 0 0 1 7-2.6A4 4 0 0 1 19 11c0 4.7-7 9-7 9Z"/></svg>
           Wishlist
         <% end %>
+        <%= link_to addresses_path, class: "flex items-center gap-3 shrink-0 rounded-full lg:rounded-[10px] px-4 py-2.5 text-body-sm font-medium text-ink-950 hover:bg-grey-50 transition-colors" do %>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 shrink-0" aria-hidden="true"><path d="M12 21s-7-5.3-7-10.5A7 7 0 0 1 12 3a7 7 0 0 1 7 7.5C19 15.7 12 21 12 21Z"/><circle cx="12" cy="10" r="2.5"/></svg>
+          Addresses
+        <% end %>
         <%= link_to edit_user_registration_path, class: "flex items-center gap-3 shrink-0 rounded-full lg:rounded-[10px] px-4 py-2.5 text-body-sm font-medium text-ink-950 hover:bg-grey-50 transition-colors" do %>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 shrink-0" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-3.3 3.6-6 8-6s8 2.7 8 6"/></svg>
           Account Settings
+        <% end %>
+        <% if current_user.stripe_customer_id.present? %>
+          <%# form: { ... } — not top-level html_options — because button_to
+              only applies top-level html_options to the inner <button>;
+              only keys nested under form: land on the <form> tag itself.
+              data-turbo="false" is read off the form (or an ancestor), so
+              it has to be there: this redirects to a real, cross-origin
+              Stripe Billing Portal URL (allow_other_host: true in
+              BillingPortalController#create), and Turbo's fetch-based form
+              submission can't hand off to a real top-level navigation
+              across origins — without this, the button just reloads the
+              current page instead of ever reaching Stripe. target: "_blank"
+              is there for the same cross-origin reason, so leaving Stripe's
+              billing portal doesn't also navigate this tab away from
+              Zoomora; rel: "noopener" is the standard safeguard against the
+              opened tab getting a JS handle back to this one. %>
+          <%= button_to billing_portal_path, method: :post, form: { target: "_blank", rel: "noopener", data: { turbo: false } },
+                class: "flex items-center gap-3 shrink-0 rounded-full lg:rounded-[10px] px-4 py-2.5 text-body-sm font-medium text-ink-950 hover:bg-grey-50 transition-colors w-full text-left" do %>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 shrink-0" aria-hidden="true"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>
+            Manage Billing
+          <% end %>
         <% end %>
       </nav>
 

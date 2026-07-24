@@ -1,0 +1,23 @@
+<%= render "layouts/head" %>
+
+  <body class="font-body text-ink-950 bg-grey-100 antialiased print:bg-white">
+    <style>
+      @media print {
+        @page { margin: 12mm; }
+        .no-print { display: none !important; }
+        body { background: white !important; }
+      }
+    </style>
+
+    <div class="no-print sticky top-0 z-10 bg-ink-950 text-white px-6 py-3 flex items-center justify-between">
+      <%= link_to "&larr; Back to Order".html_safe, admin_order_path(@order), class: "text-body-sm font-medium text-grey-300 hover:text-white" %>
+      <button type="button" onclick="window.print()" class="rounded-full bg-red-600 hover:bg-red-700 text-white text-body-sm font-semibold px-5 py-2">
+        Print / Save as PDF
+      </button>
+    </div>
+
+    <main class="max-w-3xl mx-auto bg-white my-8 print:my-0 p-10 print:p-0 shadow-[0_1px_3px_rgba(10,10,11,0.1)] print:shadow-none">
+      <%= yield %>
+    </main>
+  </body>
+</html>

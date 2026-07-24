@@ -1,0 +1,70 @@
+<% content_for :title, "Products | Zoomora Admin" %>
+
+<%= render Admin::PageHeaderComponent.new(title: "Products") do |header| %>
+  <% header.with_action { render(Ui::ButtonComponent.new(variant: :primary, href: new_admin_product_path)) { "New Product" } } %>
+<% end %>
+
+<div class="mt-6 flex items-center gap-3 flex-wrap">
+  <%= form_with url: admin_products_path, method: :get, class: "flex items-center gap-2 flex-wrap" do %>
+    <div class="relative">
+      <input type="text" name="q" value="<%= params[:q] %>" placeholder="Search by name or SKU&hellip;"
+        class="rounded-[10px] border border-grey-300 bg-white pl-3.5 pr-10 py-2.5 text-body-sm text-ink-950 placeholder:text-grey-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-red-600 w-full sm:w-64">
+      <button type="submit" aria-label="Search products" class="absolute right-0 top-0 h-full w-10 flex items-center justify-center text-grey-400 hover:text-red-600">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+      </button>
+    </div>
+    <select name="category_id" onchange="this.form.requestSubmit()" class="rounded-[10px] border border-grey-300 bg-white px-3 py-2.5 text-body-sm text-ink-950 focus-visible:outline focus-visible:outline-2 focus-visible:outline-red-600">
+      <option value="">All Categories</option>
+      <% @categories.each do |category| %>
+        <option value="<%= category.id %>" <%= "selected" if params[:category_id].to_s == category.id.to_s %>><%= category.name %></option>
+      <% end %>
+    </select>
+    <% if params[:q].present? || params[:category_id].present? %>
+      <%= link_to "Clear", admin_products_path, class: "text-body-sm text-grey-500 hover:text-red-600 font-medium" %>
+    <% end %>
+  <% end %>
+  <span class="text-body-sm text-grey-500 font-mono"><%= @products.total_count %> products</span>
+</div>
+
+<% if @products.none? %>
+  <p class="mt-8 text-body-sm text-grey-500">No products match your filters.</p>
+<% else %>
+  <div class="mt-6 rounded-[20px] border border-grey-200 bg-white overflow-hidden shadow-[0_1px_2px_rgba(10,10,11,0.04)] overflow-x-auto">
+    <table class="w-full text-left text-body-sm">
+      <thead>
+        <tr class="bg-grey-50/60 border-b border-grey-200 text-[11px] uppercase font-semibold tracking-[0.08em] text-grey-500">
+          <th class="px-5 py-3.5">Product</th>
+          <th class="px-5 py-3.5">Category</th>
+          <th class="px-5 py-3.5">Price</th>
+          <th class="px-5 py-3.5">Stock</th>
+          <th class="px-5 py-3.5">Status</th>
+          <th class="px-5 py-3.5"></th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @products.each do |product| %>
+          <tr class="border-b border-grey-100 last:border-b-0 hover:bg-grey-50/60 transition-colors">
+            <td class="px-5 py-4 font-medium text-ink-950"><%= product.name %></td>
+            <td class="px-5 py-4 text-grey-600"><%= product.category.name %></td>
+            <td class="px-5 py-4 font-mono"><%= format_aed(product.price_cents) %></td>
+            <td class="px-5 py-4 font-mono"><%= product.stock_quantity %></td>
+            <td class="px-5 py-4">
+              <%= render Admin::StatusBadgeComponent.new(label: product.stock_status.humanize,
+                    tone: { "in_stock" => :positive, "preorder" => :neutral, "sold_out" => :negative }.fetch(product.stock_status)) %>
+            </td>
+            <td class="px-5 py-4 text-right whitespace-nowrap">
+              <%= link_to "Variants (#{product.product_variants.size})", admin_product_variants_path(product), class: "text-ink-950 font-medium hover:text-red-600 mr-3" %>
+              <%= link_to "Edit", edit_admin_product_path(product), class: "text-red-600 font-medium hover:text-red-700" %>
+              <%= button_to "Delete", admin_product_path(product), method: :delete,
+                    form: { class: "inline-block ml-3" },
+                    data: { turbo_confirm: "Delete #{product.name}?" },
+                    class: "text-grey-500 font-medium hover:text-red-600 bg-transparent" %>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+
+  <%= render(Ui::PaginationComponent.new(scope: @products) { |page| admin_products_path(page: page, category_id: params[:category_id], q: params[:q]) }) %>
+<% end %>

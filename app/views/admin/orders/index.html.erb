@@ -1,0 +1,65 @@
+<% content_for :title, "Orders | Zoomora Admin" %>
+
+<h1 class="text-[24px] sm:text-[28px] font-display font-bold text-ink-950">Orders</h1>
+
+<div class="mt-6 flex items-center justify-between gap-3 flex-wrap">
+  <div class="flex items-center gap-2 flex-wrap">
+    <%= link_to "All", admin_orders_path(q: params[:q]), class: "rounded-full px-4 py-2 text-body-sm font-medium #{params[:status].blank? ? 'bg-red-600 text-white' : 'bg-white border border-grey-300 text-ink-950 hover:border-red-600'}" %>
+    <% Order.statuses.each_key do |status| %>
+      <%= link_to status.humanize, admin_orders_path(status: status, q: params[:q]), class: "rounded-full px-4 py-2 text-body-sm font-medium #{params[:status] == status ? 'bg-red-600 text-white' : 'bg-white border border-grey-300 text-ink-950 hover:border-red-600'}" %>
+    <% end %>
+  </div>
+
+  <%= form_with url: admin_orders_path, method: :get, class: "flex items-center gap-2" do %>
+    <%= hidden_field_tag :status, params[:status] if params[:status].present? %>
+    <div class="relative">
+      <input type="text" name="q" value="<%= params[:q] %>" placeholder="Search order # or customer&hellip;"
+        class="rounded-[10px] border border-grey-300 bg-white pl-3.5 pr-10 py-2.5 text-body-sm text-ink-950 placeholder:text-grey-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-red-600 w-full sm:w-64">
+      <button type="submit" aria-label="Search orders" class="absolute right-0 top-0 h-full w-10 flex items-center justify-center text-grey-400 hover:text-red-600">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+      </button>
+    </div>
+    <% if params[:q].present? %>
+      <%= link_to "Clear", admin_orders_path(status: params[:status]), class: "text-body-sm text-grey-500 hover:text-red-600 font-medium" %>
+    <% end %>
+  <% end %>
+</div>
+
+<% if @orders.none? %>
+  <p class="mt-8 text-body-sm text-grey-500">
+    <% if params[:q].blank? && params[:status].blank? %>
+      No orders yet.
+    <% else %>
+      No orders match<%= " “#{params[:q]}”" if params[:q].present? %><%= " with status #{params[:status].humanize}" if params[:status].present? %>.
+    <% end %>
+  </p>
+<% else %>
+  <div class="mt-6 rounded-[20px] border border-grey-200 bg-white overflow-hidden shadow-[0_1px_2px_rgba(10,10,11,0.04)] overflow-x-auto">
+    <table class="w-full text-left text-body-sm">
+      <thead>
+        <tr class="bg-grey-50/60 border-b border-grey-200 text-[11px] uppercase font-semibold tracking-[0.08em] text-grey-500">
+          <th class="px-5 py-3.5">Order</th>
+          <th class="px-5 py-3.5">Customer</th>
+          <th class="px-5 py-3.5">Date</th>
+          <th class="px-5 py-3.5">Status</th>
+          <th class="px-5 py-4 text-right">Total</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @orders.each do |order| %>
+          <tr class="border-b border-grey-100 last:border-b-0 hover:bg-grey-50/60 transition-colors">
+            <td class="px-5 py-4 font-mono"><%= link_to order.order_number, admin_order_path(order), class: "font-medium text-red-600 hover:text-red-700" %></td>
+            <td class="px-5 py-4 text-grey-600"><%= order.user.full_name %></td>
+            <td class="px-5 py-4 text-grey-600"><%= order.placed_at.strftime("%b %-d, %Y") %></td>
+            <td class="px-5 py-4">
+              <%= render Admin::StatusBadgeComponent.new(label: order.status.humanize, tone: order.admin_status_tone) %>
+            </td>
+            <td class="px-5 py-4 text-right font-mono font-medium text-ink-950"><%= format_aed(order.total_cents) %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+
+  <%= render(Ui::PaginationComponent.new(scope: @orders) { |page| admin_orders_path(page: page, status: params[:status], q: params[:q]) }) %>
+<% end %>

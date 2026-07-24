@@ -10,6 +10,26 @@ Rails.application.routes.draw do
   root "home#index"
 
   devise_for :users, controllers: { registrations: "users/registrations" }
+  devise_for :admin_users
+
+  namespace :admin do
+    root to: "dashboard#show"
+    resources :categories, except: [ :show ]
+    resources :products, except: [ :show ] do
+      resources :variants, controller: "product_variants", except: [ :show ]
+    end
+    resources :orders, only: [ :index, :show, :update ] do
+      member do
+        get :packing_slip
+        get :invoice
+        post :refund
+      end
+    end
+    resources :customers, only: [ :index, :show ]
+    resources :coupons, except: [ :show ]
+    resources :blog_posts, except: [ :show ]
+    get "sales-reports", to: "sales_reports#show", as: :sales_reports
+  end
 
   resources :categories, only: [ :index ]
   resources :products, only: [ :index, :show ], param: :slug, path: "shop" do
@@ -18,10 +38,20 @@ Rails.application.routes.draw do
   resources :blog_posts, only: [ :index, :show ], param: :slug, path: "blog"
 
   get "cart", to: "carts#show", as: :cart
+  resources :cart_items, only: [ :create, :update, :destroy ]
+  resource :cart_coupon, only: [ :create, :destroy ]
+
   get "wishlist", to: "wishlists#show", as: :wishlist
+  post "wishlist_items/:product_id/toggle", to: "wishlist_items#toggle", as: :toggle_wishlist_item
+
+  resource :checkout, only: [ :show, :create ]
+  get "checkout/confirmation/:order_number", to: "checkouts#confirmation", as: :checkout_confirmation
+  resource :billing_portal, only: :create, controller: "billing_portal"
 
   get "account", to: "account#show", as: :account
   get "account/orders", to: "orders#index", as: :account_orders
+  get "account/orders/:id", to: "orders#show", as: :order
+  resources :addresses, path: "account/addresses", except: [ :show ]
 
   get "rentals", to: "pages#rentals", as: :rentals
   get "about", to: "pages#about", as: :about
@@ -34,4 +64,6 @@ Rails.application.routes.draw do
   post "contact", to: "contact_messages#create"
 
   post "newsletter", to: "newsletter_subscribers#create", as: :newsletter_subscribers
+
+  post "/stripe/webhooks", to: "stripe_webhooks#create"
 end

@@ -1,62 +1,35 @@
 <div class="flex flex-col gap-5">
-  <div data-controller="variant-selector">
-    <p class="text-body-sm text-ink-950 mb-2.5">
-      <span class="font-semibold">Color:</span>
-      <span data-variant-selector-target="label"><%= colors.first[:name] %></span>
-    </p>
-    <div class="flex items-center gap-3">
-      <% colors.each_with_index do |color, index| %>
-        <button type="button"
-          data-variant-selector-target="option"
-          data-action="variant-selector#select"
-          data-variant-name="<%= color[:name] %>"
-          aria-label="Color: <%= color[:name] %>"
-          aria-pressed="<%= index.zero? %>"
-          class="w-11 h-11 rounded-full border-2 <%= index.zero? ? "border-red-600" : "border-grey-200" %> hover:border-red-600 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600"
-          style="background-color: <%= color[:hex] %>"></button>
-      <% end %>
-    </div>
-  </div>
-
-  <% if sizes.size > 1 %>
-    <div data-controller="variant-selector">
+  <% option_types.each do |option_type| %>
+    <div>
       <p class="text-body-sm text-ink-950 mb-2.5">
-        <span class="font-semibold">Size:</span>
-        <span data-variant-selector-target="label"><%= sizes.first %></span>
-      </p>
-      <div class="flex items-center gap-2">
-        <% sizes.each_with_index do |size, index| %>
-          <button type="button"
-            data-variant-selector-target="option"
-            data-action="variant-selector#select"
-            data-variant-name="<%= size %>"
-            aria-pressed="<%= index.zero? %>"
-            class="px-4 h-10 rounded-full border-2 text-body-sm font-medium <%= index.zero? ? "border-red-600 text-red-600" : "border-grey-200 text-ink-950" %> hover:border-red-600 hover:text-red-600 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600">
-            <%= size %>
-          </button>
-        <% end %>
-      </div>
-    </div>
-  <% end %>
-
-  <% if materials.size > 1 %>
-    <div data-controller="variant-selector">
-      <p class="text-body-sm text-ink-950 mb-2.5">
-        <span class="font-semibold">Material:</span>
-        <span data-variant-selector-target="label"><%= materials.first %></span>
+        <span class="font-semibold"><%= option_type %>:</span>
+        <span data-product-variant-picker-target="label" data-option-type="<%= option_type %>"><%= default_variant.options[option_type] %></span>
       </p>
       <div class="flex items-center gap-2 flex-wrap">
-        <% materials.each_with_index do |material, index| %>
+        <% option_values(option_type).each do |value| %>
+          <% selected = default_variant.options[option_type] == value %>
           <button type="button"
-            data-variant-selector-target="option"
-            data-action="variant-selector#select"
-            data-variant-name="<%= material %>"
-            aria-pressed="<%= index.zero? %>"
-            class="px-4 h-10 rounded-full border-2 text-body-sm font-medium <%= index.zero? ? "border-red-600 text-red-600" : "border-grey-200 text-ink-950" %> hover:border-red-600 hover:text-red-600 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600">
-            <%= material %>
+            data-product-variant-picker-target="option"
+            data-action="product-variant-picker#select"
+            data-option-type="<%= option_type %>"
+            data-option-value="<%= value %>"
+            aria-pressed="<%= selected %>"
+            class="px-4 h-10 rounded-full border-2 text-body-sm font-medium <%= selected ? "border-red-600 text-red-600" : "border-grey-200 text-ink-950" %> hover:border-red-600 hover:text-red-600 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600">
+            <%= value %>
           </button>
         <% end %>
       </div>
     </div>
   <% end %>
+
+  <p data-product-variant-picker-target="unavailable" hidden class="text-body-sm font-medium text-red-600">
+    This combination isn't available.
+  </p>
+  <p class="text-body-sm text-grey-600">
+    <span data-product-variant-picker-target="priceSummary" class="font-semibold text-ink-950"><%= helpers.format_aed(default_variant.effective_price_cents) %></span>
+    · SKU: <span data-product-variant-picker-target="sku"><%= default_variant.sku %></span>
+    <span data-product-variant-picker-target="stockNotice" class="text-red-600 font-medium ml-1"><%= default_variant.in_stock? ? "" : "Out of stock" %></span>
+  </p>
+
+  <%= hidden_field_tag "product_variant_id", default_variant.id, data: { "product-variant-picker-target": "variantIdField" } %>
 </div>

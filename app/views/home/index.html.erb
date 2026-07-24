@@ -15,7 +15,7 @@
   <%= render Marketing::CenteredHeadingComponent.new(title: "Best Selling Products") %>
   <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-[30px] gap-y-12">
     <% @best_selling_grid.each do |product| %>
-      <%= render Catalog::ProductCardComponent.new(product: product) %>
+      <%= render Catalog::ProductCardComponent.new(product: product, wishlisted: @wishlisted_product_ids.include?(product.id), signed_in: user_signed_in?) %>
     <% end %>
   </div>
   <div class="flex justify-center mt-12">
@@ -37,7 +37,7 @@
 <%# ---- New Arrivals (carousel) ---- %>
 <% if @new_arrivals.any? %>
   <section class="max-w-7xl mx-auto px-[15px] py-14 lg:py-16">
-    <%= render Marketing::ProductRailComponent.new(title: "New Arrivals", products: @new_arrivals, view_all_url: products_path) %>
+    <%= render Marketing::ProductRailComponent.new(title: "New Arrivals", products: @new_arrivals, view_all_url: products_path, wishlisted_product_ids: @wishlisted_product_ids, signed_in: user_signed_in?) %>
   </section>
 <% end %>
 
@@ -55,7 +55,7 @@
 <% if @featured_products.any? %>
   <section class="bg-grey-50">
     <div class="max-w-7xl mx-auto px-[15px] py-14 lg:py-16">
-      <%= render Marketing::ProductRailComponent.new(title: "Featured Picks", products: @featured_products, view_all_url: products_path) %>
+      <%= render Marketing::ProductRailComponent.new(title: "Featured Picks", products: @featured_products, view_all_url: products_path, wishlisted_product_ids: @wishlisted_product_ids, signed_in: user_signed_in?) %>
     </div>
   </section>
 <% end %>
@@ -80,7 +80,7 @@
 
 <%= render Marketing::NewsletterComponent.new %>
 
-<div class="max-w-7xl mx-auto px-[15px] py-14 lg:py-16">
+<div class="max-w-7xl mx-auto px-[15px] pt-14 lg:pt-16 pb-8">
   <%= render Marketing::CtaBannerComponent.new(
     title: "Ready for your next adventure?",
     description: "Browse the full Zoomora catalog and find the perfect ride for your family.",

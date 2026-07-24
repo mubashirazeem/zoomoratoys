@@ -38,5 +38,11 @@ module ZoomoraToys
 
     # Don't generate system test files.
     config.generators.system_tests = nil
+
+    # ImageMagick over the Rails 7.1+ default of vips — more universally
+    # available across hosting environments (Heroku buildpacks, most Docker
+    # base images, plain apt/brew installs) than vips, and this catalog's
+    # thumbnail workload has no performance need for vips' speed edge.
+    config.active_storage.variant_processor = :mini_magick
   end
 end
