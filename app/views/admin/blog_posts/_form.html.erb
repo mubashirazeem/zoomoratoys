@@ -1,0 +1,62 @@
+<% field_classes = "w-full rounded-[10px] border border-grey-300 bg-grey-50 px-3.5 py-2.5 text-body-sm text-ink-950 placeholder:text-grey-400 transition focus:bg-white focus:border-red-600 focus:ring-4 focus:ring-red-600/10 focus:outline-none" %>
+<% label_classes = "block text-body-sm font-medium text-ink-950 mb-1.5" %>
+
+<%= form_with model: [ :admin, blog_post ], class: "flex flex-col gap-5 max-w-2xl", multipart: true do |f| %>
+  <% if blog_post.errors.any? %>
+    <div role="alert" class="rounded-[12px] bg-red-50 border border-red-200 px-4 py-3 text-body-sm text-red-700">
+      <p class="font-semibold">Couldn't save this post:</p>
+      <ul class="mt-1 list-disc list-inside">
+        <% blog_post.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div>
+    <%= f.label :title, class: label_classes %>
+    <%= f.text_field :title, class: field_classes %>
+  </div>
+
+  <div>
+    <%= f.label :excerpt, "Excerpt", class: label_classes %>
+    <p class="text-body-sm text-grey-500 mb-1.5">Short teaser shown on the blog index page.</p>
+    <%= f.text_area :excerpt, rows: 2, class: field_classes %>
+  </div>
+
+  <div>
+    <%= f.label :body, "Body", class: label_classes %>
+    <%= f.text_area :body, rows: 10, class: field_classes %>
+  </div>
+
+  <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+    <div>
+      <%= f.label :published_at, "Publish date/time", class: label_classes %>
+      <p class="text-body-sm text-grey-500 mb-1.5">In the future to schedule it — it won't be public until then.</p>
+      <%= f.datetime_field :published_at, class: field_classes %>
+    </div>
+    <div>
+      <%= f.label :cover_image_key, "Fallback photo", class: label_classes %>
+      <p class="text-body-sm text-grey-500 mb-1.5">Used until a real cover photo is uploaded below.</p>
+      <%= f.select :cover_image_key, Category::PLACEHOLDER_KEYS, {}, class: field_classes %>
+    </div>
+  </div>
+
+  <div>
+    <%= f.label :cover_image, "Cover photo", class: label_classes %>
+    <% if blog_post.persisted? && blog_post.cover_image.attached? %>
+      <div class="mb-3">
+        <%= image_tag blog_post.cover_image.variant(resize_to_fill: [ 200, 120 ]), class: "rounded-[10px] object-cover border border-grey-200" %>
+      </div>
+      <p class="text-body-sm text-grey-500 mb-2">Uploading a new photo replaces this one.</p>
+    <% else %>
+      <p class="text-body-sm text-grey-500 mb-2">No cover photo uploaded yet — the fallback photo above is shown until you add one.</p>
+    <% end %>
+    <%= f.file_field :cover_image, accept: "image/*", class: "text-body-sm" %>
+  </div>
+
+  <div class="flex items-center gap-3">
+    <%= render(Ui::ButtonComponent.new(variant: :primary, type: "submit")) { "Save Post" } %>
+    <%= link_to "Cancel", admin_blog_posts_path, class: "text-body-sm font-medium text-grey-600 hover:text-ink-950" %>
+  </div>
+<% end %>

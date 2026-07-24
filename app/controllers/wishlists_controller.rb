@@ -1,16 +1,12 @@
 # frozen_string_literal: true
 
-# Presentational wishlist for this frontend-only pass — no session or
-# database-backed wishlist yet (same placeholder boundary as CartsController,
-# see PROJECT_VISION.md non-goals). Shows a fixed demo set of real catalog
-# products so the UI can be reviewed fully populated; removing an item is
-# client-side only (see wishlist_controller.js). DEMO_ITEM_SLUGS is the
-# single source of truth — ApplicationController reads its size for the
-# header badge.
+# Real, per-user wishlist — requires sign-in, same as Account/Orders
+# (OrdersController). A wishlist that doesn't survive across visits/devices
+# isn't a real wishlist, and that requires an account to persist against.
 class WishlistsController < ApplicationController
-  DEMO_ITEM_SLUGS = %w[kidling-foldable-scooter ridgecrest-110-youth-atv fort-horizon-climbing-frame].freeze
+  before_action :authenticate_user!
 
   def show
-    @wishlist_products = Product.includes(:category).where(slug: DEMO_ITEM_SLUGS)
+    @wishlist_items = current_user.wishlist_items.includes(product: { images_attachments: :blob }).order(created_at: :desc)
   end
 end

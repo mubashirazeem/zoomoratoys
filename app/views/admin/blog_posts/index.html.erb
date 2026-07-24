@@ -1,0 +1,41 @@
+<% content_for :title, "Blog Posts | Zoomora Admin" %>
+
+<div class="flex items-center justify-between">
+  <h1 class="text-[24px] sm:text-[28px] font-display font-bold text-ink-950">Blog Posts</h1>
+  <%= render(Ui::ButtonComponent.new(variant: :primary, href: new_admin_blog_post_path)) { "New Post" } %>
+</div>
+
+<div class="mt-8 rounded-[20px] border border-grey-200 bg-white overflow-hidden shadow-[0_1px_2px_rgba(10,10,11,0.04)] overflow-x-auto">
+  <table class="w-full text-left text-body-sm">
+    <thead>
+      <tr class="bg-grey-50/60 border-b border-grey-200 text-[11px] uppercase font-semibold tracking-[0.08em] text-grey-500">
+        <th class="px-5 py-3.5">Title</th>
+        <th class="px-5 py-3.5">Status</th>
+        <th class="px-5 py-3.5">Published At</th>
+        <th class="px-5 py-3.5"></th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @blog_posts.each do |post| %>
+        <tr class="border-b border-grey-100 last:border-b-0 hover:bg-grey-50/60 transition-colors">
+          <td class="px-5 py-4 font-medium text-ink-950"><%= post.title %></td>
+          <td class="px-5 py-3.5">
+            <% if post.published? %>
+              <span class="inline-flex items-center rounded-full bg-red-600/10 text-red-600 px-2.5 py-0.5 text-[12px] font-semibold">Published</span>
+            <% else %>
+              <span class="inline-flex items-center rounded-full bg-grey-100 text-grey-600 px-2.5 py-0.5 text-[12px] font-semibold">Scheduled</span>
+            <% end %>
+          </td>
+          <td class="px-5 py-4 text-grey-600"><%= post.published_at.strftime("%b %-d, %Y %H:%M") %></td>
+          <td class="px-5 py-4 text-right whitespace-nowrap">
+            <%= link_to "Edit", edit_admin_blog_post_path(post), class: "text-red-600 font-medium hover:text-red-700" %>
+            <%= button_to "Delete", admin_blog_post_path(post), method: :delete,
+                  form: { class: "inline-block ml-3" },
+                  data: { turbo_confirm: "Delete \"#{post.title}\"?" },
+                  class: "text-grey-500 font-medium hover:text-red-600 bg-transparent" %>
+          </td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>

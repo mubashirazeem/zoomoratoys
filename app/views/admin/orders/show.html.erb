@@ -1,0 +1,132 @@
+<% content_for :title, "Order #{@order.order_number} | Zoomora Admin" %>
+
+<%= link_to "&larr; All Orders".html_safe, admin_orders_path, class: "text-body-sm font-medium text-grey-500 hover:text-red-600" %>
+
+<div class="mt-4 flex flex-wrap items-start justify-between gap-4">
+  <div>
+    <h1 class="text-[24px] sm:text-[28px] font-display font-bold text-ink-950 font-mono">Order <%= @order.order_number %></h1>
+    <p class="mt-1 text-body-sm text-grey-500">
+      Placed <%= @order.placed_at.strftime("%B %-d, %Y") %> by
+      <%= link_to @order.user.full_name, admin_customer_path(@order.user), class: "text-red-600 font-medium hover:text-red-700" %>
+      (<%= @order.user.email %>)
+    </p>
+    <div class="mt-3 flex items-center gap-4">
+      <%= link_to packing_slip_admin_order_path(@order), target: "_blank", rel: "noopener", class: "flex items-center gap-1.5 text-body-sm font-medium text-ink-950 hover:text-red-600" do %>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4" aria-hidden="true"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+        Packing Slip
+      <% end %>
+      <%= link_to invoice_admin_order_path(@order), target: "_blank", rel: "noopener", class: "flex items-center gap-1.5 text-body-sm font-medium text-ink-950 hover:text-red-600" do %>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6M9 13h6M9 17h6"/></svg>
+        Invoice
+      <% end %>
+    </div>
+  </div>
+
+  <%= form_with model: @order, url: admin_order_path(@order), method: :patch, class: "flex items-center gap-2" do |f| %>
+    <%= f.select :status, Order::MANUALLY_SETTABLE_STATUSES.map { |s| [ s.humanize, s ] }, { selected: @order.status },
+          class: "rounded-[10px] border border-grey-300 bg-white px-3 py-2.5 text-body-sm text-ink-950 focus-visible:outline focus-visible:outline-2 focus-visible:outline-red-600" %>
+    <%= render(Ui::ButtonComponent.new(variant: :primary, type: "submit")) { "Update Status" } %>
+  <% end %>
+</div>
+
+<% if @order.stripe_dispute_status.present? %>
+  <div role="alert" class="mt-4 rounded-[12px] bg-red-50 border border-red-200 px-4 py-3 text-body-sm text-red-700">
+    <strong>Disputed on Stripe</strong> — the cardholder's bank has challenged this charge. Status: <%= @order.stripe_dispute_status.humanize %>.
+    <% unless @order.stripe_dispute_status.in?(%w[won]) %>
+      This wasn't cancelled or refunded automatically — respond to the dispute directly in Stripe if you want to contest it.
+    <% end %>
+  </div>
+<% end %>
+
+<% if @order.card? && @order.stripe_payment_status == :paid %>
+  <div role="alert" class="mt-4 rounded-[12px] bg-red-50 border border-red-200 px-4 py-3 text-body-sm text-red-700">
+    This order has been paid via Stripe. Changing its status here — including to Cancelled — does <strong>not</strong> refund the customer. Use the Refund button below if money needs to go back.
+  </div>
+<% end %>
+
+<div class="mt-8 grid grid-cols-1 lg:grid-cols-3 gap-6">
+  <div class="lg:col-span-2 rounded-[20px] border border-grey-200 bg-white overflow-hidden shadow-[0_1px_2px_rgba(10,10,11,0.04)] overflow-x-auto">
+    <table class="w-full text-left text-body-sm">
+      <thead>
+        <tr class="bg-grey-50/60 border-b border-grey-200 text-[11px] uppercase font-semibold tracking-[0.08em] text-grey-500">
+          <th class="px-5 py-3.5">Product</th>
+          <th class="px-5 py-3.5 text-center">Quantity</th>
+          <th class="px-5 py-3.5 text-right">Price</th>
+          <th class="px-5 py-3.5 text-right">Line Total</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @line_items.each do |line_item| %>
+          <tr class="border-b border-grey-100 last:border-b-0">
+            <td class="px-5 py-4 font-medium text-ink-950"><%= line_item.product.name %></td>
+            <td class="px-5 py-4 text-center font-mono"><%= line_item.quantity %></td>
+            <td class="px-5 py-4 text-right font-mono"><%= format_aed(line_item.price_cents) %></td>
+            <td class="px-5 py-4 text-right font-mono font-medium"><%= format_aed(line_item.price_cents * line_item.quantity) %></td>
+          </tr>
+        <% end %>
+      </tbody>
+      <tfoot>
+        <% if @order.gift_wrap_cents.to_i.positive? %>
+          <tr>
+            <td colspan="3" class="px-5 py-2 text-right text-grey-600">Gift wrap</td>
+            <td class="px-5 py-2 text-right font-mono"><%= format_aed(@order.gift_wrap_cents) %></td>
+          </tr>
+        <% end %>
+        <tr>
+          <td colspan="3" class="px-5 py-4 text-right font-display font-bold text-ink-950">Total</td>
+          <td class="px-5 py-4 text-right font-mono font-display font-bold text-ink-950"><%= format_aed(@order.total_cents) %></td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+
+  <div class="rounded-[20px] border border-grey-200 bg-white p-6 shadow-[0_1px_2px_rgba(10,10,11,0.04)] h-fit">
+    <h2 class="text-body font-display font-bold text-ink-950 mb-4">Shipping To</h2>
+    <p class="text-body-sm text-ink-950 font-medium"><%= @order.shipping_name %></p>
+    <p class="text-body-sm text-grey-600"><%= @order.shipping_phone %></p>
+    <p class="mt-3 text-body-sm text-grey-600">
+      <%= @order.shipping_address_line1 %><% if @order.shipping_address_line2.present? %>, <%= @order.shipping_address_line2 %><% end %><br>
+      <%= @order.shipping_city %>, <%= @order.shipping_emirate %>
+    </p>
+    <div class="mt-4 pt-4 border-t border-grey-100">
+      <p class="text-[11px] uppercase font-semibold tracking-[0.08em] text-grey-500">Payment Method</p>
+      <p class="mt-1 text-body-sm text-ink-950"><%= @order.payment_method.humanize %></p>
+
+      <% if @order.stripe_payment_status %>
+        <p class="mt-3 text-[11px] uppercase font-semibold tracking-[0.08em] text-grey-500">Payment Status</p>
+        <div class="mt-1">
+          <%= render Admin::StatusBadgeComponent.new(label: @order.stripe_payment_status.to_s.humanize, tone: @order.stripe_payment_status_tone) %>
+        </div>
+      <% end %>
+
+      <% if @order.stripe_payment_intent_id.present? %>
+        <p class="mt-2 text-[12px] text-grey-500 font-mono"><%= @order.stripe_payment_intent_id %></p>
+        <%= link_to "View payment on Stripe", @order.stripe_dashboard_payment_intent_url, target: "_blank", rel: "noopener",
+              class: "mt-1 inline-block text-body-sm font-medium text-red-600 hover:text-red-700" %>
+      <% end %>
+
+      <% if @order.stripe_invoice_id.present? %>
+        <%= link_to "View invoice in Stripe Dashboard", @order.stripe_dashboard_invoice_url, target: "_blank", rel: "noopener",
+              class: "mt-1 block text-body-sm font-medium text-red-600 hover:text-red-700" %>
+      <% end %>
+
+      <% if @order.stripe_hosted_invoice_url.present? %>
+        <%= link_to "View invoice (customer receipt)", @order.stripe_hosted_invoice_url, target: "_blank", rel: "noopener",
+              class: "mt-1 block text-body-sm font-medium text-red-600 hover:text-red-700" %>
+      <% end %>
+
+      <% if @order.refunded? %>
+        <p class="mt-3 text-body-sm font-semibold text-red-600">Refunded <%= format_aed(@order.refunded_cents) %></p>
+      <% elsif @order.partially_refunded? %>
+        <p class="mt-3 text-body-sm font-semibold text-red-600">
+          Partially refunded <%= format_aed(@order.refunded_cents) %> of <%= format_aed(@order.total_cents) %>
+        </p>
+        <p class="mt-1 text-[12px] text-grey-500">Issued outside Zoomora (Stripe Dashboard) — further refunds must be issued there too.</p>
+      <% elsif @order.refundable? %>
+        <%= button_to "Refund", refund_admin_order_path(@order), method: :post,
+              class: "mt-3 text-body-sm font-semibold text-red-600 hover:text-red-700",
+              form: { data: { turbo_confirm: "Refund this order in full? This can't be undone." } } %>
+      <% end %>
+    </div>
+  </div>
+</div>

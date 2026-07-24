@@ -1,0 +1,190 @@
+<% content_for :title, "Checkout | Zoomora" %>
+
+<% field_classes = "w-full rounded-[10px] border border-grey-300 bg-grey-50 px-3.5 py-2.5 text-body text-ink-950 placeholder:text-grey-400 transition focus:bg-white focus:border-red-600 focus:ring-4 focus:ring-red-600/10 focus:outline-none" %>
+<% label_classes = "block text-body-sm font-medium text-ink-950 mb-1.5" %>
+
+<div class="max-w-7xl mx-auto px-[15px] py-8 lg:py-10">
+  <%= render Ui::BreadcrumbComponent.new(items: [
+    { label: "Home", url: root_path },
+    { label: "Your Cart", url: cart_path },
+    { label: "Checkout" }
+  ]) %>
+
+  <h1 class="mt-4 text-[32px] lg:text-[40px] font-display font-bold text-ink-950 leading-tight">Checkout</h1>
+
+  <% default_address = current_user.addresses.ordered.first %>
+  <%# data-controller lives on the form (not the smaller Payment card) because
+      its targets span two separate subtrees: the payment-method radios here
+      and the codTotal/cardTotal spans down in the Order Summary sidebar,
+      which is a sibling of the radios' wrapper, not a descendant of it. %>
+  <%# data-turbo="false" is required here, not optional — the card payment
+      branch redirects to a real, cross-origin Stripe Checkout URL
+      (allow_other_host: true in CheckoutsController#create). Turbo Drive
+      intercepts form submissions as fetch() requests by default, and a
+      fetch-based redirect to another origin can't hand off to a real
+      top-level browser navigation the way a classic form POST can — Turbo
+      ends up unable to render the response and just reloads the current
+      page instead of ever reaching Stripe. Disabling Turbo for this one
+      form makes the browser submit and follow the redirect natively, which
+      works identically for the same-origin Pay on Delivery branch too. %>
+  <%= form_with url: checkout_path, method: :post, class: "mt-8 grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-10", data: { controller: "payment-method", turbo: false } do |f| %>
+    <div class="lg:col-span-2 flex flex-col gap-6" data-controller="address-picker">
+      <% if @addresses.present? %>
+        <div class="rounded-[18px] border border-grey-200 bg-white p-5 lg:p-6">
+          <h2 class="text-h3 font-display text-ink-950 mb-4">Choose an address</h2>
+          <div class="flex flex-col gap-3">
+            <% @addresses.each do |address| %>
+              <label class="flex items-start gap-3 rounded-[10px] border border-grey-200 p-3 cursor-pointer has-[:checked]:border-red-600">
+                <input type="radio" name="saved_address_choice" class="mt-1 accent-red-600"
+                  data-action="address-picker#fill"
+                  data-address-picker-target="radio"
+                  data-address='<%= { name: address.full_name, phone: address.phone, line1: address.address_line1, line2: address.address_line2, city: address.city, emirate: address.emirate }.to_json %>'
+                  <%= "checked" if address == default_address %> />
+                <span class="text-body-sm text-ink-950">
+                  <strong><%= address.label.presence || "Address" %></strong><br>
+                  <%= address.full_name %> · <%= address.phone %><br>
+                  <%= address.summary %>
+                </span>
+              </label>
+            <% end %>
+            <label class="flex items-center gap-3 rounded-[10px] border border-grey-200 p-3 cursor-pointer">
+              <input type="radio" name="saved_address_choice" class="accent-red-600" data-action="address-picker#clear" data-address-picker-target="radio" />
+              <span class="text-body-sm text-ink-950">Use a new address</span>
+            </label>
+          </div>
+        </div>
+      <% end %>
+
+      <div class="rounded-[18px] border border-grey-200 bg-white p-5 lg:p-6">
+        <h2 class="text-h3 font-display text-ink-950 mb-5">Shipping Details</h2>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+          <div>
+            <%= label_tag :shipping_name, "Full Name", class: label_classes %>
+            <%= text_field_tag :shipping_name, params[:shipping_name] || default_address&.full_name || current_user.full_name,
+                  required: true, class: field_classes, data: { "address-picker-target": "name" } %>
+          </div>
+          <div>
+            <%= label_tag :shipping_phone, "Phone", class: label_classes %>
+            <%= telephone_field_tag :shipping_phone, params[:shipping_phone] || default_address&.phone, required: true,
+                  placeholder: "+971 5X XXX XXXX", class: field_classes, data: { "address-picker-target": "phone" } %>
+          </div>
+        </div>
+
+        <div class="mt-5">
+          <%= label_tag :shipping_address_line1, "Address", class: label_classes %>
+          <%= text_field_tag :shipping_address_line1, params[:shipping_address_line1] || default_address&.address_line1, required: true,
+                placeholder: "Street address, villa/apartment number", class: field_classes, data: { "address-picker-target": "line1" } %>
+        </div>
+
+        <div class="mt-5">
+          <%= label_tag :shipping_address_line2, "Address line 2 (optional)", class: label_classes %>
+          <%= text_field_tag :shipping_address_line2, params[:shipping_address_line2] || default_address&.address_line2,
+                class: field_classes, data: { "address-picker-target": "line2" } %>
+        </div>
+
+        <div class="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-5">
+          <div>
+            <%= label_tag :shipping_city, "City", class: label_classes %>
+            <%= text_field_tag :shipping_city, params[:shipping_city] || default_address&.city, required: true,
+                  class: field_classes, data: { "address-picker-target": "city" } %>
+          </div>
+          <div>
+            <%= label_tag :shipping_emirate, "Emirate", class: label_classes %>
+            <%= select_tag :shipping_emirate,
+                  options_for_select([ [ "Select an Emirate", "" ] ] + Order::EMIRATES, params[:shipping_emirate] || default_address&.emirate),
+                  required: true, class: field_classes, data: { "address-picker-target": "emirate" } %>
+          </div>
+        </div>
+
+        <label class="mt-5 flex items-center gap-2.5 text-body-sm text-ink-950 cursor-pointer">
+          <%= check_box_tag :save_address, "1", false, class: "w-4 h-4 accent-red-600" %>
+          Save this address for next time
+        </label>
+      </div>
+
+      <div class="rounded-[18px] border border-grey-200 bg-white p-5 lg:p-6">
+        <h2 class="text-h3 font-display text-ink-950 mb-4">Payment</h2>
+        <div class="flex flex-col gap-3">
+          <label class="flex items-center gap-3 rounded-[12px] border border-grey-200 p-4 cursor-pointer has-[:checked]:border-red-600">
+            <input type="radio" name="payment_method" value="pay_on_delivery" checked class="accent-red-600" data-action="payment-method#toggle" data-payment-method-target="radio">
+            <span class="shrink-0 flex items-center justify-center w-10 h-10 rounded-full bg-red-600/10 text-red-600">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5" aria-hidden="true"><path d="M3 7h11v9H3z"/><path d="M14 10h4l3 3v3h-7z"/></svg>
+            </span>
+            <span>
+              <span class="block text-body font-semibold text-ink-950">Pay on Delivery</span>
+              <span class="block text-body-sm text-grey-600">Pay in cash or by card when your order arrives.</span>
+            </span>
+          </label>
+          <label class="flex items-center gap-3 rounded-[12px] border border-grey-200 p-4 cursor-pointer has-[:checked]:border-red-600">
+            <input type="radio" name="payment_method" value="card" class="accent-red-600" data-action="payment-method#toggle" data-payment-method-target="radio">
+            <span class="shrink-0 flex items-center justify-center w-10 h-10 rounded-full bg-red-600/10 text-red-600">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5" aria-hidden="true"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>
+            </span>
+            <span>
+              <span class="block text-body font-semibold text-ink-950">Pay by Card</span>
+              <span class="block text-body-sm text-grey-600">Secure checkout hosted by Stripe.</span>
+            </span>
+          </label>
+        </div>
+      </div>
+
+      <div class="rounded-[18px] border border-grey-200 bg-white p-5 lg:p-6">
+        <label class="flex items-center gap-3 cursor-pointer">
+          <%= check_box_tag :gift_wrap, "1", false, class: "w-4 h-4 accent-red-600" %>
+          <span class="text-body text-ink-950">Add gift wrap for <span class="font-semibold"><%= format_aed(@gift_wrap_cents) %></span></span>
+        </label>
+      </div>
+    </div>
+
+    <%# ---- Order summary ---- %>
+    <div class="lg:sticky lg:top-24 h-fit rounded-[18px] border border-grey-200 bg-white p-6 shadow-[0_10px_30px_-24px_rgba(10,10,11,0.4)] flex flex-col gap-5">
+      <h2 class="text-h3 font-display text-ink-950">Order Summary</h2>
+
+      <ul class="flex flex-col gap-4 divide-y divide-grey-200">
+        <% current_cart.cart_items.includes(:product_variant, product: { images_attachments: :blob }).each do |item| %>
+          <li class="flex items-center gap-3 pt-4 first:pt-0">
+            <%= image_tag item.product.display_photo(resize_to_fill: [ 112, 112 ]), alt: "", class: "w-14 h-14 rounded-[10px] object-cover bg-grey-50 shrink-0" %>
+            <div class="flex-1 min-w-0">
+              <p class="text-body-sm font-medium text-ink-950 line-clamp-2"><%= item.product.name %></p>
+              <p class="text-[12px] text-grey-500">
+                Qty <%= item.quantity %>
+                <% if item.product_variant %>· <%= item.product_variant.option_summary %><% end %>
+              </p>
+            </div>
+            <span class="text-body-sm font-semibold text-ink-950 shrink-0"><%= format_aed(item.line_total_cents) %></span>
+          </li>
+        <% end %>
+      </ul>
+
+      <div class="border-t border-grey-200 pt-4 flex flex-col gap-3 text-body-sm">
+        <div class="flex justify-between">
+          <span class="text-grey-600">Subtotal</span>
+          <span class="font-medium text-ink-950"><%= format_aed(@cart_subtotal_cents) %></span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-grey-600">Delivery</span>
+          <span class="font-medium text-red-600">Free</span>
+        </div>
+      </div>
+
+      <% if current_cart.persisted? && current_cart.coupon.present? %>
+        <div class="rounded-[10px] bg-grey-50 border border-grey-200 px-3 py-2.5 text-[12px] text-grey-600">
+          Coupon <span class="font-semibold text-ink-950"><%= current_cart.coupon.code %></span> isn't applied to Pay on Delivery orders yet — the total below is the full amount you'll be charged.
+        </div>
+      <% end %>
+
+      <div class="border-t border-grey-200 pt-4 flex justify-between items-baseline">
+        <span class="font-display font-bold text-ink-950">Total</span>
+        <span class="font-display font-bold text-[22px] text-ink-950">
+          <span data-payment-method-target="codTotal"><%= format_aed(@cart_subtotal_cents) %></span>
+          <span data-payment-method-target="cardTotal" class="hidden"><%= format_aed(current_cart.total_after_discount_cents) %></span>
+          <span class="text-body-sm font-normal text-grey-500">+ gift wrap if selected</span>
+        </span>
+      </div>
+
+      <%= render(Ui::ButtonComponent.new(variant: :primary, size: :lg, full_width: true, type: "submit")) { "Place Order" } %>
+      <p class="text-[12px] text-grey-500 text-center">By placing your order, you agree to our <%= link_to "Terms & Conditions", terms_and_conditions_path, class: "text-red-600 hover:text-red-700" %>.</p>
+    </div>
+  <% end %>
+</div>

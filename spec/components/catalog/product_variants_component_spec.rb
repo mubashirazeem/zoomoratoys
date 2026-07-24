@@ -3,30 +3,43 @@
 require "rails_helper"
 
 RSpec.describe Catalog::ProductVariantsComponent, type: :component do
-  it "renders a real, selectable color swatch group" do
-    product = build_stubbed(:product, id: 1)
+  it "renders nothing when the product has no real variants" do
+    product = create(:product)
 
     render_inline(described_class.new(product: product))
 
-    expect(page).to have_css("[data-controller='variant-selector']", minimum: 1)
-    expect(page).to have_css("button[data-action='variant-selector#select'][aria-label^='Color:']", minimum: 3)
+    expect(page).to have_no_css("button")
   end
 
-  it "renders Size and Material groups" do
-    product = build_stubbed(:product, id: 1)
+  it "renders a real option group per option type the admin actually defined" do
+    product = create(:product)
+    create(:product_variant, product: product, options: { "Color" => "Racing Red", "Size" => "Standard" })
+    create(:product_variant, product: product, options: { "Color" => "Midnight Black", "Size" => "Standard" })
 
     render_inline(described_class.new(product: product))
 
+    expect(page).to have_text("Color:")
     expect(page).to have_text("Size:")
-    expect(page).to have_text("Material:")
+    expect(page).to have_button("Racing Red")
+    expect(page).to have_button("Midnight Black")
   end
 
-  it "is deterministic — the same product renders the same options every time" do
-    product = build_stubbed(:product, id: 42)
+  it "shows the first variant's real SKU and price as the default selection" do
+    product = create(:product, price_cents: 10_000)
+    create(:product_variant, product: product, sku: "ZMR-VAR-00001", price_cents: 12_000, options: { "Color" => "Racing Red" })
 
-    first_render = render_inline(described_class.new(product: product)).to_html
-    second_render = render_inline(described_class.new(product: product)).to_html
+    render_inline(described_class.new(product: product))
 
-    expect(first_render).to eq(second_render)
+    expect(page).to have_text("ZMR-VAR-00001")
+    expect(page).to have_text("AED 120")
+  end
+
+  it "shows an out-of-stock notice for a variant with zero stock" do
+    product = create(:product)
+    create(:product_variant, product: product, stock_quantity: 0, options: { "Color" => "Racing Red" })
+
+    render_inline(described_class.new(product: product))
+
+    expect(page).to have_text("Out of stock")
   end
 end

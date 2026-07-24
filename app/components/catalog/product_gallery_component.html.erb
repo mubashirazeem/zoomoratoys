@@ -1,22 +1,86 @@
 <div data-controller="gallery" class="flex flex-col gap-4">
-  <div class="relative bg-grey-50 border border-grey-200 rounded-[16px] overflow-hidden">
+  <div class="group relative bg-grey-50 border border-grey-200 rounded-[16px] overflow-hidden">
     <% if badge %>
       <div class="absolute top-4 left-4 z-10">
         <%= render Ui::BadgeComponent.new(variant: badge) %>
       </div>
     <% end %>
-    <%= image_tag image, alt: product.name, data: { "gallery-target": "main" }, class: "aspect-square w-full object-cover" %>
+
+    <div class="relative cursor-zoom-in"
+      data-action="mousemove->gallery#zoomMove mouseenter->gallery#zoomEnter mouseleave->gallery#zoomLeave click->gallery#openLightbox">
+      <%= image_tag main_image, alt: product.name, data: { "gallery-target": "main" }, class: "aspect-square w-full object-cover" %>
+      <div data-gallery-target="lens"
+        class="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-150 bg-no-repeat"
+        style="background-image: url('<%= zoom_src(gallery_items.first) %>'); background-size: 250%;"></div>
+    </div>
+
+    <span class="pointer-events-none absolute bottom-4 right-4 z-10 flex items-center justify-center w-10 h-10 rounded-full bg-ink-950/70 text-white opacity-0 transition-opacity duration-150 group-hover:opacity-100">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="w-[18px] h-[18px]" aria-hidden="true">
+        <circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/><path d="M11 8v6M8 11h6"/>
+      </svg>
+    </span>
   </div>
 
   <div class="grid grid-cols-4 gap-3">
-    <% thumbnails.each_with_index do |thumb, index| %>
+    <% gallery_items.each_with_index do |item, index| %>
       <button type="button"
         data-action="gallery#select"
         data-gallery-target="thumb"
+        data-full-src="<%= full_src(item) %>"
+        data-zoom-src="<%= zoom_src(item) %>"
         aria-label="View image <%= index + 1 %>"
         class="rounded-[10px] overflow-hidden bg-grey-50 border-2 <%= index.zero? ? 'border-red-600' : 'border-grey-200' %> hover:border-red-600 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-red-600">
-        <%= image_tag thumb, alt: "", loading: "lazy", class: "aspect-square w-full object-cover" %>
+        <%= image_tag item[:thumb], alt: "", loading: "lazy", class: "aspect-square w-full object-cover" %>
       </button>
+    <% end %>
+  </div>
+
+  <%# ---- Full-screen lightbox — opened by clicking/tapping the main image ---- %>
+  <div data-gallery-target="lightbox" tabindex="-1" role="dialog" aria-modal="true" aria-label="<%= product.name %> zoomed image"
+    class="hidden fixed inset-0 z-[70] bg-ink-950/95 flex-col">
+    <div class="flex items-center justify-between px-4 sm:px-6 py-4 shrink-0">
+      <p data-gallery-target="counter" class="text-white text-body-sm font-medium tabular-nums"></p>
+      <button type="button" data-action="gallery#closeLightbox" aria-label="Close zoomed image"
+        class="w-10 h-10 flex items-center justify-center rounded-full text-white hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-white">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" class="w-5 h-5" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
+
+    <div class="relative flex-1 flex items-center justify-center px-4 sm:px-14 min-h-0">
+      <% if gallery_items.size > 1 %>
+        <button type="button" data-action="gallery#prevImage" aria-label="Previous image"
+          class="hidden sm:flex absolute left-2 lg:left-4 items-center justify-center w-11 h-11 rounded-full text-white hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-white">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
+        </button>
+      <% end %>
+
+      <div class="max-w-full max-h-full overflow-hidden flex items-center justify-center">
+        <%= image_tag main_zoom_image, alt: product.name, data: { "gallery-target": "lightboxImage", action: "click->gallery#toggleZoom" },
+              class: "max-w-full max-h-[78vh] object-contain cursor-zoom-in transition-transform duration-300 ease-out" %>
+      </div>
+
+      <% if gallery_items.size > 1 %>
+        <button type="button" data-action="gallery#nextImage" aria-label="Next image"
+          class="hidden sm:flex absolute right-2 lg:right-4 items-center justify-center w-11 h-11 rounded-full text-white hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-white">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
+        </button>
+      <% end %>
+    </div>
+
+    <% if gallery_items.size > 1 %>
+      <div class="flex justify-center gap-2.5 p-4 sm:p-5 overflow-x-auto shrink-0">
+        <% gallery_items.each_with_index do |item, index| %>
+          <button type="button"
+            data-action="gallery#selectLightbox"
+            data-gallery-target="lightboxThumb"
+            data-full-src="<%= full_src(item) %>"
+            data-zoom-src="<%= zoom_src(item) %>"
+            aria-label="View image <%= index + 1 %>"
+            class="shrink-0 w-14 h-14 rounded-[8px] overflow-hidden border-2 <%= index.zero? ? 'border-red-600' : 'border-white/30' %> hover:border-red-600 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-white">
+            <%= image_tag item[:thumb], alt: "", class: "w-full h-full object-cover" %>
+          </button>
+        <% end %>
+      </div>
     <% end %>
   </div>
 </div>

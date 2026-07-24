@@ -7,6 +7,7 @@ FactoryBot.define do
     price_cents { Faker::Number.between(from: 5_000, to: 500_000) }
     sequence(:sku) { |n| "ZMR-#{n.to_s.rjust(5, '0')}" }
     stock_status { "in_stock" }
+    stock_quantity { 10 }
     featured { false }
     best_seller { false }
     position { 0 }

@@ -1,0 +1,18 @@
+<% content_for :title, "Dashboard | Zoomora Admin" %>
+
+<div class="flex items-center justify-between gap-4 flex-wrap">
+  <div>
+    <h1 class="text-[28px] lg:text-[32px] font-display font-bold text-ink-950">Dashboard</h1>
+    <p class="mt-1 text-body text-grey-600">Welcome back, <%= current_admin_user.name %>.</p>
+  </div>
+  <p class="text-body-sm text-grey-500 font-mono"><%= Date.current.strftime("%A, %-d %B %Y") %></p>
+</div>
+
+<div class="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+  <%= render Admin::StatCardComponent.new(value: @product_count, label: "Products", icon: :box, href: admin_products_path) %>
+  <%= render Admin::StatCardComponent.new(value: @category_count, label: "Categories", icon: :grid, href: admin_categories_path) %>
+  <%= render Admin::StatCardComponent.new(value: @customer_count, label: "Customers", icon: :people, href: admin_customers_path) %>
+  <%= render Admin::StatCardComponent.new(value: @order_count, label: "Total Orders", icon: :bag, href: admin_orders_path) %>
+  <%= render Admin::StatCardComponent.new(value: @pending_order_count, label: "Pending Orders", icon: :clock, href: admin_orders_path(status: "pending"), accent: :alert) %>
+  <%= render Admin::StatCardComponent.new(value: @coupon_count, label: "Coupons", icon: :tag, href: admin_coupons_path) %>
+</div>

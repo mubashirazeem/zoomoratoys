@@ -1,9 +1,14 @@
 # frozen_string_literal: true
 
 class BlogPost < ApplicationRecord
-  # Reuses the same placeholder photo set as Category/Product
-  # (category-<key>.jpg) so a post's cover art stays consistent with the
-  # rest of the site instead of needing its own asset library.
+  has_paper_trail
+
+  # Real, admin-uploaded cover photo (optional) — falls back to the shared
+  # category-style placeholder photo set (cover_image_key) for posts an
+  # admin hasn't uploaded a real photo for yet, same two-tier pattern as
+  # Product#images.
+  has_one_attached :cover_image
+
   validates :title, presence: true
   validates :slug, presence: true, uniqueness: true
   validates :excerpt, presence: true
@@ -14,9 +19,14 @@ class BlogPost < ApplicationRecord
   before_validation :assign_slug, on: :create
 
   scope :newest_first, -> { order(published_at: :desc) }
+  scope :published, -> { where(published_at: ..Time.current) }
 
   def to_param
     slug
+  end
+
+  def published?
+    published_at.present? && published_at <= Time.current
   end
 
   private

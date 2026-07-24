@@ -1,0 +1,7 @@
+<% content_for :title, "Edit #{@coupon.code} | Zoomora Admin" %>
+
+<h1 class="text-[24px] sm:text-[28px] font-display font-bold text-ink-950">Edit Coupon</h1>
+
+<div class="mt-6 rounded-[20px] border border-grey-200 bg-white p-5 sm:p-6 lg:p-8 shadow-[0_1px_2px_rgba(10,10,11,0.04)] max-w-3xl">
+  <%= render "form", coupon: @coupon %>
+</div>

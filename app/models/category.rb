@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 class Category < ApplicationRecord
+  has_paper_trail
+
   # Visual "kind" for a category/product. Drives which placeholder photo
   # (category-<key>.jpg) is used. Several categories intentionally share a
   # key/photo (e.g. "scooter" is used by both Scooters and Cargo Scooters) —

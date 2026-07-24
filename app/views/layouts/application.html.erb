@@ -35,6 +35,6 @@
 
     <%= render Layout::SiteFooterComponent.new(categories: @nav_categories) %>
 
-    <%= render Layout::MiniCartComponent.new(products: @cart_products, suggested_products: @cart_suggested_products) %>
+    <%= render Layout::MiniCartComponent.new(cart_items: @cart_items, subtotal_cents: @cart_subtotal_cents, suggested_products: @cart_suggested_products) %>
   </body>
 </html>

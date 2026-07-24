@@ -1,48 +1,45 @@
 # frozen_string_literal: true
 
-# Deterministic-per-product variant selector (color/size/material) — same
-# "real UI, no variants backend yet" pattern as ProductCardComponent's
-# swatches: every option is a genuine, selectable control (Stimulus-driven,
-# not decorative — see variant_selector_controller.js), but which options
-# exist is derived from the product's identity rather than a real Variant
-# model. Selecting an option updates this component's own displayed state
-# only — it doesn't feed Add to Cart, which has no backend of its own
-# either yet (see PROJECT_VISION.md non-goals).
+# Real variant selector: option types/values are whatever the admin actually
+# defined for this product via Admin::ProductVariantsController — replaced
+# the old deterministic-per-product-id Color/Size/Material fakery (see
+# DEVELOPMENT_PROGRESS.md). Renders nothing if the product has no real
+# variants defined yet, rather than fabricating options.
 class Catalog::ProductVariantsComponent < ViewComponent::Base
-  COLORS = [
-    { name: "Racing Red", hex: "#C01827" },
-    { name: "Midnight Black", hex: "#0A0A0B" },
-    { name: "Storm Grey", hex: "#7E8189" },
-    { name: "Ocean Teal", hex: "#16748F" },
-    { name: "Coral", hex: "#E85F66" },
-    { name: "Forest Green", hex: "#3D7A4A" }
-  ].freeze
-  SIZES = %w[Standard Large XL].freeze
-  MATERIALS = [ "Steel Frame", "Aluminum Frame", "Reinforced Poly" ].freeze
-
   def initialize(product:)
     @product = product
   end
 
   attr_reader :product
 
-  def colors
-    COLORS.first(3 + bucket(3, 1))
+  def render?
+    product.has_variants?
   end
 
-  def sizes
-    SIZES.first(2 + bucket(2, 2))
+  def option_types
+    product.variant_option_types
   end
 
-  def materials
-    MATERIALS.first(2 + bucket(2, 3))
+  def option_values(option_type)
+    product.variant_option_values(option_type)
   end
 
-  private
+  # Serialized for the Stimulus controller — the single source of truth it
+  # uses client-side to find the matching variant (real price/SKU/stock)
+  # for whatever combination of options is currently selected.
+  def variants_json
+    product.product_variants.map do |variant|
+      {
+        id: variant.id,
+        options: variant.options,
+        price_cents: variant.effective_price_cents,
+        sku: variant.sku,
+        stock_quantity: variant.stock_quantity
+      }
+    end.to_json
+  end
 
-  # Stable per-product bucket, offset by a seed so color/size/material don't
-  # all land on the same count for a given product.
-  def bucket(n, seed)
-    ((product.id || product.name.to_s.bytesize) + seed) % n
+  def default_variant
+    product.product_variants.first
   end
 end

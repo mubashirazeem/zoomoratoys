@@ -1,0 +1,54 @@
+<% content_for :title, "Coupons | Zoomora Admin" %>
+
+<%= render Admin::PageHeaderComponent.new(title: "Coupons") do |header| %>
+  <% header.with_action { render(Ui::ButtonComponent.new(variant: :primary, href: new_admin_coupon_path)) { "New Coupon" } } %>
+<% end %>
+
+<% if @coupons.none? %>
+  <p class="mt-8 text-body-sm text-grey-500">No coupons yet.</p>
+<% else %>
+  <div class="mt-8 rounded-[20px] border border-grey-200 bg-white overflow-hidden shadow-[0_1px_2px_rgba(10,10,11,0.04)] overflow-x-auto">
+    <table class="w-full text-left text-body-sm">
+      <thead>
+        <tr class="bg-grey-50/60 border-b border-grey-200 text-[11px] uppercase font-semibold tracking-[0.08em] text-grey-500">
+          <th class="px-5 py-3.5">Code</th>
+          <th class="px-5 py-3.5">Discount</th>
+          <th class="px-5 py-3.5">Usage</th>
+          <th class="px-5 py-3.5">Expires</th>
+          <th class="px-5 py-3.5">Status</th>
+          <th class="px-5 py-3.5"></th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @coupons.each do |coupon| %>
+          <tr class="border-b border-grey-100 last:border-b-0 hover:bg-grey-50/60 transition-colors">
+            <td class="px-5 py-4 font-medium text-ink-950 font-mono"><%= coupon.code %></td>
+            <td class="px-5 py-3.5">
+              <%= coupon.percentage? ? "#{coupon.discount_value}%" : format_aed(coupon.discount_value * 100) %>
+            </td>
+            <td class="px-5 py-3.5"><%= coupon.times_used %><%= " / #{coupon.usage_limit}" if coupon.usage_limit %></td>
+            <td class="px-5 py-4 text-grey-500"><%= coupon.expires_at&.strftime("%b %-d, %Y") || "Never" %></td>
+            <td class="px-5 py-4">
+              <% if !coupon.active? %>
+                <%= render Admin::StatusBadgeComponent.new(label: "Inactive", tone: :negative) %>
+              <% elsif coupon.expired? %>
+                <%= render Admin::StatusBadgeComponent.new(label: "Expired", tone: :attention) %>
+              <% elsif coupon.usage_limit_reached? %>
+                <%= render Admin::StatusBadgeComponent.new(label: "Limit reached", tone: :attention) %>
+              <% else %>
+                <%= render Admin::StatusBadgeComponent.new(label: "Active", tone: :positive) %>
+              <% end %>
+            </td>
+            <td class="px-5 py-4 text-right whitespace-nowrap">
+              <%= link_to "Edit", edit_admin_coupon_path(coupon), class: "text-red-600 font-medium hover:text-red-700" %>
+              <%= button_to "Delete", admin_coupon_path(coupon), method: :delete,
+                    form: { class: "inline-block ml-3" },
+                    data: { turbo_confirm: "Delete coupon #{coupon.code}?" },
+                    class: "text-grey-500 font-medium hover:text-red-600 bg-transparent" %>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+<% end %>

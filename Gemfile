@@ -38,7 +38,20 @@ gem "tzinfo-data", platforms: %i[ windows jruby ]
 gem "bootsnap", require: false
 
 # Use Active Storage variants [https://guides.rubyonrails.org/active_storage_overview.html#transforming-images]
-# gem "image_processing", "~> 1.2"
+gem "image_processing", "~> 1.2"
+
+# Audit trail — who changed what, when [https://github.com/paper-trail-gem/paper_trail]
+gem "paper_trail"
+
+# Rate-limit/throttle abusive requests (login brute-forcing, checkout spam) [https://github.com/rack/rack-attack]
+gem "rack-attack"
+
+# XML sitemap generation for search engines [https://github.com/kjvarga/sitemap_generator]
+gem "sitemap_generator"
+
+# Payments — real Stripe card checkout as a second payment method
+# alongside Pay on Delivery (Milestone 4) [https://github.com/stripe/stripe-ruby]
+gem "stripe"
 
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
@@ -46,6 +59,9 @@ group :development, :test do
 
   # Static analysis for security vulnerabilities [https://brakemanscanner.org/]
   gem "brakeman", require: false
+
+  # Checks Gemfile.lock dependencies against the known CVE database [https://github.com/rubysec/bundler-audit]
+  gem "bundler-audit", require: false
 
   # Omakase Ruby styling [https://github.com/rails/rubocop-rails-omakase/]
   gem "rubocop-rails-omakase", require: false
@@ -64,9 +80,33 @@ group :development, :test do
 
   # Concise, readable one-liner matchers for validations/associations [https://github.com/thoughtbot/shoulda-matchers]
   gem "shoulda-matchers"
+
+  # Loads STRIPE_SECRET_KEY etc. from .env in development/test — production
+  # sets real environment variables via the hosting platform directly, never
+  # a committed file [https://github.com/bkeepers/dotenv]
+  gem "dotenv-rails"
+end
+
+group :test do
+  # Records real HTTP exchanges with Stripe's test-mode API once, replays
+  # them deterministically after — stays closest to this suite's "real, not
+  # mocked" convention for the one external paid API this app talks to
+  # [https://github.com/vcr/vcr]
+  gem "vcr"
+
+  # VCR's HTTP interception layer. Scoped (see spec/support/vcr.rb) to only
+  # intercept api.stripe.com — every other request in this suite is
+  # unaffected [https://github.com/bblimke/webmock]
+  gem "webmock"
 end
 
 group :development do
+  # Detects N+1 queries and unused eager loading, logged to the Rails log
+  # and browser console — the same kind of missed-eager-load bug that's
+  # been found and fixed by hand repeatedly across this app (product
+  # images, nav categories, cart) [https://github.com/flyerhzm/bullet]
+  gem "bullet"
+
   # Use console on exceptions pages [https://github.com/rails/web-console]
   gem "web-console"
 

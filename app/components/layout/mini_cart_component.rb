@@ -6,20 +6,16 @@
 # behavior as the mobile nav's nav-drawer controller, but a separate
 # identifier so the two drawers' open state never collide).
 #
-# Presentational for this frontend-only pass: quantity/remove are client-
-# side only (cart_controller.js), no session cart yet (see PROJECT_VISION.md
-# non-goals and CartsController's doc comment).
+# Real cart items (see CartItem) — quantity/remove submit real requests to
+# CartItemsController, same as the full /cart page.
 class Layout::MiniCartComponent < ViewComponent::Base
-  def initialize(products: [], suggested_products: [])
-    @products = products
+  def initialize(cart_items: [], subtotal_cents: 0, suggested_products: [])
+    @cart_items = cart_items
+    @subtotal_cents = subtotal_cents
     @suggested_products = suggested_products
   end
 
-  attr_reader :products, :suggested_products
-
-  def subtotal_cents
-    products.sum(&:price_cents)
-  end
+  attr_reader :cart_items, :subtotal_cents, :suggested_products
 
   def format_aed(cents)
     helpers.format_aed(cents)

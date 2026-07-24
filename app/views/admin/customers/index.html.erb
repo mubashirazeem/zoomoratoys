@@ -1,0 +1,58 @@
+<% content_for :title, "Customers | Zoomora Admin" %>
+
+<h1 class="text-[24px] sm:text-[28px] font-display font-bold text-ink-950">Customers</h1>
+
+<div class="mt-1 flex items-center justify-between gap-3 flex-wrap">
+  <p class="text-body-sm text-grey-500"><%= @customers.total_count %> registered</p>
+
+  <%= form_with url: admin_customers_path, method: :get, class: "flex items-center gap-2" do %>
+    <div class="relative">
+      <input type="text" name="q" value="<%= params[:q] %>" placeholder="Search by name or email&hellip;"
+        class="rounded-[10px] border border-grey-300 bg-white pl-3.5 pr-10 py-2.5 text-body-sm text-ink-950 placeholder:text-grey-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-red-600 w-full sm:w-64">
+      <button type="submit" aria-label="Search customers" class="absolute right-0 top-0 h-full w-10 flex items-center justify-center text-grey-400 hover:text-red-600">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+      </button>
+    </div>
+    <% if params[:q].present? %>
+      <%= link_to "Clear", admin_customers_path, class: "text-body-sm text-grey-500 hover:text-red-600 font-medium" %>
+    <% end %>
+  <% end %>
+</div>
+
+<% if @customers.none? %>
+  <p class="mt-8 text-body-sm text-grey-500">No customers match &ldquo;<%= params[:q] %>&rdquo;.</p>
+<% else %>
+  <div class="mt-6 rounded-[20px] border border-grey-200 bg-white overflow-hidden shadow-[0_1px_2px_rgba(10,10,11,0.04)] overflow-x-auto">
+    <table class="w-full text-left text-body-sm">
+      <thead>
+        <tr class="bg-grey-50/60 border-b border-grey-200 text-[11px] uppercase font-semibold tracking-[0.08em] text-grey-500">
+          <th class="px-5 py-3.5">Name</th>
+          <th class="px-5 py-3.5">Email</th>
+          <th class="px-5 py-3.5">Orders</th>
+          <th class="px-5 py-3.5">Joined</th>
+          <th class="px-5 py-3.5"></th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @customers.each do |customer| %>
+          <tr class="border-b border-grey-100 last:border-b-0 hover:bg-grey-50/60 transition-colors">
+            <td class="px-5 py-4">
+              <div class="flex items-center gap-3">
+                <span class="flex items-center justify-center w-8 h-8 rounded-full bg-ink-950/5 text-ink-950 font-display font-bold text-[12px] shrink-0"><%= customer.first_name.first.upcase %></span>
+                <span class="font-medium text-ink-950"><%= customer.full_name %></span>
+              </div>
+            </td>
+            <td class="px-5 py-4 text-grey-600"><%= customer.email %></td>
+            <td class="px-5 py-4 font-mono"><%= @order_counts.fetch(customer.id, 0) %></td>
+            <td class="px-5 py-4 text-grey-500"><%= customer.created_at.strftime("%b %-d, %Y") %></td>
+            <td class="px-5 py-4 text-right">
+              <%= link_to "View", admin_customer_path(customer), class: "text-red-600 font-medium hover:text-red-700" %>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+
+  <%= render(Ui::PaginationComponent.new(scope: @customers) { |page| admin_customers_path(page: page, q: params[:q]) }) %>
+<% end %>

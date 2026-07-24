@@ -1,0 +1,115 @@
+<% field_classes = "w-full rounded-[10px] border border-grey-300 bg-grey-50 px-3.5 py-2.5 text-body-sm text-ink-950 placeholder:text-grey-400 transition focus:bg-white focus:border-red-600 focus:ring-4 focus:ring-red-600/10 focus:outline-none" %>
+<% label_classes = "block text-body-sm font-medium text-ink-950 mb-1.5" %>
+<% specifications_text = product.specifications.map { |label, value| "#{label}: #{value}" }.join("\n") %>
+
+<%= form_with model: [ :admin, product ], class: "flex flex-col gap-5 max-w-2xl", multipart: true do |f| %>
+  <% if product.errors.any? %>
+    <div role="alert" class="rounded-[12px] bg-red-50 border border-red-200 px-4 py-3 text-body-sm text-red-700">
+      <p class="font-semibold">Couldn't save this product:</p>
+      <ul class="mt-1 list-disc list-inside">
+        <% product.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+    <div>
+      <%= f.label :name, class: label_classes %>
+      <%= f.text_field :name, class: field_classes %>
+    </div>
+    <div>
+      <%= f.label :sku, class: label_classes %>
+      <%= f.text_field :sku, class: field_classes %>
+    </div>
+  </div>
+
+  <div>
+    <%= f.label :description, class: label_classes %>
+    <%= f.text_area :description, rows: 3, class: field_classes %>
+  </div>
+
+  <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+    <div>
+      <%= f.label :category_id, "Category", class: label_classes %>
+      <%= f.collection_select :category_id, Category.ordered, :id, :name, {}, class: field_classes %>
+    </div>
+    <div>
+      <%= f.label :placeholder_key, "Fallback photo", class: label_classes %>
+      <%= f.select :placeholder_key, Category::PLACEHOLDER_KEYS, {}, class: field_classes %>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+    <div>
+      <%= f.label :price, "Price (AED)", class: label_classes %>
+      <%= f.number_field :price, step: 0.01, min: 0, value: product.price, class: field_classes %>
+    </div>
+    <div>
+      <%= f.label :compare_at_price, "Compare-at price (AED)", class: label_classes %>
+      <p class="text-body-sm text-grey-500 mb-1.5">Optional. Set only for a genuine sale — must be higher than Price. Leave blank otherwise.</p>
+      <%= f.number_field :compare_at_price, step: 0.01, min: 0, value: product.compare_at_price, class: field_classes %>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+    <div>
+      <%= f.label :stock_status, "Availability", class: label_classes %>
+      <%= f.select :stock_status, Product.stock_statuses.keys.map { |s| [ s.humanize, s ] }, {}, class: field_classes %>
+    </div>
+    <div>
+      <%= f.label :stock_quantity, "Stock quantity", class: label_classes %>
+      <%= f.number_field :stock_quantity, min: 0, class: field_classes %>
+    </div>
+  </div>
+
+  <div class="flex items-center gap-6">
+    <label class="flex items-center gap-2.5 text-body-sm text-ink-950 cursor-pointer">
+      <%= f.check_box :featured, class: "w-4 h-4 accent-red-600" %>
+      Featured
+    </label>
+    <label class="flex items-center gap-2.5 text-body-sm text-ink-950 cursor-pointer">
+      <%= f.check_box :best_seller, class: "w-4 h-4 accent-red-600" %>
+      Best seller
+    </label>
+  </div>
+
+  <div>
+    <%= f.label :specifications_text, "Specifications", class: label_classes %>
+    <p class="text-body-sm text-grey-500 mb-1.5">One per line, formatted as "Label: Value" — e.g. "Frame: Reinforced steel"</p>
+    <%= f.text_area :specifications_text, rows: 6, value: specifications_text, class: "#{field_classes} font-mono" %>
+  </div>
+
+  <div>
+    <%= f.label :safety_notes, "Safety & Cautions", class: label_classes %>
+    <p class="text-body-sm text-grey-500 mb-1.5">One point per line — shown to shoppers on the product page. Leave blank if not applicable to this product.</p>
+    <%= f.text_area :safety_notes, rows: 4, class: field_classes %>
+  </div>
+
+  <div>
+    <%= f.label :care_notes, "Care & Storage", class: label_classes %>
+    <p class="text-body-sm text-grey-500 mb-1.5">One point per line — shown to shoppers on the product page. Leave blank if not applicable to this product.</p>
+    <%= f.text_area :care_notes, rows: 4, class: field_classes %>
+  </div>
+
+  <div>
+    <%= f.label :images, "Photos", class: label_classes %>
+    <% if product.persisted? && product.images.attached? %>
+      <div class="flex flex-wrap gap-3 mb-3">
+        <% product.images.each do |image| %>
+          <%= image_tag image.variant(resize_to_fill: [ 96, 96 ]), class: "w-24 h-24 rounded-[10px] object-cover border border-grey-200" %>
+        <% end %>
+      </div>
+      <p class="text-body-sm text-grey-500 mb-2">Uploading new photos adds to these — it doesn't replace them.</p>
+    <% else %>
+      <p class="text-body-sm text-grey-500 mb-2">No photos uploaded yet — the shop shows the category's fallback photo until you add some.</p>
+    <% end %>
+    <%= f.file_field :images, multiple: true, accept: "image/*", class: "text-body-sm" %>
+  </div>
+
+  <div class="flex items-center gap-3">
+    <%= render(Ui::ButtonComponent.new(variant: :primary, type: "submit")) { "Save Product" } %>
+    <%= link_to "Cancel", admin_products_path, class: "text-body-sm font-medium text-grey-600 hover:text-ink-950" %>
+  </div>
+<% end %>

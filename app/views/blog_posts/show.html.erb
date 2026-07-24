@@ -12,7 +12,11 @@
   <h1 class="mt-2 text-[28px] lg:text-h1 font-display text-ink-950 leading-tight"><%= @blog_post.title %></h1>
 
   <div class="mt-8 overflow-hidden rounded-[16px]">
-    <%= image_tag "category-#{@blog_post.cover_image_key}.jpg", alt: "", class: "w-full h-[260px] lg:h-[380px] object-cover" %>
+    <% if @blog_post.cover_image.attached? %>
+      <%= image_tag @blog_post.cover_image.variant(resize_to_fill: [ 1200, 760 ]), alt: "", class: "w-full h-[260px] lg:h-[380px] object-cover" %>
+    <% else %>
+      <%= image_tag "category-#{@blog_post.cover_image_key}.jpg", alt: "", class: "w-full h-[260px] lg:h-[380px] object-cover" %>
+    <% end %>
   </div>
 
   <div class="mt-8 flex flex-col gap-5 text-body-lg text-grey-600 leading-relaxed">

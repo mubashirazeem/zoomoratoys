@@ -1,0 +1,48 @@
+<% field_classes = "w-full rounded-[10px] border border-grey-300 bg-grey-50 px-3.5 py-2.5 text-body-sm text-ink-950 placeholder:text-grey-400 transition focus:bg-white focus:border-red-600 focus:ring-4 focus:ring-red-600/10 focus:outline-none" %>
+<% label_classes = "block text-body-sm font-medium text-ink-950 mb-1.5" %>
+<% options_text = variant.options.map { |label, value| "#{label}: #{value}" }.join("\n") %>
+<%
+  form_url = variant.persisted? ? admin_product_variant_path(product, variant) : admin_product_variants_path(product)
+  form_method = variant.persisted? ? :patch : :post
+%>
+
+<%= form_with model: variant, url: form_url, method: form_method, class: "flex flex-col gap-5 max-w-xl" do |f| %>
+  <% if variant.errors.any? %>
+    <div role="alert" class="rounded-[12px] bg-red-50 border border-red-200 px-4 py-3 text-body-sm text-red-700">
+      <p class="font-semibold">Couldn't save this variant:</p>
+      <ul class="mt-1 list-disc list-inside">
+        <% variant.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div>
+    <%= f.label :options_text, "Options", class: label_classes %>
+    <p class="text-body-sm text-grey-500 mb-1.5">One per line, formatted as "Label: Value" — e.g. "Color: Racing Red" and "Size: Large" define one variant that's Racing Red AND Large together.</p>
+    <%= f.text_area :options_text, rows: 4, value: options_text, class: "#{field_classes} font-mono" %>
+  </div>
+
+  <div>
+    <%= f.label :sku, class: label_classes %>
+    <%= f.text_field :sku, class: field_classes %>
+  </div>
+
+  <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+    <div>
+      <%= f.label :price, "Price override (AED)", class: label_classes %>
+      <p class="text-body-sm text-grey-500 mb-1.5">Optional — leave blank to charge the product's own price for this variant.</p>
+      <%= f.number_field :price, step: 0.01, min: 0, value: variant.price, class: field_classes %>
+    </div>
+    <div>
+      <%= f.label :stock_quantity, "Stock quantity", class: label_classes %>
+      <%= f.number_field :stock_quantity, min: 0, class: field_classes %>
+    </div>
+  </div>
+
+  <div class="flex items-center gap-3">
+    <%= render(Ui::ButtonComponent.new(variant: :primary, type: "submit")) { "Save Variant" } %>
+    <%= link_to "Cancel", admin_product_variants_path(product), class: "text-body-sm font-medium text-grey-600 hover:text-ink-950" %>
+  </div>
+<% end %>

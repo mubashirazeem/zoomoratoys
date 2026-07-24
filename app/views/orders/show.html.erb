@@ -1,0 +1,121 @@
+<% content_for :title, "Order #{@order.order_number} | Zoomora" %>
+
+<% status_classes = {
+  "awaiting_payment" => "bg-grey-100 text-grey-500",
+  "pending" => "bg-grey-100 text-grey-700",
+  "processing" => "bg-grey-200 text-ink-950",
+  "shipped" => "bg-red-600/10 text-red-600",
+  "delivered" => "bg-ink-950 text-white",
+  "cancelled" => "bg-grey-100 text-grey-400",
+  "refunded" => "bg-red-600/10 text-red-600"
+} %>
+<% steps = %w[pending processing shipped delivered] %>
+<% current_step = steps.index(@order.status) %>
+
+<div class="max-w-5xl mx-auto px-[15px] py-8 lg:py-10">
+  <%= render Ui::BreadcrumbComponent.new(items: [
+    { label: "Home", url: root_path },
+    { label: "My Account", url: account_path },
+    { label: "Order History", url: account_orders_path },
+    { label: @order.order_number }
+  ]) %>
+
+  <div class="mt-4 flex flex-wrap items-start justify-between gap-4">
+    <div>
+      <h1 class="text-[28px] lg:text-[34px] font-display font-bold text-ink-950 leading-tight font-mono">Order <%= @order.order_number %></h1>
+      <p class="mt-1 text-body-sm text-grey-500">Placed <%= @order.placed_at.strftime("%B %-d, %Y") %></p>
+    </div>
+    <span class="inline-flex items-center rounded-full px-3.5 py-1.5 text-[12px] font-semibold uppercase tracking-[0.04em] <%= status_classes.fetch(@order.status, "bg-grey-100 text-grey-500") %>"><%= @order.status.humanize %></span>
+  </div>
+
+  <% if @order.awaiting_payment? %>
+    <div class="mt-8 rounded-[14px] bg-grey-100 border border-grey-200 px-5 py-4">
+      <p class="text-body-sm font-semibold text-grey-600">Waiting for payment confirmation.</p>
+    </div>
+  <% elsif @order.cancelled? %>
+    <div class="mt-8 rounded-[14px] bg-grey-100 border border-grey-200 px-5 py-4">
+      <p class="text-body-sm font-semibold text-grey-600">This order was cancelled.</p>
+    </div>
+  <% elsif @order.refunded? %>
+    <div class="mt-8 rounded-[14px] bg-red-50 border border-red-200 px-5 py-4">
+      <p class="text-body-sm font-semibold text-red-600">This order was refunded.</p>
+    </div>
+  <% else %>
+    <div class="mt-10 flex items-start">
+      <% steps.each_with_index do |step, index| %>
+        <div class="flex-1 flex items-center <%= "flex-none" if index == steps.length - 1 %>">
+          <div class="flex flex-col items-center gap-2 shrink-0">
+            <span class="w-8 h-8 rounded-full flex items-center justify-center text-[12px] font-bold <%= index <= current_step ? "bg-red-600 text-white" : "bg-grey-100 text-grey-400" %>">
+              <% if index < current_step %>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
+              <% else %>
+                <%= index + 1 %>
+              <% end %>
+            </span>
+            <span class="text-[11px] uppercase font-semibold tracking-[0.04em] text-center <%= index <= current_step ? "text-ink-950" : "text-grey-400" %>"><%= step.humanize %></span>
+          </div>
+          <% unless index == steps.length - 1 %>
+            <div class="flex-1 h-0.5 mx-2 mb-5 <%= index < current_step ? "bg-red-600" : "bg-grey-200" %>"></div>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+  <% end %>
+
+  <div class="mt-10 grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div class="lg:col-span-2 rounded-[18px] border border-grey-200 bg-white overflow-hidden">
+      <ul class="flex flex-col divide-y divide-grey-200">
+        <% @order.line_items.each do |line_item| %>
+          <li class="flex gap-4 p-5">
+            <%= image_tag line_item.product.display_photo(resize_to_fill: [ 128, 128 ]), alt: "", class: "w-16 h-16 rounded-[10px] object-cover bg-grey-50 shrink-0" %>
+            <div class="flex-1 min-w-0">
+              <p class="font-medium text-ink-950"><%= line_item.product.name %></p>
+              <p class="mt-1 text-body-sm text-grey-500">Qty <%= line_item.quantity %> &middot; <%= format_aed(line_item.price_cents) %> each</p>
+            </div>
+            <span class="font-semibold text-ink-950 shrink-0"><%= format_aed(line_item.price_cents * line_item.quantity) %></span>
+          </li>
+        <% end %>
+      </ul>
+
+      <div class="border-t border-grey-200 p-5 flex flex-col gap-2 text-body-sm">
+        <div class="flex justify-between">
+          <span class="text-grey-600">Subtotal</span>
+          <span class="font-medium text-ink-950"><%= format_aed(@order.subtotal_cents) %></span>
+        </div>
+        <% if @order.gift_wrap_cents.to_i.positive? %>
+          <div class="flex justify-between">
+            <span class="text-grey-600">Gift wrap</span>
+            <span class="font-medium text-ink-950"><%= format_aed(@order.gift_wrap_cents) %></span>
+          </div>
+        <% end %>
+        <div class="flex justify-between pt-2 border-t border-grey-100">
+          <span class="font-display font-bold text-ink-950">Total</span>
+          <span class="font-display font-bold text-ink-950"><%= format_aed(@order.total_cents) %></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="rounded-[18px] border border-grey-200 bg-white p-6 h-fit">
+      <h2 class="text-body font-display font-bold text-ink-950 mb-4">Shipping To</h2>
+      <p class="text-body-sm text-ink-950 font-medium"><%= @order.shipping_name %></p>
+      <p class="text-body-sm text-grey-600"><%= @order.shipping_phone %></p>
+      <p class="mt-3 text-body-sm text-grey-600">
+        <%= @order.shipping_address_line1 %><% if @order.shipping_address_line2.present? %>, <%= @order.shipping_address_line2 %><% end %><br>
+        <%= @order.shipping_city %>, <%= @order.shipping_emirate %>
+      </p>
+      <div class="mt-4 pt-4 border-t border-grey-100">
+        <p class="text-[11px] uppercase font-semibold tracking-[0.08em] text-grey-500">Payment Method</p>
+        <p class="mt-1 text-body-sm text-ink-950"><%= @order.payment_method.humanize %></p>
+        <% if @order.stripe_hosted_invoice_url.present? %>
+          <%= link_to "View Invoice", @order.stripe_hosted_invoice_url, target: "_blank", rel: "noopener",
+                class: "mt-2 inline-block text-body-sm font-medium text-red-600 hover:text-red-700" %>
+        <% end %>
+        <% if @order.partially_refunded? %>
+          <p class="mt-2 text-body-sm font-semibold text-red-600">Partially refunded <%= format_aed(@order.refunded_cents) %></p>
+        <% end %>
+      </div>
+    </div>
+  </div>
+
+  <%= link_to "&larr; Back to Order History".html_safe, account_orders_path, class: "mt-8 inline-block text-body-sm font-medium text-grey-500 hover:text-red-600" %>
+</div>
