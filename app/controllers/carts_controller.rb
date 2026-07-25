@@ -6,6 +6,8 @@
 class CartsController < ApplicationController
   GIFT_WRAP_CENTS = 1_500
 
+  before_action -> { @robots_noindex = true }
+
   def show
     @gift_wrap_cents = GIFT_WRAP_CENTS
   end

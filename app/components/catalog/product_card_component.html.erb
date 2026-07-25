@@ -1,7 +1,7 @@
 <article class="group relative flex flex-col w-full h-full bg-white border border-grey-200 rounded-[14px] overflow-hidden transition duration-300 ease-out hover:-translate-y-1 hover:border-transparent hover:shadow-[0_6px_16px_-8px_rgba(192,24,39,0.16),0_28px_50px_-24px_rgba(10,10,11,0.4)]">
   <div class="relative overflow-hidden bg-grey-50">
     <%= link_to product_path(product), class: "block focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600", "aria-label": product.name do %>
-      <%= image_tag product.display_photo(resize_to_limit: [ 600, 600 ]), alt: "", loading: "lazy", class: "aspect-square w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105" %>
+      <%= image_tag product.display_photo(resize_to_limit: [ 600, 600 ]), alt: product.name, loading: "lazy", class: "aspect-square w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105" %>
     <% end %>
 
     <div class="absolute top-3 left-3 z-10">

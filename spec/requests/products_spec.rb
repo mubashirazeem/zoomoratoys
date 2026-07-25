@@ -225,5 +225,82 @@ RSpec.describe "Products", type: :request do
       expect(response.body).to include("−21%")
       expect(response.body).to include("You save")
     end
+
+    it "renders Product structured data with the real price, sku, and availability" do
+      product = create(:product, name: "Trailblazer 4x4", price_cents: 149_900, sku: "ZMR-00042", stock_status: "in_stock")
+
+      get product_path(product)
+
+      expect(response.body).to include('"@type":"Product"')
+      expect(response.body).to include('"name":"Trailblazer 4x4"')
+      expect(response.body).to include('"sku":"ZMR-00042"')
+      expect(response.body).to include('"price":"1499.00"')
+      expect(response.body).to include('"priceCurrency":"AED"')
+      expect(response.body).to include('"availability":"https://schema.org/InStock"')
+    end
+
+    it "marks a sold-out product's structured data as OutOfStock" do
+      product = create(:product, :sold_out)
+
+      get product_path(product)
+
+      expect(response.body).to include('"availability":"https://schema.org/OutOfStock"')
+    end
+
+    it "marks a preorder product's structured data as PreOrder" do
+      product = create(:product, stock_status: "preorder")
+
+      get product_path(product)
+
+      expect(response.body).to include('"availability":"https://schema.org/PreOrder"')
+    end
+
+    it "marks a product with every variant out of stock as OutOfStock, even though the parent's own stock_status says otherwise" do
+      product = create(:product, stock_status: "in_stock")
+      create(:product_variant, product: product, stock_quantity: 0)
+
+      get product_path(product)
+
+      expect(response.body).to include('"availability":"https://schema.org/OutOfStock"')
+    end
+
+    it "omits aggregateRating from structured data when the product has no reviews yet" do
+      product = create(:product)
+
+      get product_path(product)
+
+      expect(response.body).not_to include('"aggregateRating"')
+    end
+
+    it "includes aggregateRating in structured data once the product has real reviews" do
+      product = create(:product)
+      create(:review, product: product, rating: 5)
+      create(:review, product: product, rating: 3)
+
+      get product_path(product)
+
+      expect(response.body).to include('"aggregateRating"')
+      expect(response.body).to include('"ratingValue":4.0')
+      expect(response.body).to include('"reviewCount":2')
+    end
+
+    it "renders BreadcrumbList structured data matching the visible breadcrumb" do
+      category = create(:category, name: "Bicycles")
+      product = create(:product, category: category, name: "Meadowbrook Cruiser")
+
+      get product_path(product)
+
+      expect(response.body).to include('"@type":"BreadcrumbList"')
+      expect(response.body).to include('"name":"Bicycles"')
+      expect(response.body).to include('"name":"Meadowbrook Cruiser"')
+    end
+
+    it "uses the product's own placeholder photo as its Open Graph image, not the sitewide logo" do
+      product = create(:product, placeholder_key: "bicycle")
+
+      get product_path(product)
+
+      expect(response.body).to match(%r{<meta property="og:image" content="[^"]*category-bicycle[^"]*">})
+    end
   end
 end

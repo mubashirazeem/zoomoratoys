@@ -72,15 +72,15 @@ Rails.application.configure do
 
   # Use a real queuing backend for Active Job (and separate queues per environment).
   # config.active_job.queue_adapter = :resque
-  # config.active_job.queue_name_prefix = "zoomora_toys_production"
+  # config.active_job.queue_name_prefix = "zoomora_toys_staging"
 
   # Disable caching for Action Mailer templates even if Action Controller
   # caching is enabled.
   config.action_mailer.perform_caching = false
 
   # Required by Devise for building links (password reset, confirmation) in
-  # emails — update if the production domain changes.
-  config.action_mailer.default_url_options = { host: "zoomora.com" }
+  # emails — staging's own domain, distinct from production's.
+  config.action_mailer.default_url_options = { host: "staging.zoomora.com" }
 
   # Without this, Rails defaults to SMTP against localhost:25, which fails on
   # every real host — password resets would error out on send.
@@ -95,10 +95,6 @@ Rails.application.configure do
     authentication: :login,
     enable_starttls_auto: true
   }
-
-  # Ignore bad email addresses and do not raise email delivery errors.
-  # Set this to true and configure the email server for immediate delivery to raise delivery errors.
-  # config.action_mailer.raise_delivery_errors = false
 
   # Enable locale fallbacks for I18n (makes lookups for any locale fall back to
   # the I18n.default_locale when a translation cannot be found).

@@ -65,12 +65,20 @@ RSpec.describe Catalog::ProductCardComponent, type: :component do
     expect(page).not_to have_text("%")
   end
 
-  it "gives the image link an accessible name since the photo's alt text is empty/decorative" do
+  it "gives the image link its own accessible name" do
     product = build_stubbed(:product, name: "Trailhawk Off-Road Scooter", slug: "trailhawk-off-road-scooter")
 
     render_inline(described_class.new(product: product))
 
     image_link = page.all("a").first
     expect(image_link["aria-label"]).to eq("Trailhawk Off-Road Scooter")
+  end
+
+  it "gives the product photo real alt text, not an empty string" do
+    product = build_stubbed(:product, name: "Trailhawk Off-Road Scooter")
+
+    render_inline(described_class.new(product: product))
+
+    expect(page).to have_css("img[alt='Trailhawk Off-Road Scooter']")
   end
 end

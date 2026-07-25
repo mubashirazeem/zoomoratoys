@@ -11,6 +11,7 @@ class Admin::BaseController < ActionController::Base
 
   before_action :authenticate_admin_user!
   before_action :set_paper_trail_whodunnit
+  before_action -> { @robots_noindex = true }
 
   private
 

@@ -83,3 +83,11 @@ production:
   database: zoomora_toys_production
   username: zoomora_toys
   password: <%= ENV["ZOOMORA_TOYS_DATABASE_PASSWORD"] %>
+  host: <%= ENV["ZOOMORA_TOYS_DATABASE_HOST"] %>
+
+staging:
+  <<: *default
+  database: zoomora_toys_staging
+  username: zoomora_toys
+  password: <%= ENV["ZOOMORA_TOYS_DATABASE_PASSWORD"] %>
+  host: <%= ENV["ZOOMORA_TOYS_DATABASE_HOST"] %>

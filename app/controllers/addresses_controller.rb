@@ -2,6 +2,7 @@
 
 class AddressesController < ApplicationController
   before_action :authenticate_user!
+  before_action -> { @robots_noindex = true }
   before_action :set_address, only: [ :edit, :update, :destroy ]
 
   def index
