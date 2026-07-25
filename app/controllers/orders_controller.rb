@@ -4,6 +4,7 @@
 # CheckoutsController at the end of a real checkout.
 class OrdersController < ApplicationController
   before_action :authenticate_user!
+  before_action -> { @robots_noindex = true }
 
   def index
     @orders = current_user.orders.newest_first

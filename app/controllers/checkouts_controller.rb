@@ -11,6 +11,7 @@
 # see Order's payment_method/status enums).
 class CheckoutsController < ApplicationController
   before_action :authenticate_user!
+  before_action -> { @robots_noindex = true }
   before_action :ensure_cart_has_items, only: [ :show, :create ]
   before_action :ensure_cart_is_purchasable, only: [ :show, :create ]
 

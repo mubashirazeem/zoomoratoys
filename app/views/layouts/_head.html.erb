@@ -1,10 +1,42 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <title><%= content_for(:title) || "Zoomora — Adventure Starts Here" %></title>
-    <meta name="description" content="<%= content_for(:meta_description) || "Zoomora — electric bikes, cargo scooters, ATVs, dirt bikes, and inflatables for family adventure." %>">
+    <% page_title = content_for(:title) || "Zoomora — Adventure Starts Here" %>
+    <% page_description = content_for(:meta_description) || "Zoomora — electric bikes, cargo scooters, ATVs, dirt bikes, and inflatables for family adventure." %>
+    <% page_image = content_for(:og_image) || image_url("logo.jpeg") %>
+    <% canonical_url = request.base_url + request.path %>
+
+    <title><%= page_title %></title>
+    <meta name="description" content="<%= page_description %>">
+    <meta name="robots" content="<%= @robots_noindex ? "noindex, nofollow" : "index, follow" %>">
+    <link rel="canonical" href="<%= canonical_url %>">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="apple-mobile-web-app-capable" content="yes">
+
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Zoomora">
+    <meta property="og:title" content="<%= page_title %>">
+    <meta property="og:description" content="<%= page_description %>">
+    <meta property="og:url" content="<%= canonical_url %>">
+    <meta property="og:image" content="<%= page_image %>">
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="<%= page_title %>">
+    <meta name="twitter:description" content="<%= page_description %>">
+    <meta name="twitter:image" content="<%= page_image %>">
+
+    <%# Once verified in Google Search Console (search.google.com/search-console), %>
+    <%# uncomment the line below and paste in the exact code Google gives you: %>
+    <%# <meta name="google-site-verification" content="PASTE_YOUR_CODE_HERE"> %>
+
+    <%= json_ld_script_tag(
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      name: "Zoomora",
+      url: root_url,
+      logo: image_url("logo.jpeg")
+    ) %>
+
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
 

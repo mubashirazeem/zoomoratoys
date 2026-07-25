@@ -22,4 +22,83 @@ module ApplicationHelper
   def number_with_thousands(number)
     number.to_s.reverse.gsub(/(\d{3})(?=\d)/, '\1,').reverse
   end
+
+  # content_tag would normally HTML-escape the JSON body, corrupting it (a
+  # JSON `"` becomes `&quot;`) — so this marks it html_safe instead. That's
+  # safe here because Rails' own to_json already neutralizes a data value
+  # like a product description containing a literal "</script>" before this
+  # method ever sees it: config.active_support.escape_html_entities_in_json
+  # (Rails' own default, true) makes to_json render every "<" as a plain
+  # backslash-u escape sequence instead, so no literal "</" ever reaches the
+  # .gsub below. The .gsub stays anyway as a
+  # backstop against that one global setting ever being flipped off for an
+  # unrelated reason elsewhere in the app — cheap insurance, verified with
+  # `ActiveSupport.escape_html_entities_in_json` and a real to_json call.
+  def json_ld_script_tag(data)
+    content_tag(:script, data.to_json.gsub("</", '<\/').html_safe, type: "application/ld+json")
+  end
+
+  # display_photo returns either a plain asset-path String (no images
+  # uploaded yet — see Product#display_photo) or an ActiveStorage variant
+  # object, and each needs a different Rails helper to become an absolute
+  # URL.
+  def product_og_image_url(product)
+    photo = product.display_photo(resize_to_limit: [ 1200, 630 ])
+    photo.is_a?(String) ? image_url(photo) : url_for(photo)
+  end
+
+  def product_json_ld(product)
+    data = {
+      "@context": "https://schema.org",
+      "@type": "Product",
+      name: product.name,
+      image: [ product_og_image_url(product) ],
+      description: product.description,
+      sku: product.sku,
+      brand: { "@type": "Brand", name: "Zoomora" },
+      offers: {
+        "@type": "Offer",
+        priceCurrency: "AED",
+        price: format("%.2f", product.price_cents / 100.0),
+        availability: product_schema_availability(product),
+        url: product_url(product)
+      }
+    }
+
+    if product.reviews.count.positive?
+      data[:aggregateRating] = {
+        "@type": "AggregateRating",
+        # Product#average_rating is a BigDecimal (from an AVG query); Rails'
+        # BigDecimal#as_json renders it as a quoted string ("4.0") to avoid
+        # float precision loss, but schema.org's ratingValue must be a real
+        # JSON number — #to_f gives up that (irrelevant here) precision
+        # guard in exchange for the correct JSON type.
+        ratingValue: product.average_rating.to_f,
+        reviewCount: product.reviews.count
+      }
+    end
+
+    data
+  end
+
+  # stock_status alone is unreliable for a product with variants (parent
+  # stock is irrelevant once ProductVariant-level stock takes over — see
+  # Product#out_of_stock?), so this defers to that same method rather than
+  # reading stock_status directly.
+  def product_schema_availability(product)
+    return "https://schema.org/OutOfStock" if product.out_of_stock?
+    return "https://schema.org/PreOrder" if !product.has_variants? && product.preorder?
+
+    "https://schema.org/InStock"
+  end
+
+  def breadcrumb_json_ld(items)
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      itemListElement: items.each_with_index.map { |item, index|
+        { "@type": "ListItem", position: index + 1, name: item[:name], item: item[:url] }
+      }
+    }
+  end
 end

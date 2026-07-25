@@ -1,5 +1,6 @@
 <% content_for :title, "#{@product.name} | Zoomora" %>
 <% content_for :meta_description, @product.description %>
+<% content_for :og_image, product_og_image_url(@product) %>
 
 <div data-controller="sticky-bar">
   <div class="max-w-7xl mx-auto px-[15px] py-8 lg:py-10">
@@ -9,6 +10,14 @@
       { label: @product.category.name, url: products_path(category: @product.category.slug) },
       { label: @product.name }
     ]) %>
+
+    <%= json_ld_script_tag(product_json_ld(@product)) %>
+    <%= json_ld_script_tag(breadcrumb_json_ld([
+      { name: "Home", url: root_url },
+      { name: "Shop", url: products_url },
+      { name: @product.category.name, url: products_url(category: @product.category.slug) },
+      { name: @product.name, url: product_url(@product) }
+    ])) %>
 
     <%# ---- Buy box ---- %>
     <div id="buy-box" class="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-14" data-sticky-bar-target="anchor">

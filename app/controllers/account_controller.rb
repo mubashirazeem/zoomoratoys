@@ -5,6 +5,7 @@
 # own account-settings edit form rather than duplicating any of them here.
 class AccountController < ApplicationController
   before_action :authenticate_user!
+  before_action -> { @robots_noindex = true }
 
   def show
     @order_count = current_user.orders.count

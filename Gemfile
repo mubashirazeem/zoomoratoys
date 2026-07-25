@@ -85,6 +85,13 @@ group :development, :test do
   # sets real environment variables via the hosting platform directly, never
   # a committed file [https://github.com/bkeepers/dotenv]
   gem "dotenv-rails"
+
+  # Deploy tooling — only ever run from a developer's machine against a
+  # remote server, never loaded by the app itself [https://github.com/capistrano/capistrano]
+  gem "capistrano", "~> 3.19", require: false
+  gem "capistrano-rails", "~> 1.6", require: false
+  gem "capistrano-passenger", "~> 0.2.1", require: false
+  gem "capistrano-rbenv", "~> 2.2", require: false
 end
 
 group :test do
