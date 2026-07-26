@@ -87,14 +87,14 @@ Rails.application.configure do
   # AWS_SES_SMTP_USERNAME/_PASSWORD are set on the server via its
   # .rbenv-vars file, never committed here.
   config.action_mailer.delivery_method = :smtp
-  config.action_mailer.smtp_settings = {
-    address: "email-smtp.me-central-1.amazonaws.com",
-    port: 587,
-    user_name: ENV["AWS_SES_SMTP_USERNAME"],
-    password: ENV["AWS_SES_SMTP_PASSWORD"],
-    authentication: :login,
-    enable_starttls_auto: true
-  }
+  # config.action_mailer.smtp_settings = {
+  #   address: "email-smtp.us-east-1.amazonaws.com",
+  #   port: 587,
+  #   user_name: ENV["AWS_SES_SMTP_USERNAME"],
+  #   password: ENV["AWS_SES_SMTP_PASSWORD"],
+  #   authentication: :login,
+  #   enable_starttls_auto: true
+  # }
 
   # Enable locale fallbacks for I18n (makes lookups for any locale fall back to
   # the I18n.default_locale when a translation cannot be found).

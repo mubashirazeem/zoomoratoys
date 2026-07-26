@@ -17,4 +17,27 @@ set :keep_releases, 5
 # Deploys using the operator's own already-authorized GitHub SSH key,
 # forwarded transiently through the SSH connection during `cap deploy` — no
 # separate deploy key to create or rotate on the server itself.
-set :ssh_options, forward_agent: true
+#
+# keys: is set explicitly here rather than relying on a personal ~/.ssh/config
+# alias, since Capistrano connects using the literal host from `server` below
+# (an IP, not an alias) — SSH's own alias-based IdentityFile matching never
+# applies to a bare IP, so without this, authentication silently falls back
+# to whatever default keys happen to be present.
+set :ssh_options, forward_agent: true, keys: %w[~/.ssh/zoomora-staging.pem]
+
+# capistrano-passenger's default restart task runs `passenger-config
+# restart-app`, which requires reading Passenger's instance registry — but
+# that registry is owned by root (Nginx starts as root via systemd, with no
+# separate lower-privileged worker user configured), while Capistrano runs
+# this as the deploy user, which can't read root's registry. Redefined here
+# to use Passenger's original, permission-agnostic restart signal instead:
+# touching tmp/restart.txt, which Passenger checks on every request
+# regardless of which user owns the running instance.
+namespace :passenger do
+  Rake::Task["passenger:restart"].clear_actions
+  task :restart do
+    on roles(:app) do
+      execute :touch, release_path.join("tmp/restart.txt")
+    end
+  end
+end
