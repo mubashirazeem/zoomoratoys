@@ -46,6 +46,7 @@
         <span>Total</span>
         <span><%= format_aed(@order.total_cents) %></span>
       </div>
+      <p class="text-[12px] text-grey-500 text-right"><%= vat_inclusive_note(@order.total_cents) %></p>
     </div>
 
     <div class="border-t border-grey-200 mt-4 pt-4 text-body-sm text-grey-600">

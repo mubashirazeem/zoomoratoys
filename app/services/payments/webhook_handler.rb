@@ -39,7 +39,16 @@ module Payments
       session = @event.data.object
       return unless session.payment_status == "paid"
 
-      order = Order.find_by(stripe_checkout_session_id: session.id)
+      # Falls back to the order_id carried in this session's own metadata
+      # (see StripeCheckoutSessionBuilder) when the session id itself
+      # doesn't match — this happens when Payments::ResumeCardOrder issued
+      # a *newer* session for the order (repointing
+      # order.stripe_checkout_session_id at it) but the customer actually
+      # completed payment through an older, still-open tab instead. A real
+      # payment must never go unrecorded just because it didn't come
+      # through the most recently issued session.
+      order = Order.find_by(stripe_checkout_session_id: session.id) ||
+        Order.find_by(id: session.metadata && session.metadata["order_id"])
 
       unless order
         Rails.logger.error("Stripe webhook: no order found for checkout session #{session.id}")

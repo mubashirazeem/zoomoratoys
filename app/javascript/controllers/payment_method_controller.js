@@ -8,7 +8,7 @@ export default class extends Controller {
 
   toggle() {
     const isCard = this.radioTargets.find((radio) => radio.checked)?.value === "card"
-    this.codTotalTarget.classList.toggle("hidden", isCard)
-    this.cardTotalTarget.classList.toggle("hidden", !isCard)
+    this.codTotalTargets.forEach((el) => el.classList.toggle("hidden", isCard))
+    this.cardTotalTargets.forEach((el) => el.classList.toggle("hidden", !isCard))
   }
 }

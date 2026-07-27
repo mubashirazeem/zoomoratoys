@@ -50,6 +50,21 @@ RSpec.describe "Checkouts", type: :request do
       expect(response.body).to match(%r{<form[^>]*data-turbo="false"[^>]*action="/checkout"})
     end
 
+    it "doesn't nest the coupon form inside the checkout form — nested <form> elements are invalid HTML, and a browser silently collapses them into the outer one, which previously made clicking the coupon's own Remove/Apply button submit the checkout form instead" do
+      user = create(:user)
+      sign_in user
+      product = create(:product, price_cents: 100_00)
+      post cart_items_path, params: { product_id: product.slug }
+
+      get checkout_path
+
+      doc = Nokogiri::HTML::Document.parse(response.body)
+      checkout_form = doc.at_css('form[action="/checkout"]')
+      expect(checkout_form.css("form")).to be_empty
+      expect(doc.at_css("#coupon-apply-form")).to be_present
+      expect(doc.at_css("#coupon-remove-form")).to be_present
+    end
+
     it "shows the real cart items and subtotal for a signed-in user" do
       user = create(:user)
       sign_in user
@@ -62,17 +77,19 @@ RSpec.describe "Checkouts", type: :request do
       expect(response.body).to include("Trailhawk Off-Road Scooter")
     end
 
-    it "warns that an applied coupon isn't deducted from a Pay on Delivery order" do
+    it "warns that an applied coupon isn't deducted from a Pay on Delivery order",
+       vcr: { cassette_name: "checkouts/pay_on_delivery_coupon_warning" } do
       user = create(:user)
       sign_in user
       product = create(:product, price_cents: 100_00)
       post cart_items_path, params: { product_id: product.slug }
-      coupon = create(:coupon, code: "SAVE20")
+      coupon = create(:coupon, code: "PODWARN20")
+      Payments::CouponSync.create(coupon)
       post cart_coupon_path, params: { code: coupon.code }
 
       get checkout_path
 
-      expect(response.body).to include("SAVE20")
+      expect(response.body).to include("PODWARN20")
       expect(response.body).to include("isn't applied to Pay on Delivery orders")
     end
   end

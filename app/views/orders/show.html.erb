@@ -29,8 +29,19 @@
   </div>
 
   <% if @order.awaiting_payment? %>
-    <div class="mt-8 rounded-[14px] bg-grey-100 border border-grey-200 px-5 py-4">
-      <p class="text-body-sm font-semibold text-grey-600">Waiting for payment confirmation.</p>
+    <div class="mt-8 rounded-[14px] bg-grey-100 border border-grey-200 px-5 py-4 flex flex-col sm:flex-row sm:items-center gap-3 sm:justify-between">
+      <p class="text-body-sm font-semibold text-grey-600">Payment wasn't completed for this order.</p>
+      <%# form: { data: { turbo: false } } — this redirects to a real,
+          cross-origin Stripe Checkout URL (allow_other_host: true in
+          OrdersController#resume_payment). Turbo intercepts button_to
+          submissions as fetch() requests by default, and a fetch-based
+          redirect to another origin can't hand off to a real top-level
+          browser navigation — without this, the button just reloads the
+          current page instead of ever reaching Stripe. Same fix already
+          applied to the checkout form itself; see its own comment. %>
+      <%= button_to "Complete Payment", resume_payment_order_path(@order), method: :post,
+            form: { data: { turbo: false } },
+            class: "shrink-0 rounded-full bg-red-600 text-white font-display font-bold uppercase tracking-[0.04em] text-[13px] px-5 py-2.5 hover:bg-red-700 transition-colors" %>
     </div>
   <% elsif @order.cancelled? %>
     <div class="mt-8 rounded-[14px] bg-grey-100 border border-grey-200 px-5 py-4">
@@ -92,6 +103,7 @@
           <span class="font-display font-bold text-ink-950">Total</span>
           <span class="font-display font-bold text-ink-950"><%= format_aed(@order.total_cents) %></span>
         </div>
+        <p class="text-[12px] text-grey-500 text-right"><%= vat_inclusive_note(@order.total_cents) %></p>
       </div>
     </div>
 
