@@ -51,6 +51,7 @@ Rails.application.routes.draw do
   get "account", to: "account#show", as: :account
   get "account/orders", to: "orders#index", as: :account_orders
   get "account/orders/:id", to: "orders#show", as: :order
+  post "account/orders/:id/resume_payment", to: "orders#resume_payment", as: :resume_payment_order
   resources :addresses, path: "account/addresses", except: [ :show ]
 
   get "rentals", to: "pages#rentals", as: :rentals

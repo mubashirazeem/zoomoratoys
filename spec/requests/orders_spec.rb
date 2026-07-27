@@ -140,5 +140,84 @@ RSpec.describe "Orders", type: :request do
       expect(response.body).to include("Refunded")
       expect(response.body).to include("This order was refunded")
     end
+
+    it "shows a Complete Payment button for an awaiting_payment card order" do
+      user = create(:user)
+      order = create(:order, user: user, payment_method: "card", status: "awaiting_payment")
+      sign_in user
+
+      get order_path(order)
+
+      expect(response.body).to include("Complete Payment")
+    end
+
+    it "disables Turbo on the Complete Payment form — same reason as the checkout form: a fetch-based redirect can't hand off a cross-origin Stripe URL to a real browser navigation, so without this the button just reloads the page instead of ever reaching Stripe" do
+      user = create(:user)
+      order = create(:order, user: user, payment_method: "card", status: "awaiting_payment")
+      sign_in user
+
+      get order_path(order)
+
+      expect(response.body).to match(%r{<form[^>]*data-turbo="false"[^>]*action="/account/orders/#{order.id}/resume_payment"})
+    end
+  end
+
+  describe "POST /account/orders/:id/resume_payment" do
+    it "redirects an anonymous visitor to sign in" do
+      order = create(:order)
+
+      post resume_payment_order_path(order)
+
+      expect(response).to redirect_to(new_user_session_path)
+    end
+
+    it "sends a still-awaiting-payment card order to a real Stripe Checkout URL",
+       vcr: { cassette_name: "orders/resume_payment/redirects_to_stripe" } do
+      user = create(:user)
+      product = create(:product, price_cents: 10_000, stock_quantity: 5)
+      order = create(:order, user: user, payment_method: "card", status: "awaiting_payment",
+                              total_cents: 10_000, subtotal_cents: 10_000)
+      create(:line_item, order: order, product: product, quantity: 1, price_cents: 10_000)
+      sign_in user
+
+      post resume_payment_order_path(order)
+
+      expect(response).to redirect_to(a_string_starting_with("https://checkout.stripe.com/"))
+      expect(order.reload.stripe_checkout_session_id).to be_present
+    end
+
+    it "refuses to resume a Pay on Delivery order — there's no Stripe payment to restart" do
+      user = create(:user)
+      order = create(:order, user: user, payment_method: "pay_on_delivery", status: "pending")
+      sign_in user
+
+      post resume_payment_order_path(order)
+
+      expect(response).to redirect_to(order_path(order))
+      follow_redirect!
+      expect(response.body).to include("can&#39;t be resumed")
+    end
+
+    it "refuses to resume a card order that's already past awaiting_payment" do
+      user = create(:user)
+      order = create(:order, user: user, payment_method: "card", status: "pending")
+      sign_in user
+
+      post resume_payment_order_path(order)
+
+      expect(response).to redirect_to(order_path(order))
+      follow_redirect!
+      expect(response.body).to include("can&#39;t be resumed")
+    end
+
+    it "404s when a signed-in user tries to resume another user's order" do
+      order = create(:order, payment_method: "card", status: "awaiting_payment")
+      intruder = create(:user)
+      sign_in intruder
+
+      post resume_payment_order_path(order)
+
+      expect(response).to have_http_status(:not_found)
+    end
   end
 end

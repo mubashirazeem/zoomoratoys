@@ -1,0 +1,341 @@
+---
+http_interactions:
+- request:
+    method: post
+    uri: https://api.stripe.com/v1/customers
+    body:
+      encoding: UTF-8
+      string: email=user1%40example.com&name=Jamie+Rider&metadata[user_id]=2822
+    headers:
+      User-Agent:
+      - Stripe/v1 RubyBindings/19.3.1 AIAgent/claude_code
+      Authorization:
+      - Bearer <STRIPE_SECRET_KEY>
+      Idempotency-Key:
+      - bc6c4aae-565e-4820-b1e9-efb02f951ee5
+      Stripe-Version:
+      - 2026-06-24.dahlia
+      X-Stripe-Client-User-Agent:
+      - '{"bindings_version":"19.3.1","lang":"ruby","lang_version":"3.3.5 p100 (2024-09-03)","engine":"ruby","platform":"x86_64-darwin22","telemetry_id":"7151e879cade841520feca792817c87b","ai_agent":"claude_code"}'
+      Content-Type:
+      - application/x-www-form-urlencoded
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - "*/*"
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Server:
+      - nginx
+      Date:
+      - Sun, 26 Jul 2026 23:45:00 GMT
+      Content-Type:
+      - application/json
+      Content-Length:
+      - '691'
+      Connection:
+      - keep-alive
+      Access-Control-Allow-Credentials:
+      - 'true'
+      Access-Control-Allow-Methods:
+      - GET, HEAD, PUT, PATCH, POST, DELETE
+      Access-Control-Allow-Origin:
+      - "*"
+      Access-Control-Expose-Headers:
+      - Request-Id, Stripe-Manage-Version, Stripe-Should-Retry, X-Stripe-External-Auth-Required,
+        X-Stripe-Privileged-Session-Required
+      Access-Control-Max-Age:
+      - '300'
+      Cache-Control:
+      - no-cache, no-store
+      Content-Security-Policy:
+      - base-uri 'none'; default-src 'none'; form-action 'none'; frame-ancestors 'none';
+        img-src 'self'; script-src 'self' 'report-sample'; style-src 'self'; worker-src
+        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=1bV9X_odF6uV9giTY2fj6SV57g7fNjXirLAl2aKsY_kvwQ2eSfIAS6DAW0vR2nrUvTSg9W77jU6IYOn5;
+        report-to csp
+      Idempotency-Key:
+      - bc6c4aae-565e-4820-b1e9-efb02f951ee5
+      Original-Request:
+      - req_LrmUB6YsArSiCp
+      Report-To:
+      - '{"group":"csp","max_age":8640,"endpoints":[{"url":"https://q.stripe.com/csp-report-v2?q=1bV9X_odF6uV9giTY2fj6SV57g7fNjXirLAl2aKsY_kvwQ2eSfIAS6DAW0vR2nrUvTSg9W77jU6IYOn5&t=1"}],"include_subdomains":true}'
+      Reporting-Endpoints:
+      - csp="https://q.stripe.com/csp-report-v2?q=1bV9X_odF6uV9giTY2fj6SV57g7fNjXirLAl2aKsY_kvwQ2eSfIAS6DAW0vR2nrUvTSg9W77jU6IYOn5&t=1"
+      Request-Id:
+      - req_LrmUB6YsArSiCp
+      Stripe-Should-Retry:
+      - 'false'
+      Stripe-Version:
+      - 2026-06-24.dahlia
+      Vary:
+      - Origin
+      X-Stripe-Priority-Routing-Enabled:
+      - 'true'
+      X-Stripe-Routing-Context-Priority-Tier:
+      - api-testmode
+      X-Wc:
+      - 3c3
+      Strict-Transport-Security:
+      - max-age=63072000; includeSubDomains; preload
+    body:
+      encoding: UTF-8
+      string: |-
+        {
+          "id": "cus_UxWmBlU10RBGZX",
+          "object": "customer",
+          "address": null,
+          "balance": 0,
+          "created": 1785109500,
+          "currency": null,
+          "customer_account": null,
+          "default_source": null,
+          "delinquent": false,
+          "description": null,
+          "discount": null,
+          "email": "user1@example.com",
+          "invoice_prefix": "JEXGMD1S",
+          "invoice_settings": {
+            "custom_fields": null,
+            "default_payment_method": null,
+            "footer": null,
+            "rendering_options": null
+          },
+          "livemode": false,
+          "metadata": {
+            "user_id": "2822"
+          },
+          "name": "Jamie Rider",
+          "next_invoice_sequence": 1,
+          "phone": null,
+          "preferred_locales": [],
+          "shipping": null,
+          "tax_exempt": "none",
+          "test_clock": null
+        }
+  recorded_at: Sun, 26 Jul 2026 23:45:00 GMT
+- request:
+    method: post
+    uri: https://api.stripe.com/v1/checkout/sessions
+    body:
+      encoding: UTF-8
+      string: mode=payment&customer=cus_UxWmBlU10RBGZX&line_items[0][price_data][currency]=aed&line_items[0][price_data][unit_amount]=10000&line_items[0][price_data][product_data][name]=Ford+1&line_items[0][quantity]=1&line_items[0][tax_rates][0]=txr_1TxSGyIvmGMpneAkCn5YhyWi&invoice_creation[enabled]=true&success_url=https%3A%2F%2Fexample.com%2Fcheckout%2Fconfirmation%2FZMR-TEST-1&cancel_url=https%3A%2F%2Fexample.com%2Faccount%2Forders%2F1954&metadata[order_id]=1954&metadata[order_number]=ZMR-TEST-1&metadata[products]=Ford+1+x1&payment_intent_data[metadata][order_id]=1954&payment_intent_data[metadata][order_number]=ZMR-TEST-1&payment_intent_data[metadata][products]=Ford+1+x1
+    headers:
+      User-Agent:
+      - Stripe/v1 RubyBindings/19.3.1 AIAgent/claude_code
+      Authorization:
+      - Bearer <STRIPE_SECRET_KEY>
+      X-Stripe-Client-Telemetry:
+      - '{"last_request_metrics":{"request_id":"req_LrmUB6YsArSiCp","request_duration_ms":776}}'
+      Idempotency-Key:
+      - c9866fdd-adcf-4d21-a4d8-4eb1ddf42a33
+      Stripe-Version:
+      - 2026-06-24.dahlia
+      X-Stripe-Client-User-Agent:
+      - '{"bindings_version":"19.3.1","lang":"ruby","lang_version":"3.3.5 p100 (2024-09-03)","engine":"ruby","platform":"x86_64-darwin22","telemetry_id":"7151e879cade841520feca792817c87b","ai_agent":"claude_code"}'
+      Content-Type:
+      - application/x-www-form-urlencoded
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - "*/*"
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Server:
+      - nginx
+      Date:
+      - Sun, 26 Jul 2026 23:45:01 GMT
+      Content-Type:
+      - application/json
+      Content-Length:
+      - '3720'
+      Connection:
+      - keep-alive
+      Access-Control-Allow-Credentials:
+      - 'true'
+      Access-Control-Allow-Methods:
+      - GET, HEAD, PUT, PATCH, POST, DELETE
+      Access-Control-Allow-Origin:
+      - "*"
+      Access-Control-Expose-Headers:
+      - Request-Id, Stripe-Manage-Version, Stripe-Should-Retry, X-Stripe-External-Auth-Required,
+        X-Stripe-Privileged-Session-Required
+      Access-Control-Max-Age:
+      - '300'
+      Cache-Control:
+      - no-cache, no-store
+      Content-Security-Policy:
+      - base-uri 'none'; default-src 'none'; form-action 'none'; frame-ancestors 'none';
+        img-src 'self'; script-src 'self' 'report-sample'; style-src 'self'; worker-src
+        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=TqbjdB5uvlpEzLnceWRFPdmMiTxY1bpNFUA98fznK7C8Uh8sSH5HZypNsHUMcRBtjOpAXmrrEb44b8Ht;
+        report-to csp
+      Idempotency-Key:
+      - c9866fdd-adcf-4d21-a4d8-4eb1ddf42a33
+      Original-Request:
+      - req_mNoBSaoLVh6WyO
+      Report-To:
+      - '{"group":"csp","max_age":8640,"endpoints":[{"url":"https://q.stripe.com/csp-report-v2?q=TqbjdB5uvlpEzLnceWRFPdmMiTxY1bpNFUA98fznK7C8Uh8sSH5HZypNsHUMcRBtjOpAXmrrEb44b8Ht&t=1"}],"include_subdomains":true}'
+      Reporting-Endpoints:
+      - csp="https://q.stripe.com/csp-report-v2?q=TqbjdB5uvlpEzLnceWRFPdmMiTxY1bpNFUA98fznK7C8Uh8sSH5HZypNsHUMcRBtjOpAXmrrEb44b8Ht&t=1"
+      Request-Id:
+      - req_mNoBSaoLVh6WyO
+      Stripe-Should-Retry:
+      - 'false'
+      Stripe-Version:
+      - 2026-06-24.dahlia
+      Vary:
+      - Origin
+      X-Stripe-Priority-Routing-Enabled:
+      - 'true'
+      X-Stripe-Routing-Context-Priority-Tier:
+      - api-testmode
+      X-Wc:
+      - 3c3
+      Strict-Transport-Security:
+      - max-age=63072000; includeSubDomains; preload
+    body:
+      encoding: UTF-8
+      string: |-
+        {
+          "id": "cs_test_a1JKXWdM8k7hyFofoGNcnTCt1Suo521s6hSbCVGlYZuRHhA14YoP6u98Sc",
+          "object": "checkout.session",
+          "adaptive_pricing": {
+            "enabled": true
+          },
+          "after_expiration": null,
+          "allow_promotion_codes": null,
+          "amount_subtotal": 10000,
+          "amount_total": 10000,
+          "automatic_tax": {
+            "enabled": false,
+            "liability": null,
+            "provider": null,
+            "status": null
+          },
+          "billing_address_collection": null,
+          "branding_settings": {
+            "background_color": "#ffffff",
+            "border_style": "rounded",
+            "button_color": "#0074d4",
+            "display_name": "Test Zoomora sandbox",
+            "font_family": "default",
+            "icon": null,
+            "logo": null
+          },
+          "cancel_url": "https://example.com/account/orders/1954",
+          "client_reference_id": null,
+          "client_secret": null,
+          "collected_information": {
+            "business_name": null,
+            "individual_name": null,
+            "shipping_details": null
+          },
+          "consent": null,
+          "consent_collection": null,
+          "created": 1785109501,
+          "currency": "aed",
+          "currency_conversion": null,
+          "custom_fields": [],
+          "custom_text": {
+            "after_submit": null,
+            "shipping_address": null,
+            "submit": null,
+            "terms_of_service_acceptance": null
+          },
+          "customer": "cus_UxWmBlU10RBGZX",
+          "customer_account": null,
+          "customer_creation": null,
+          "customer_details": {
+            "address": null,
+            "business_name": null,
+            "email": "user1@example.com",
+            "individual_name": null,
+            "name": null,
+            "phone": null,
+            "tax_exempt": "none",
+            "tax_ids": null
+          },
+          "customer_email": null,
+          "discounts": [],
+          "expires_at": 1785195901,
+          "integration_identifier": null,
+          "invoice": null,
+          "invoice_creation": {
+            "enabled": true,
+            "invoice_data": {
+              "account_tax_ids": null,
+              "custom_fields": null,
+              "description": null,
+              "footer": null,
+              "issuer": {
+                "type": "self"
+              },
+              "metadata": {},
+              "rendering_options": null
+            }
+          },
+          "livemode": false,
+          "locale": null,
+          "managed_payments": {
+            "enabled": false
+          },
+          "metadata": {
+            "order_id": "1954",
+            "order_number": "ZMR-TEST-1",
+            "products": "Ford 1 x1"
+          },
+          "mode": "payment",
+          "origin_context": null,
+          "payment_intent": null,
+          "payment_link": null,
+          "payment_method_collection": "if_required",
+          "payment_method_configuration_details": {
+            "id": "pmc_1TugekIvmGMpneAkNr1i4XlP",
+            "parent": null
+          },
+          "payment_method_options": {
+            "card": {
+              "request_three_d_secure": "automatic"
+            }
+          },
+          "payment_method_types": [
+            "card",
+            "link"
+          ],
+          "payment_status": "unpaid",
+          "permissions": null,
+          "phone_number_collection": {
+            "enabled": false
+          },
+          "recovered_from": null,
+          "saved_payment_method_options": {
+            "allow_redisplay_filters": [
+              "always"
+            ],
+            "payment_method_remove": "disabled",
+            "payment_method_save": null
+          },
+          "setup_intent": null,
+          "shipping_address_collection": null,
+          "shipping_cost": null,
+          "shipping_options": [],
+          "status": "open",
+          "submit_type": null,
+          "subscription": null,
+          "success_url": "https://example.com/checkout/confirmation/ZMR-TEST-1",
+          "total_details": {
+            "amount_discount": 0,
+            "amount_shipping": 0,
+            "amount_tax": 476
+          },
+          "ui_mode": "hosted_page",
+          "url": "https://checkout.stripe.com/c/pay/cs_test_a1JKXWdM8k7hyFofoGNcnTCt1Suo521s6hSbCVGlYZuRHhA14YoP6u98Sc#fidnandhYHdWcXxpYCc%2FJ2FgY2RwaXEnKSdicGRmZGhqaWBTZHdsZGtxJz8nZmprcXdqaScpJ2R1bE5gfCc%2FJ3VuWnFgdnFaMDRRcGJgR0xzaEJIdWtgRG5Nc3I1aUNvXX1dSEtdcl01Tk5DSlQyb19IUVN8bzZdUU9OZGJSa3FXRlJUVmB2MXVqMlB1cUZQaWpNNFM0MGg1fzRNazdobjQ1NWhETENMQEJNJyknY3dqaFZgd3Ngdyc%2FcXdwYCknZ2RmbmJ3anBrYUZqaWp3Jz8nJmNjY2NjYycpJ2lkfGpwcVF8dWAnPyd2bGtiaWBabHFgaCcpJ2BrZGdpYFVpZGZgbWppYWB3dic%2FcXdwYHgl",
+          "wallet_options": null
+        }
+  recorded_at: Sun, 26 Jul 2026 23:45:01 GMT
+recorded_with: VCR 6.4.0

@@ -12,6 +12,8 @@
 
   <h1 class="mt-4 text-[32px] lg:text-[40px] font-display font-bold text-ink-950 leading-tight">Checkout</h1>
 
+  <%= render "carts/coupon_stub_forms" %>
+
   <% default_address = current_user.addresses.ordered.first %>
   <%# data-controller lives on the form (not the smaller Payment card) because
       its targets span two separate subtrees: the payment-method radios here
@@ -168,9 +170,11 @@
         </div>
       </div>
 
+      <%= render "carts/coupon_form" %>
+
       <% if current_cart.persisted? && current_cart.coupon.present? %>
-        <div class="rounded-[10px] bg-grey-50 border border-grey-200 px-3 py-2.5 text-[12px] text-grey-600">
-          Coupon <span class="font-semibold text-ink-950"><%= current_cart.coupon.code %></span> isn't applied to Pay on Delivery orders yet — the total below is the full amount you'll be charged.
+        <div data-payment-method-target="codTotal" class="rounded-[10px] bg-grey-50 border border-grey-200 px-3 py-2.5 text-[12px] text-grey-600">
+          Coupon <span class="font-semibold text-ink-950"><%= current_cart.coupon.code %></span> isn't applied to Pay on Delivery orders — the total below is the full amount you'll be charged. Switch to Card to apply it.
         </div>
       <% end %>
 
@@ -182,6 +186,10 @@
           <span class="text-body-sm font-normal text-grey-500">+ gift wrap if selected</span>
         </span>
       </div>
+      <p class="text-[12px] text-grey-500 -mt-3">
+        <span data-payment-method-target="codTotal"><%= vat_inclusive_note(@cart_subtotal_cents) %></span>
+        <span data-payment-method-target="cardTotal" class="hidden"><%= vat_inclusive_note(current_cart.total_after_discount_cents) %></span>
+      </p>
 
       <%= render(Ui::ButtonComponent.new(variant: :primary, size: :lg, full_width: true, type: "submit")) { "Place Order" } %>
       <p class="text-[12px] text-grey-500 text-center">By placing your order, you agree to our <%= link_to "Terms & Conditions", terms_and_conditions_path, class: "text-red-600 hover:text-red-700" %>.</p>

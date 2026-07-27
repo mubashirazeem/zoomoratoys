@@ -1,0 +1,7 @@
+<%# Must be rendered somewhere NOT nested inside another <form> — the
+    browser silently drops a <form> start tag entirely (id included) when
+    one is already open, per the HTML5 parsing spec, so these can't just
+    live next to _coupon_form's visible controls on a page (like checkout)
+    that already has an enclosing form. See _coupon_form.html.erb. %>
+<%= form_with url: cart_coupon_path, method: :post, id: "coupon-apply-form" do %><% end %>
+<%= form_with url: cart_coupon_path, method: :delete, id: "coupon-remove-form" do %><% end %>

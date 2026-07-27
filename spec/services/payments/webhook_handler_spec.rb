@@ -117,6 +117,20 @@ RSpec.describe Payments::WebhookHandler do
       expect { Payments::WebhookHandler.call(event) }.not_to raise_error
     end
 
+    it "confirms the order via its metadata order_id when the paid session isn't the one currently tracked — the customer completed payment through an older, still-open tab after Payments::ResumeCardOrder had already pointed the order at a newer session" do
+      allow(Stripe::Invoice).to receive(:retrieve).and_return(double("Stripe::Invoice", hosted_invoice_url: nil))
+      order = create(:order, status: "awaiting_payment", payment_method: "card", stripe_checkout_session_id: "cs_test_newer")
+      event = stripe_event("checkout.session.completed", {
+        id: "cs_test_older", object: "checkout.session", payment_intent: "pi_test_456", invoice: "in_test_789",
+        payment_status: "paid", metadata: { order_id: order.id.to_s }
+      })
+
+      Payments::WebhookHandler.call(event)
+
+      expect(order.reload.status).to eq("pending")
+      expect(order.stripe_payment_intent_id).to eq("pi_test_456")
+    end
+
     it "does not confirm the order when payment_status is unpaid — Stripe fires this event for delayed/async payment methods before the payment actually clears, not only once it has" do
       order = create(:order, status: "awaiting_payment", payment_method: "card", stripe_checkout_session_id: "cs_test_123")
       event = stripe_event("checkout.session.completed", {

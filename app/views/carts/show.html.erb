@@ -6,6 +6,8 @@
     { label: "Your Cart" }
   ]) %>
 
+  <%= render "carts/coupon_stub_forms" %>
+
   <h1 class="mt-4 text-[32px] lg:text-[40px] font-display font-bold text-ink-950 leading-tight">
     Your Cart <span class="text-grey-400 font-normal text-[22px] lg:text-[26px]">(<%= @cart_item_count %> <%= "item".pluralize(@cart_item_count) %>)</span>
   </h1>
@@ -111,19 +113,7 @@
         <h2 class="text-h3 font-display text-ink-950">Order Summary</h2>
 
         <div class="border-t border-grey-200 pt-4">
-          <% if current_cart.persisted? && current_cart.coupon.present? %>
-            <div class="flex items-center justify-between rounded-[10px] bg-red-50 border border-red-200 px-3 py-2.5">
-              <span class="text-body-sm text-ink-950"><span class="font-semibold"><%= current_cart.coupon.code %></span> applied</span>
-              <%= button_to "Remove", cart_coupon_path, method: :delete, form: { class: "inline-block" },
-                    class: "text-body-sm font-medium text-red-600 hover:text-red-700 bg-transparent" %>
-            </div>
-          <% else %>
-            <%= form_with url: cart_coupon_path, method: :post, class: "flex gap-2" do %>
-              <input type="text" name="code" placeholder="Coupon code"
-                class="flex-1 min-w-0 rounded-[10px] border border-grey-300 bg-grey-50 px-3 py-2.5 text-body-sm text-ink-950 placeholder:text-grey-400 focus:bg-white focus:border-red-600 focus:ring-4 focus:ring-red-600/10 focus:outline-none" />
-              <button type="submit" class="shrink-0 rounded-[10px] border border-grey-300 px-4 text-body-sm font-semibold text-ink-950 hover:border-red-600 hover:text-red-600 transition-colors">Apply</button>
-            <% end %>
-          <% end %>
+          <%= render "carts/coupon_form" %>
         </div>
 
         <div class="flex flex-col gap-3 text-body-sm">
@@ -150,6 +140,7 @@
             <%= format_aed(current_cart.persisted? ? current_cart.total_after_discount_cents : @cart_subtotal_cents) %>
           </span>
         </div>
+        <p class="text-[12px] text-grey-500 -mt-3"><%= vat_inclusive_note(current_cart.persisted? ? current_cart.total_after_discount_cents : @cart_subtotal_cents) %></p>
         <% if current_cart.persisted? && current_cart.discount_cents.positive? %>
           <p class="text-[12px] text-grey-500 -mt-3">Coupon preview only — not yet applied at checkout.</p>
         <% end %>

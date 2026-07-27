@@ -11,6 +11,11 @@ module Payments
   # (typically well under a second). The alternative — creating the Stripe
   # session first, outside any transaction — reopens the "charged but no
   # order exists" risk this design exists to close. Correctness wins here.
+  #
+  # If the customer abandons *this* session without paying (closes the tab,
+  # hits back), Payments::ResumeCardOrder is what lets them start a fresh
+  # payment attempt for the same already-created order later — this class
+  # only ever runs once per order, at the very first checkout attempt.
   class CreateCardOrder
     def self.call(...)
       new(...).call
@@ -35,7 +40,9 @@ module Payments
           gift_wrap: @gift_wrap, gift_wrap_cents: @gift_wrap_cents, payment_method: "card",
           discount_cents: applied_discount_cents, coupon: applicable_coupon
         )
-        session = build_checkout_session(order)
+        session = StripeCheckoutSessionBuilder.call(
+          order: order, user: @user, success_url: @success_url_for.call(order), cancel_url: @cancel_url
+        )
         order.update!(stripe_checkout_session_id: session.id)
         checkout_url = session.url
       end
@@ -44,63 +51,6 @@ module Payments
     end
 
     private
-
-    def build_checkout_session(order)
-      # Metadata doesn't propagate between Stripe objects — the top-level
-      # metadata: below only lives on the Checkout Session itself.
-      # payment_intent_data.metadata is what actually lands on the
-      # PaymentIntent (and from there, the Charge), so the order is
-      # identifiable from any view of the payment in Stripe's dashboard,
-      # not only from the Checkout Session.
-      order_metadata = { order_id: order.id, order_number: order.order_number }
-
-      Stripe::Checkout::Session.create(
-        {
-          mode: "payment",
-          customer: stripe_customer_id,
-          line_items: line_items_for(order),
-          invoice_creation: { enabled: true },
-          success_url: @success_url_for.call(order),
-          cancel_url: @cancel_url,
-          metadata: order_metadata,
-          payment_intent_data: { metadata: order_metadata }
-        }.merge(discount_params)
-      )
-    end
-
-    def stripe_customer_id
-      return @user.stripe_customer_id if @user.stripe_customer_id.present?
-
-      customer = Stripe::Customer.create(email: @user.email, name: @user.full_name, metadata: { user_id: @user.id })
-      @user.update!(stripe_customer_id: customer.id)
-      customer.id
-    end
-
-    def line_items_for(order)
-      items = order.line_items.includes(:product).map do |line_item|
-        {
-          price_data: {
-            currency: "aed",
-            unit_amount: line_item.price_cents,
-            product_data: { name: line_item.product.name }
-          },
-          quantity: line_item.quantity
-        }
-      end
-
-      if order.gift_wrap_cents.positive?
-        items << {
-          price_data: {
-            currency: "aed",
-            unit_amount: order.gift_wrap_cents,
-            product_data: { name: "Gift wrap" }
-          },
-          quantity: 1
-        }
-      end
-
-      items
-    end
 
     # Pre-applies the coupon already selected on the cart page (existing
     # feature, unchanged) rather than Stripe's own allow_promotion_codes,
@@ -126,12 +76,6 @@ module Payments
 
     def applied_discount_cents
       applicable_coupon ? @cart.discount_cents : 0
-    end
-
-    def discount_params
-      return {} unless applicable_coupon
-
-      { discounts: [ { promotion_code: applicable_coupon.stripe_promotion_code_id } ] }
     end
   end
 end

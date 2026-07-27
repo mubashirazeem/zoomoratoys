@@ -98,7 +98,9 @@ RSpec.describe Payments::CreateCardOrder do
     )
 
     order = Order.last
-    expect(sent_params[:payment_intent_data]).to eq(metadata: { order_id: order.id, order_number: order.order_number })
+     expect(sent_params[:payment_intent_data]).to eq(
+      metadata: { order_id: order.id, order_number: order.order_number, products: "#{product.name} x1" }
+    )
   end
 
   it "creates a real Stripe Customer and reuses it on a second order for the same user",

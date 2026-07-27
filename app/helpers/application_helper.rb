@@ -16,6 +16,15 @@ module ApplicationHelper
     "AED #{number_with_thousands(whole)}.#{fils.to_s.rjust(2, '0')}"
   end
 
+  # Caption shown under a Total anywhere a price is displayed — prices are
+  # VAT-inclusive already (see Order::VAT_RATE), so this backs the 5%
+  # amount out of the same total_cents already on screen rather than
+  # changing what's charged.
+  def vat_inclusive_note(total_cents)
+    vat_cents = total_cents - (total_cents / (1 + Order::VAT_RATE)).round
+    "Includes VAT (5%): #{format_aed_precise(vat_cents)}"
+  end
+
   # Hand-rolled rather than ActionView's number_with_delimiter: that helper
   # isn't reliably mixed into a ViewComponent's `helpers` proxy, while a
   # plain custom ApplicationHelper method (this one) is.
