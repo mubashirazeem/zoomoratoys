@@ -1,6 +1,8 @@
 <% content_for :title, "Orders | Zoomora Admin" %>
 
-<h1 class="text-[24px] sm:text-[28px] font-display font-bold text-ink-950">Orders</h1>
+<%= render Admin::PageHeaderComponent.new(title: "Orders") do |header| %>
+  <% header.with_action { render(Ui::ButtonComponent.new(variant: :primary, href: new_admin_order_path)) { "New Order" } } %>
+<% end %>
 
 <div class="mt-6 flex items-center justify-between gap-3 flex-wrap">
   <div class="flex items-center gap-2 flex-wrap">

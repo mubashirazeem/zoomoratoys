@@ -369,6 +369,21 @@
       @media (prefers-reduced-motion: reduce) {
         .action-btn:hover, .action-btn:active, .rail-arrow:hover, .rail-arrow:active { transform: none; }
       }
+
+      /* ---- Promo marquee: sideways-scrolling promotional strip (home page) ---- */
+      .promo-marquee__track {
+        display: flex;
+        width: max-content;
+        animation: promoMarquee 26s linear infinite;
+      }
+      .promo-marquee:hover .promo-marquee__track { animation-play-state: paused; }
+      @keyframes promoMarquee {
+        from { transform: translateX(0); }
+        to { transform: translateX(-50%); }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .promo-marquee__track { animation: none; }
+      }
     </style>
 
     <%= yield :head %>

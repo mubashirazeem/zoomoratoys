@@ -18,7 +18,7 @@ Rails.application.routes.draw do
     resources :products, except: [ :show ] do
       resources :variants, controller: "product_variants", except: [ :show ]
     end
-    resources :orders, only: [ :index, :show, :update ] do
+    resources :orders, only: [ :index, :new, :create, :show, :update ] do
       member do
         get :packing_slip
         get :invoice

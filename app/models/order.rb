@@ -151,6 +151,70 @@ class Order < ApplicationRecord
     end
   end
 
+  # A manual, admin-entered order — no cart, no Stripe (e.g. a phone or
+  # WhatsApp sale). `items` is an array of { product:, product_variant:,
+  # quantity: } hashes. Deliberately not built by sharing code with
+  # .create_from_cart! above: that method is the real, high-stakes,
+  # already-proven checkout path, and this is a much lower-traffic,
+  # lower-stakes one — duplicating its concurrency-safe locking pattern
+  # here (same stable ascending-id lock order, same lock-then-check-then-
+  # decrement sequence, for the same overselling/deadlock reasons) avoids
+  # any risk of touching that proven path while building this new one.
+  def self.create_by_admin!(user:, items:, shipping_attributes:, gift_wrap: false, gift_wrap_cents: 0)
+    transaction do
+      raise ArgumentError, "at least one item is required" if items.empty?
+
+      locked_variants = {}
+      locked_products = {}
+
+      items.sort_by { |item| [ item[:product].id, item[:product_variant]&.id || 0 ] }.each do |item|
+        if item[:product_variant]
+          locked_variants[item[:product_variant].id] ||= ProductVariant.lock.find(item[:product_variant].id)
+        else
+          locked_products[item[:product].id] ||= Product.lock.find(item[:product].id)
+        end
+      end
+
+      items.each do |item|
+        record = item[:product_variant] ? locked_variants[item[:product_variant].id] : locked_products[item[:product].id]
+        if record.stock_quantity < item[:quantity]
+          raise InsufficientStock, "Only #{record.stock_quantity} of #{item[:product].name} left in stock"
+        end
+      end
+
+      unit_price_cents_for = ->(item) { item[:product_variant]&.effective_price_cents || item[:product].price_cents }
+      subtotal_cents = items.sum { |item| unit_price_cents_for.call(item) * item[:quantity] }
+      applied_gift_wrap_cents = gift_wrap ? gift_wrap_cents : 0
+
+      order = create!(
+        user: user,
+        order_number: generate_order_number,
+        placed_at: Time.current,
+        subtotal_cents: subtotal_cents,
+        gift_wrap_cents: applied_gift_wrap_cents,
+        discount_cents: 0,
+        total_cents: subtotal_cents + applied_gift_wrap_cents,
+        payment_method: "pay_on_delivery",
+        status: "pending",
+        **shipping_attributes
+      )
+
+      items.each do |item|
+        order.line_items.create!(
+          product: item[:product],
+          product_variant: item[:product_variant],
+          quantity: item[:quantity],
+          price_cents: unit_price_cents_for.call(item)
+        )
+        record = item[:product_variant] ? locked_variants[item[:product_variant].id] : locked_products[item[:product].id]
+        record.decrement!(:stock_quantity, item[:quantity])
+        record.sync_stock_status!
+      end
+
+      order
+    end
+  end
+
   # Sequential and human-readable (ZMR-1000, ZMR-1001, ...) per client
   # request — this is also the invoice number shown on the printed invoice,
   # so the two always match by construction (one field, no separate

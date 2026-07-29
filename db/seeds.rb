@@ -1,5 +1,17 @@
 # frozen_string_literal: true
 
+# ADMIN_SEED_EMAIL/ADMIN_SEED_PASSWORD let each environment supply its own
+# real credentials via its own env vars — the defaults below are only ever
+# reached in local dev, where nobody sets them. Idempotent: find_or_initialize_by
+# on email means re-running this always ends with one working admin login,
+# never a duplicate.
+admin_email = ENV.fetch("ADMIN_SEED_EMAIL", "admin@zoomora.com")
+admin = AdminUser.find_or_initialize_by(email: admin_email)
+admin.name = "Admin"
+admin.password = ENV.fetch("ADMIN_SEED_PASSWORD", "password123")
+admin.save!
+puts "Seeded admin user (#{admin_email})."
+
 #
 # Original Zoomora catalog copy for Milestone 1. Prices are in AED,
 # stored as price_cents (AED * 100) per DATABASE_GUIDELINES.md. Idempotent:
