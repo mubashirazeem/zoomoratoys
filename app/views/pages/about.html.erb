@@ -28,8 +28,10 @@
       <p class="text-[12px] uppercase font-semibold tracking-[0.08em] text-red-600">Our Story</p>
       <h2 class="mt-3 text-[28px] lg:text-h1 font-display font-bold text-ink-950 leading-tight">Built By Parents Who Wanted Better</h2>
       <div class="mt-6 flex flex-col gap-4 text-body-lg text-grey-600 leading-relaxed max-w-xl">
-        <p>Zoomora exists around one simple idea: the best childhoods happen outside. Not in front of a screen, not stuck indoors waiting out the heat — outside, moving, steering something with a motor or pedals of its own.</p>
-        <p>We started as a small team of parents tired of choosing between products that looked exciting online and arrived feeling flimsy in the driveway. So we built a store around a narrower promise: every e-bike, scooter, dirt bike, and ATV we carry has to hold up to the way families actually use it — every weekend, in real heat, for years.</p>
+        <p>Zoomora was created with a bold vision—to redefine how people discover and experience adventure. We recognized the growing demand for innovative mobility, outdoor recreation, and lifestyle products, and set out to build a trusted e-commerce destination where quality, performance, and innovation come together.</p>
+        <p>Driven by a passion for exploration and continuous innovation, Zoomora brings together a carefully selected range of golf carts, ride-on vehicles, electric scooters, cargo scooters, e-bikes, ATVs, quad bikes, dirt bikes, outdoor playsets, trampolines, pools, boats, water recreation products, and outdoor equipment from trusted global manufacturers.</p>
+        <p>More than an online store, Zoomora is a brand committed to empowering movement, enabling outdoor experiences, and delivering products that inspire confidence, freedom, and discovery. Every product reflects our commitment to quality, safety, reliability, and customer satisfaction.</p>
+        <p>As we continue to grow, our ambition is to become one of the region's leading adventure and outdoor lifestyle brands by delivering exceptional products, innovative solutions, and outstanding service.</p>
       </div>
     </div>
 
@@ -39,6 +41,41 @@
         <%= image_tag "category-dirtbike.jpg", alt: "", class: "w-full h-[320px] lg:h-[440px] object-cover" %>
       </div>
     </div>
+  </div>
+</section>
+
+<%# ---- Mission & Vision ---- %>
+<section class="bg-grey-50">
+  <div class="max-w-7xl mx-auto px-[15px] py-14 lg:py-20 grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16">
+    <div>
+      <p class="text-[12px] uppercase font-semibold tracking-[0.08em] text-red-600">Mission</p>
+      <p class="mt-4 text-body-lg text-grey-600 leading-relaxed">To provide innovative, high-quality adventure, mobility, and outdoor lifestyle products through a trusted e-commerce platform that delivers exceptional value, convenience, and customer satisfaction.</p>
+    </div>
+    <div>
+      <p class="text-[12px] uppercase font-semibold tracking-[0.08em] text-red-600">Vision</p>
+      <p class="mt-4 text-body-lg text-grey-600 leading-relaxed">To become the leading adventure and outdoor lifestyle marketplace in the Middle East, recognized for innovation, quality, and excellence in customer experience.</p>
+    </div>
+  </div>
+</section>
+
+<%# ---- Core Values ---- %>
+<section class="max-w-7xl mx-auto px-[15px] py-14 lg:py-20">
+  <%= render Marketing::CenteredHeadingComponent.new(title: "Core Values") %>
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-4xl mx-auto">
+    <% [
+      [ "Innovation", "Continuously introducing products that inspire new experiences." ],
+      [ "Quality", "Delivering reliable products from trusted global brands." ],
+      [ "Integrity", "Building trust through honesty, transparency, and accountability." ],
+      [ "Customer Commitment", "Putting customers at the center of everything we do." ],
+      [ "Safety", "Promoting products that meet high standards of safety and performance." ],
+      [ "Excellence", "Striving for excellence in service, operations, and every customer interaction." ],
+      [ "Sustainability", "Supporting responsible mobility and environmentally conscious recreation where possible." ]
+    ].each do |name, description| %>
+      <div class="rounded-[14px] border border-grey-200 bg-white p-6">
+        <h3 class="text-h3 font-display text-ink-950"><%= name %></h3>
+        <p class="mt-2 text-body-sm text-grey-500"><%= description %></p>
+      </div>
+    <% end %>
   </div>
 </section>
 

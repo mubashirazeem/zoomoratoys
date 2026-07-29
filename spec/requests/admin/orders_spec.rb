@@ -363,4 +363,116 @@ RSpec.describe "Admin::Orders", type: :request do
       expect(response).to redirect_to(admin_order_path(order))
     end
   end
+
+  describe "GET /admin/orders/new" do
+    it "redirects an anonymous visitor to admin sign in" do
+      get new_admin_order_path
+
+      expect(response).to redirect_to(new_admin_user_session_path)
+    end
+  end
+
+  describe "POST /admin/orders" do
+    before { sign_in create(:admin_user), scope: :admin_user }
+
+    let(:shipping_params) do
+      {
+        shipping_name: "Layla Ahmed", shipping_phone: "+971501234567",
+        shipping_address_line1: "Villa 12, Al Wasl Road", shipping_city: "Dubai", shipping_emirate: "Dubai"
+      }
+    end
+
+    it "creates a manual order and decrements stock, for a phone/WhatsApp-style sale" do
+      user = create(:user, email: "customer@example.com")
+      product = create(:product, price_cents: 10_000, stock_quantity: 5)
+
+      post admin_orders_path, params: { order: shipping_params.merge(
+        user_email: "customer@example.com",
+        items: { "0" => { sku: product.id.to_s, quantity: "2" } }
+      ) }
+
+      order = Order.last
+      expect(response).to redirect_to(admin_order_path(order))
+      expect(order.user).to eq(user)
+      expect(order.payment_method).to eq("pay_on_delivery")
+      expect(order.status).to eq("pending")
+      expect(order.subtotal_cents).to eq(20_000)
+      expect(order.total_cents).to eq(20_000)
+      expect(product.reload.stock_quantity).to eq(3)
+    end
+
+    it "orders the specific variant selected, decrementing the variant's own stock, not the parent product's" do
+      user = create(:user, email: "customer@example.com")
+      product = create(:product, price_cents: 10_000, stock_quantity: 99)
+      variant = create(:product_variant, product: product, price_cents: 12_000, stock_quantity: 4)
+
+      post admin_orders_path, params: { order: shipping_params.merge(
+        user_email: "customer@example.com",
+        items: { "0" => { sku: "#{product.id}:#{variant.id}", quantity: "1" } }
+      ) }
+
+      order = Order.last
+      expect(order.line_items.first.product_variant).to eq(variant)
+      expect(order.subtotal_cents).to eq(12_000) # variant's own price override, not the parent's
+      expect(variant.reload.stock_quantity).to eq(3)
+      expect(product.reload.stock_quantity).to eq(99) # untouched
+    end
+
+    it "ignores blank/zero-quantity rows, only ordering the rows actually filled in" do
+      user = create(:user, email: "customer@example.com")
+      product = create(:product, price_cents: 5_000, stock_quantity: 10)
+
+      post admin_orders_path, params: { order: shipping_params.merge(
+        user_email: "customer@example.com",
+        items: {
+          "0" => { sku: "", quantity: "" },
+          "1" => { sku: product.id.to_s, quantity: "3" },
+          "2" => { sku: product.id.to_s, quantity: "0" }
+        }
+      ) }
+
+      order = Order.last
+      expect(order.line_items.count).to eq(1)
+      expect(order.line_items.first.quantity).to eq(3)
+    end
+
+    it "rejects an unknown customer email without creating an order" do
+      post admin_orders_path, params: { order: shipping_params.merge(
+        user_email: "nobody@example.com",
+        items: { "0" => { sku: create(:product).id.to_s, quantity: "1" } }
+      ) }
+
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(response.body).to include("No customer found")
+      expect(Order.count).to eq(0)
+    end
+
+    it "rejects a submission with no items filled in" do
+      create(:user, email: "customer@example.com")
+
+      post admin_orders_path, params: { order: shipping_params.merge(
+        user_email: "customer@example.com",
+        items: { "0" => { sku: "", quantity: "" } }
+      ) }
+
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(response.body).to include("Add at least one product")
+      expect(Order.count).to eq(0)
+    end
+
+    it "rejects and creates nothing when requested quantity exceeds stock" do
+      create(:user, email: "customer@example.com")
+      product = create(:product, name: "Trailhawk Off-Road Scooter", price_cents: 10_000, stock_quantity: 2)
+
+      post admin_orders_path, params: { order: shipping_params.merge(
+        user_email: "customer@example.com",
+        items: { "0" => { sku: product.id.to_s, quantity: "5" } }
+      ) }
+
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(response.body).to include("Only 2 of Trailhawk Off-Road Scooter left in stock")
+      expect(Order.count).to eq(0)
+      expect(product.reload.stock_quantity).to eq(2)
+    end
+  end
 end

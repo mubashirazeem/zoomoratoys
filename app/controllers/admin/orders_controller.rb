@@ -1,7 +1,8 @@
 # frozen_string_literal: true
 
-# No create/destroy here — orders come from checkout (once built), never
-# created or deleted from the admin panel. Only status can be changed.
+# No destroy here — orders are never deleted, only cancelled (a real,
+# auditable status). Create exists for manual/phone/WhatsApp sales that
+# never went through the real storefront checkout; see Order.create_by_admin!.
 class Admin::OrdersController < Admin::BaseController
   # Contact details shown on the printed invoice/packing slip specifically
   # (client-provided, 2026-07-18) — distinct from the general storefront
@@ -21,6 +22,33 @@ class Admin::OrdersController < Admin::BaseController
 
   def show
     @line_items = @order.line_items.includes(:product)
+  end
+
+  def new
+    @sku_options = sku_options
+  end
+
+  # No cart involved — items come straight from the form as a
+  # {product_id, product_variant_id, quantity} list. See
+  # Order.create_by_admin! for the stock-locking/decrement logic itself.
+  def create
+    user = User.find_by(email: order_params[:user_email].to_s.strip.downcase)
+    unless user
+      return render_new_with_error("No customer found with that email — create the customer first, then try again.")
+    end
+
+    items = parse_items(order_params[:items])
+    return render_new_with_error("Add at least one product with a quantity.") if items.empty?
+
+    order = Order.create_by_admin!(
+      user: user, items: items, shipping_attributes: shipping_attributes,
+      gift_wrap: order_params[:gift_wrap].present?, gift_wrap_cents: CartsController::GIFT_WRAP_CENTS
+    )
+    redirect_to admin_order_path(order), notice: "Order #{order.order_number} created."
+  rescue Order::InsufficientStock => e
+    render_new_with_error(e.message)
+  rescue ActiveRecord::RecordInvalid => e
+    render_new_with_error(e.record.errors.full_messages.to_sentence)
   end
 
   def update
@@ -91,6 +119,60 @@ class Admin::OrdersController < Admin::BaseController
   end
 
   def order_params
-    params.require(:order).permit(:status)
+    params.require(:order).permit(
+      :status, :user_email, :shipping_name, :shipping_phone, :shipping_address_line1,
+      :shipping_address_line2, :shipping_city, :shipping_emirate, :gift_wrap,
+      items: [ :sku, :quantity ]
+    )
+  end
+
+  def shipping_attributes
+    order_params.slice(:shipping_name, :shipping_phone, :shipping_address_line1, :shipping_address_line2, :shipping_city, :shipping_emirate).to_h.symbolize_keys
+  end
+
+  # Flattens the catalog into one option per orderable thing — a plain
+  # product, or one option per variant for a product that has them (stock
+  # is tracked per-variant once a product has any, see Product#has_variants?,
+  # so a variant-having product can never be ordered "plain"). Encodes both
+  # ids into a single value (`product_id` or `product_id:variant_id`) so the
+  # form needs only one flat <select> per line, no cascading product ->
+  # variant JS.
+  def sku_options
+    Product.includes(:product_variants).order(:name).flat_map do |product|
+      if product.has_variants?
+        product.product_variants.map { |variant| [ "#{product.name} — #{variant.option_summary}", "#{product.id}:#{variant.id}" ] }
+      else
+        [ [ product.name, product.id.to_s ] ]
+      end
+    end
+  end
+
+  # Blank rows (an admin leaving unused item slots empty) and zero-quantity
+  # rows are silently skipped rather than erroring — the form always renders
+  # a fixed, generous number of slots (see admin/orders/new.html.erb) so
+  # "leave the rest blank" is the expected, normal way to submit fewer items.
+  def parse_items(raw_items)
+    return [] if raw_items.blank?
+
+    # Indexed keys (order[items][0][sku], from the fixed-row-count form)
+    # arrive as a Hash keyed "0", "1", ... — never an Array — unlike the
+    # empty-bracket order[items][][sku] convention, which Rack does parse
+    # as an Array. #values here normalizes either shape to a plain list.
+    raw_items.values.filter_map do |row|
+      sku = row[:sku].to_s
+      quantity = row[:quantity].to_i
+      next if sku.blank? || quantity <= 0
+
+      product_id, variant_id = sku.split(":")
+      product = Product.find(product_id)
+      variant = variant_id.present? ? product.product_variants.find(variant_id) : nil
+      { product: product, product_variant: variant, quantity: quantity }
+    end
+  end
+
+  def render_new_with_error(message)
+    @sku_options = sku_options
+    flash.now[:alert] = message
+    render :new, status: :unprocessable_content
   end
 end

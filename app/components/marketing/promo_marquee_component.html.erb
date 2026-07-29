@@ -1,0 +1,14 @@
+<div class="promo-marquee bg-ink-950 py-3 overflow-hidden" aria-hidden="true">
+  <div class="promo-marquee__track">
+    <% 2.times do %>
+      <div class="flex items-center shrink-0">
+        <% MESSAGES.each do |message| %>
+          <span class="flex items-center px-6 text-[13px] font-semibold uppercase tracking-[0.06em] text-white whitespace-nowrap">
+            <%= message %>
+            <span class="ml-6 text-red-500">&bull;</span>
+          </span>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+</div>
