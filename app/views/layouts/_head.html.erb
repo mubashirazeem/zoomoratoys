@@ -376,13 +376,34 @@
         width: max-content;
         animation: promoMarquee 26s linear infinite;
       }
-      .promo-marquee:hover .promo-marquee__track { animation-play-state: paused; }
+      .promo-marquee:hover .promo-marquee__track,
+      .promo-marquee:focus-within .promo-marquee__track { animation-play-state: paused; }
       @keyframes promoMarquee {
         from { transform: translateX(0); }
         to { transform: translateX(-50%); }
       }
+
+      /* ---- Promo banner slideshow: one full-width banner at a time, ---- */
+      /* auto-advancing — same "one at a time, changes after a while" idea */
+      /* as the hero, but a plain crossfade, not the hero's 3D cube.        */
+      .promo-banner-slide { display: none; }
+      .promo-banner-slide.is-active { display: block; animation: promoBannerFadeIn .5s ease both; }
+      @keyframes promoBannerFadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+      }
+      .promo-banner-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 9999px;
+        background: #CBCCD1;
+        transition: background-color .2s ease, width .2s ease;
+      }
+      .promo-banner-dot[aria-current="true"] { background: #C01827; width: 22px; }
+
       @media (prefers-reduced-motion: reduce) {
         .promo-marquee__track { animation: none; }
+        .promo-banner-slide.is-active { animation: none; }
       }
     </style>
 

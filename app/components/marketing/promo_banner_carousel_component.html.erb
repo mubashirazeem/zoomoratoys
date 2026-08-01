@@ -1,0 +1,32 @@
+<div class="max-w-7xl mx-auto px-[15px] relative" data-controller="promo-banner-slideshow"
+  data-action="mouseenter->promo-banner-slideshow#stop mouseleave->promo-banner-slideshow#start focusin->promo-banner-slideshow#stop focusout->promo-banner-slideshow#start">
+  <% banners.each_with_index do |banner, i| %>
+    <div class="promo-banner-slide <%= "is-active" if i.zero? %>" data-promo-banner-slideshow-target="slide" aria-hidden="<%= i.zero? ? "false" : "true" %>">
+      <%= render Marketing::CtaBannerComponent.new(
+            title: banner.title, description: banner.description,
+            cta_label: banner.cta_label, cta_url: banner.cta_url, tone: banner.tone
+          ) %>
+    </div>
+  <% end %>
+
+  <% if banners.size > 1 %>
+    <button type="button" data-action="promo-banner-slideshow#prev" aria-label="Previous promotion"
+      class="rail-arrow absolute left-3 lg:left-5 top-1/2 -translate-y-1/2 z-10 w-9 h-9 lg:w-11 lg:h-11 flex items-center justify-center">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
+    </button>
+    <button type="button" data-action="promo-banner-slideshow#next" aria-label="Next promotion"
+      class="rail-arrow absolute right-3 lg:right-5 top-1/2 -translate-y-1/2 z-10 w-9 h-9 lg:w-11 lg:h-11 flex items-center justify-center">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg>
+    </button>
+  <% end %>
+
+  <% if banners.size > 1 %>
+    <div class="mt-5 flex items-center justify-center gap-2">
+      <% banners.each_index do |i| %>
+        <button type="button" class="promo-banner-dot" data-promo-banner-slideshow-target="dot"
+          data-action="promo-banner-slideshow#goto" data-index="<%= i %>"
+          aria-current="<%= i.zero? ? "true" : "false" %>" aria-label="Show promotion <%= i + 1 %>"></button>
+      <% end %>
+    </div>
+  <% end %>
+</div>
