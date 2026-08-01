@@ -43,15 +43,13 @@
   </section>
 <% end %>
 
-<%# ---- Promotional banner (financing) ---- %>
-<div class="max-w-7xl mx-auto px-[15px] pb-14 lg:pb-16">
-  <%= render Marketing::CtaBannerComponent.new(
-    title: "Buy Now, Pay Later Available",
-    description: "Split your purchase into easy installments, available at checkout on every order.",
-    cta_label: "Shop All",
-    cta_url: products_path,
-    tone: :dark
-  ) %>
+<%# ---- Promotional banners (scrolling) ---- %>
+<div class="pb-14 lg:pb-16">
+  <%= render Marketing::PromoBannerCarouselComponent.new(banners: [
+    { title: "Buy Now, Pay Later Available", description: "Split your purchase into easy installments, available at checkout on every order.", cta_label: "Shop All", cta_url: products_path, tone: :dark },
+    { title: "12-Month Manufacturer Warranty", description: "Every vehicle we sell is backed by manufacturer warranty coverage, at no extra cost.", cta_label: "Shop All", cta_url: products_path, tone: :light },
+    { title: "Free UAE-Wide Delivery & Installation", description: "Every order ships and is set up for you, anywhere in the Emirates, at no extra cost.", cta_label: "Start Shopping", cta_url: products_path, tone: :dark }
+  ]) %>
 </div>
 
 <%# ---- Explore Categories (tiles) ---- %>
@@ -72,17 +70,6 @@
     </div>
   </section>
 <% end %>
-
-<%# ---- Promotional banner (warranty) ---- %>
-<div class="max-w-7xl mx-auto px-[15px] pb-14 lg:pb-16">
-  <%= render Marketing::CtaBannerComponent.new(
-    title: "12-Month Manufacturer Warranty",
-    description: "Every vehicle we sell is backed by manufacturer warranty coverage, at no extra cost.",
-    cta_label: "Shop All",
-    cta_url: products_path,
-    tone: :light
-  ) %>
-</div>
 
 <%# ---- Official Brand Partners ---- %>
 <%= render Marketing::BrandPartnersComponent.new %>
@@ -110,16 +97,5 @@
     description: "Browse the full Zoomora catalog and find the perfect ride for your family.",
     cta_label: "Shop All Products",
     cta_url: products_path
-  ) %>
-</div>
-
-<%# ---- Promotional banner (delivery) ---- %>
-<div class="max-w-7xl mx-auto px-[15px] pt-8 pb-14 lg:pb-16">
-  <%= render Marketing::CtaBannerComponent.new(
-    title: "Free UAE-Wide Delivery & Installation",
-    description: "Every order ships and is set up for you, anywhere in the Emirates, at no extra cost.",
-    cta_label: "Start Shopping",
-    cta_url: products_path,
-    tone: :light
   ) %>
 </div>
