@@ -1,0 +1,52 @@
+<% content_for :title, "Promotional Banners | Zoomora Admin" %>
+
+<%= render Admin::PageHeaderComponent.new(title: "Promotional Banners", subtitle: "Shown on the home page as a sliding carousel, one at a time — same as the hero.") do |header| %>
+  <% header.with_action { render(Ui::ButtonComponent.new(variant: :primary, href: new_admin_promotional_banner_path)) { "New Banner" } } %>
+<% end %>
+
+<% if @promotional_banners.none? %>
+  <p class="mt-8 text-body-sm text-grey-500">No promotional banners yet. Add one to start showing it on the home page.</p>
+<% else %>
+  <div class="mt-8 rounded-[20px] border border-grey-200 bg-white overflow-hidden shadow-[0_1px_2px_rgba(10,10,11,0.04)] overflow-x-auto">
+    <table class="w-full text-left text-body-sm">
+      <thead>
+        <tr class="bg-grey-50/60 border-b border-grey-200 text-[11px] uppercase font-semibold tracking-[0.08em] text-grey-500">
+          <th class="px-5 py-3.5">Photo</th>
+          <th class="px-5 py-3.5">Title</th>
+          <th class="px-5 py-3.5">Button</th>
+          <th class="px-5 py-3.5">Order</th>
+          <th class="px-5 py-3.5">Status</th>
+          <th class="px-5 py-3.5"></th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @promotional_banners.each do |banner| %>
+          <tr class="border-b border-grey-100 last:border-b-0 hover:bg-grey-50/60 transition-colors">
+            <td class="px-5 py-3">
+              <% if banner.image.attached? %>
+                <%= image_tag banner.image.variant(resize_to_fill: [ 72, 44 ]), class: "w-[72px] h-[44px] rounded-[6px] object-cover border border-grey-200" %>
+              <% else %>
+                <span class="flex items-center justify-center w-[72px] h-[44px] rounded-[6px] bg-grey-100 text-grey-400 text-[10px] font-medium">No photo</span>
+              <% end %>
+            </td>
+            <td class="px-5 py-4 font-medium text-ink-950"><%= banner.title %></td>
+            <td class="px-5 py-4 text-grey-500"><%= banner.cta? ? banner.cta_label : "—" %></td>
+            <td class="px-5 py-3.5"><%= banner.position %></td>
+            <td class="px-5 py-3.5">
+              <span class="inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.04em] <%= banner.active? ? "bg-red-600/10 text-red-600" : "bg-grey-100 text-grey-500" %>">
+                <%= banner.active? ? "Active" : "Hidden" %>
+              </span>
+            </td>
+            <td class="px-5 py-4 text-right whitespace-nowrap">
+              <%= link_to "Edit", edit_admin_promotional_banner_path(banner), class: "text-red-600 font-medium hover:text-red-700" %>
+              <%= button_to "Delete", admin_promotional_banner_path(banner), method: :delete,
+                    form: { class: "inline-block ml-3" },
+                    data: { turbo_confirm: "Delete \"#{banner.title}\"?" },
+                    class: "text-grey-500 font-medium hover:text-red-600 bg-transparent" %>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+<% end %>

@@ -3,8 +3,14 @@
     <div class="relative">
       <div class="absolute -bottom-2 -right-2 lg:-bottom-6 lg:-right-6 w-full h-full bg-gradient-to-br from-red-600 to-red-800 rotate-1 lg:rotate-2" aria-hidden="true"></div>
 
-      <div class="relative overflow-hidden">
-        <%= image_tag "category-atv.jpg", alt: "", class: "w-full h-[300px] lg:h-[420px] object-cover" %>
+      <div class="relative overflow-hidden" data-controller="promo-banner-slideshow" data-promo-banner-slideshow-interval-value="3500" aria-hidden="true">
+        <div class="promo-banner-track flex" data-promo-banner-slideshow-target="track">
+          <% category_photos.each_with_index do |photo, i| %>
+            <div class="promo-banner-slide <%= "is-active" if i.zero? %> shrink-0 w-full" data-promo-banner-slideshow-target="slide">
+              <%= image_tag photo, alt: "", class: "w-full h-[300px] lg:h-[420px] object-cover" %>
+            </div>
+          <% end %>
+        </div>
       </div>
 
       <div class="brand-badge absolute -top-3 -left-3 lg:-top-8 lg:-left-8 flex flex-col items-center justify-center w-[104px] h-[104px] lg:w-[124px] lg:h-[124px] text-center px-2">
@@ -15,12 +21,11 @@
 
     <div>
       <p class="text-[12px] uppercase font-semibold tracking-[0.08em] text-red-600">Who We Are</p>
-      <h2 class="mt-3 text-[28px] lg:text-h1 font-display font-bold text-ink-950 leading-tight">Built By Parents Who Wanted Better</h2>
+      <h2 class="mt-3 text-[28px] lg:text-h1 font-display font-bold text-ink-950 leading-tight">Driven by adventure. Built for innovation</h2>
 
       <div class="mt-6 flex flex-col gap-4 text-body-lg text-grey-600 leading-relaxed max-w-xl">
-        <p>Zoomora is a leading e-commerce company specializing in adventure, mobility, and outdoor lifestyle products. We offer a wide range of premium products, including golf carts, ride-on cars, electric scooters, e-bikes, ATVs, outdoor playsets, trampolines, pools, boats, and other recreational equipment from trusted global brands.</p>
-        <p>Committed to quality, innovation, and customer satisfaction, Zoomora delivers reliable products and exceptional service through a seamless online shopping experience. Our mission is to inspire exploration, support active lifestyles, and become a trusted destination for adventure and outdoor recreation.</p>
-        <p class="font-display font-semibold text-ink-950">Adventure Starts Here.</p>
+        <p>Zoomora was founded with a vision to redefine the way people experience adventure, mobility, and outdoor living. Inspired by a passion for innovation and exploration, we created a trusted e-commerce destination offering premium products that encourage movement, discovery, and active lifestyles. From golf carts, ride-on cars, electric scooters, and e-bikes to ATVs, outdoor playsets, trampolines, pools, boats, and water recreation products, every item is carefully selected for its quality, safety, and performance. More than an online store, Zoomora is committed to delivering exceptional value, reliable service, and innovative solutions that empower customers to embrace new experiences with confidence. As we grow, our ambition is to become the region's leading brand for adventure, mobility, and outdoor lifestyle products.</p>
+        <p class="font-semibold text-ink-950">Zoomora &ndash; Adventure Starts Here.</p>
       </div>
 
       <div class="mt-7 flex flex-wrap gap-3">

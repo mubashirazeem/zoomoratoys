@@ -12,6 +12,25 @@ admin.password = ENV.fetch("ADMIN_SEED_PASSWORD", "password123")
 admin.save!
 puts "Seeded admin user (#{admin_email})."
 
+# Starting content for the admin-managed homepage banner carousel (see
+# Admin::PromotionalBannersController) — no photo attached here, same as
+# products: seeds provide the text, real photos get uploaded through the
+# admin panel afterward. Each banner shows on a plain dark background until
+# then, never a broken image.
+PROMOTIONAL_BANNERS = [
+  { title: "Free Delivery & Assembly on Every Order", description: "From e-bikes to ATVs, we deliver across the UAE and set it up for you — no extra tools, no extra cost.", cta_label: "Shop All", cta_url: "/shop" },
+  { title: "Buy Now, Pay Later Available", description: "Split your purchase into easy installments, available at checkout on every order.", cta_label: "Shop All", cta_url: "/shop" },
+  { title: "12-Month Manufacturer Warranty", description: "Every vehicle we sell is backed by manufacturer warranty coverage, at no extra cost.", cta_label: "Shop All", cta_url: "/shop" },
+  { title: "Free UAE-Wide Delivery & Installation", description: "Every order ships and is set up for you, anywhere in the Emirates, at no extra cost.", cta_label: "Start Shopping", cta_url: "/shop" }
+].freeze
+
+PROMOTIONAL_BANNERS.each_with_index do |attrs, index|
+  banner = PromotionalBanner.find_or_initialize_by(title: attrs[:title])
+  banner.assign_attributes(description: attrs[:description], cta_label: attrs[:cta_label], cta_url: attrs[:cta_url], position: index, active: true)
+  banner.save!
+end
+puts "Seeded #{PromotionalBanner.count} promotional banners."
+
 #
 # Original Zoomora catalog copy for Milestone 1. Prices are in AED,
 # stored as price_cents (AED * 100) per DATABASE_GUIDELINES.md. Idempotent:

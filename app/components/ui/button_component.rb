@@ -19,7 +19,7 @@ class Ui::ButtonComponent < ViewComponent::Base
     lg: "px-[20px] py-[16px] text-[16px] font-bold"
   }.freeze
 
-  def initialize(variant: :primary, size: :base, href: nil, type: "button", disabled: false, full_width: false, title: nil)
+  def initialize(variant: :primary, size: :base, href: nil, type: "button", disabled: false, full_width: false, title: nil, class_name: nil)
     raise ArgumentError, "unknown button variant: #{variant.inspect}" unless VARIANT_CLASSES.key?(variant)
     raise ArgumentError, "unknown button size: #{size.inspect}" unless SIZE_CLASSES.key?(size)
 
@@ -30,6 +30,7 @@ class Ui::ButtonComponent < ViewComponent::Base
     @disabled = disabled
     @full_width = full_width
     @title = title
+    @class_name = class_name
   end
 
   def link?
@@ -43,7 +44,8 @@ class Ui::ButtonComponent < ViewComponent::Base
       VARIANT_CLASSES.fetch(@variant),
       SIZE_CLASSES.fetch(@size),
       (@full_width ? "w-full" : nil),
-      (@disabled ? "opacity-50 cursor-not-allowed pointer-events-none" : nil)
+      (@disabled ? "opacity-50 cursor-not-allowed pointer-events-none" : nil),
+      @class_name
     ].compact.join(" ")
   end
 

@@ -384,14 +384,11 @@
       }
 
       /* ---- Promo banner slideshow: one full-width banner at a time, ---- */
-      /* auto-advancing — same "one at a time, changes after a while" idea */
-      /* as the hero, but a plain crossfade, not the hero's 3D cube.        */
-      .promo-banner-slide { display: none; }
-      .promo-banner-slide.is-active { display: block; animation: promoBannerFadeIn .5s ease both; }
-      @keyframes promoBannerFadeIn {
-        from { opacity: 0; }
-        to { opacity: 1; }
-      }
+      /* auto-advancing, sliding sideways (client feedback, 2026-08-02:     */
+      /* "this picture should be moving sideways") — all slides sit in a   */
+      /* flex track and the track's transform shifts by full slide-widths, */
+      /* computed in JS so it works at any viewport size.                  */
+      .promo-banner-track { transition: transform .6s cubic-bezier(.4, 0, .2, 1); }
       .promo-banner-dot {
         width: 8px;
         height: 8px;
@@ -403,7 +400,7 @@
 
       @media (prefers-reduced-motion: reduce) {
         .promo-marquee__track { animation: none; }
-        .promo-banner-slide.is-active { animation: none; }
+        .promo-banner-track { transition: none; }
       }
     </style>
 

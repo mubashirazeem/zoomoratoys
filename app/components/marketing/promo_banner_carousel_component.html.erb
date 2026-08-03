@@ -1,13 +1,29 @@
-<div class="max-w-7xl mx-auto px-[15px] relative" data-controller="promo-banner-slideshow"
+<div class="promo-banner-carousel relative w-full overflow-hidden" data-controller="promo-banner-slideshow"
   data-action="mouseenter->promo-banner-slideshow#stop mouseleave->promo-banner-slideshow#start focusin->promo-banner-slideshow#stop focusout->promo-banner-slideshow#start">
-  <% banners.each_with_index do |banner, i| %>
-    <div class="promo-banner-slide <%= "is-active" if i.zero? %>" data-promo-banner-slideshow-target="slide" aria-hidden="<%= i.zero? ? "false" : "true" %>">
-      <%= render Marketing::CtaBannerComponent.new(
-            title: banner.title, description: banner.description,
-            cta_label: banner.cta_label, cta_url: banner.cta_url, tone: banner.tone
-          ) %>
-    </div>
-  <% end %>
+  <div class="promo-banner-track flex" data-promo-banner-slideshow-target="track">
+    <% banners.each_with_index do |banner, i| %>
+      <div class="promo-banner-slide <%= "is-active" if i.zero? %> shrink-0 w-full relative overflow-hidden h-[440px] md:h-[500px] lg:h-[560px] bg-ink-950" data-promo-banner-slideshow-target="slide" aria-hidden="<%= i.zero? ? "false" : "true" %>">
+        <% if banner.image.attached? %>
+          <%= image_tag banner.image.variant(resize_to_fill: [ 2400, 1120 ]), alt: "", class: "absolute inset-0 w-full h-full object-cover" %>
+        <% end %>
+        <div class="absolute inset-0 bg-gradient-to-r from-ink-950/90 via-ink-950/55 to-ink-950/10" aria-hidden="true"></div>
+
+        <div class="relative h-full max-w-7xl mx-auto px-[15px] flex items-center">
+          <div class="max-w-lg">
+            <h2 class="text-[36px] md:text-[46px] lg:text-[56px] font-display font-bold text-white leading-[1.05] text-balance"><%= banner.title %></h2>
+            <% if banner.description.present? %>
+              <p class="mt-4 text-body-lg text-grey-200"><%= banner.description %></p>
+            <% end %>
+            <% if banner.cta? %>
+              <div class="mt-8">
+                <%= render(Ui::ButtonComponent.new(variant: :primary, size: :lg, href: banner.cta_url)) { banner.cta_label } %>
+              </div>
+            <% end %>
+          </div>
+        </div>
+      </div>
+    <% end %>
+  </div>
 
   <% if banners.size > 1 %>
     <button type="button" data-action="promo-banner-slideshow#prev" aria-label="Previous promotion"
@@ -21,7 +37,7 @@
   <% end %>
 
   <% if banners.size > 1 %>
-    <div class="mt-5 flex items-center justify-center gap-2">
+    <div class="absolute inset-x-0 bottom-5 flex items-center justify-center gap-2 z-10">
       <% banners.each_index do |i| %>
         <button type="button" class="promo-banner-dot" data-promo-banner-slideshow-target="dot"
           data-action="promo-banner-slideshow#goto" data-index="<%= i %>"

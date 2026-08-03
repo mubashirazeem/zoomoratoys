@@ -15,6 +15,7 @@ Rails.application.routes.draw do
   namespace :admin do
     root to: "dashboard#show"
     resources :categories, except: [ :show ]
+    resources :promotional_banners, except: [ :show ]
     resources :products, except: [ :show ] do
       resources :variants, controller: "product_variants", except: [ :show ]
     end

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_07_20_001427) do
+ActiveRecord::Schema[7.2].define(version: 2026_08_02_203531) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_trgm"
   enable_extension "plpgsql"
@@ -264,6 +264,19 @@ ActiveRecord::Schema[7.2].define(version: 2026_07_20_001427) do
     t.index ["sku"], name: "index_products_on_sku_trgm", opclass: :gin_trgm_ops, using: :gin
     t.index ["slug"], name: "index_products_on_slug", unique: true
     t.index ["stock_status"], name: "index_products_on_stock_status"
+  end
+
+  create_table "promotional_banners", force: :cascade do |t|
+    t.string "title", null: false
+    t.text "description"
+    t.string "cta_label"
+    t.string "cta_url"
+    t.integer "position", default: 0, null: false
+    t.boolean "active", default: true, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["active"], name: "index_promotional_banners_on_active"
+    t.index ["position"], name: "index_promotional_banners_on_position"
   end
 
   create_table "reviews", force: :cascade do |t|
