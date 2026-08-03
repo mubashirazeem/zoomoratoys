@@ -1,0 +1,66 @@
+<% field_classes = "w-full rounded-[10px] border border-grey-300 bg-grey-50 px-3.5 py-2.5 text-body-sm text-ink-950 placeholder:text-grey-400 transition focus:bg-white focus:border-red-600 focus:ring-4 focus:ring-red-600/10 focus:outline-none" %>
+<% label_classes = "block text-body-sm font-medium text-ink-950 mb-1.5" %>
+
+<%= form_with model: [ :admin, promotional_banner ], class: "flex flex-col gap-5 max-w-xl", multipart: true do |f| %>
+  <% if promotional_banner.errors.any? %>
+    <div role="alert" class="rounded-[12px] bg-red-50 border border-red-200 px-4 py-3 text-body-sm text-red-700">
+      <p class="font-semibold">Couldn't save this banner:</p>
+      <ul class="mt-1 list-disc list-inside">
+        <% promotional_banner.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div>
+    <%= f.label :title, class: label_classes %>
+    <%= f.text_field :title, placeholder: "e.g. Summer Sale", class: field_classes %>
+  </div>
+
+  <div>
+    <%= f.label :description, class: label_classes %>
+    <%= f.text_area :description, rows: 3, placeholder: "One or two lines shown under the title", class: field_classes %>
+  </div>
+
+  <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+    <div>
+      <%= f.label :cta_label, "Button text", class: label_classes %>
+      <p class="text-body-sm text-grey-500 mb-1.5">Optional — leave both button fields blank for no button.</p>
+      <%= f.text_field :cta_label, placeholder: "e.g. Shop All", class: field_classes %>
+    </div>
+    <div>
+      <%= f.label :cta_url, "Button link", class: label_classes %>
+      <p class="text-body-sm text-grey-500 mb-1.5">Where the button takes shoppers, e.g. /shop</p>
+      <%= f.text_field :cta_url, placeholder: "/shop", class: field_classes %>
+    </div>
+  </div>
+
+  <div>
+    <%= f.label :image, "Photo", class: label_classes %>
+    <% if promotional_banner.persisted? && promotional_banner.image.attached? %>
+      <div class="mb-3">
+        <%= image_tag promotional_banner.image.variant(resize_to_fill: [ 320, 180 ]), class: "w-[320px] h-[180px] rounded-[10px] object-cover border border-grey-200" %>
+      </div>
+      <p class="text-body-sm text-grey-500 mb-2">Uploading a new photo replaces this one.</p>
+    <% else %>
+      <p class="text-body-sm text-grey-500 mb-2">No photo yet — the banner shows on a plain dark background until one's uploaded.</p>
+    <% end %>
+    <%= f.file_field :image, accept: "image/*", class: "text-body-sm" %>
+  </div>
+
+  <div>
+    <%= f.label :position, "Display order (lower shows first)", class: label_classes %>
+    <%= f.number_field :position, value: promotional_banner.position || 0, min: 0, class: field_classes %>
+  </div>
+
+  <label class="flex items-center gap-2.5 text-body-sm text-ink-950 cursor-pointer">
+    <%= f.check_box :active, class: "w-4 h-4 accent-red-600" %>
+    Show on the home page
+  </label>
+
+  <div class="flex items-center gap-3">
+    <%= render(Ui::ButtonComponent.new(variant: :primary, type: "submit")) { "Save Banner" } %>
+    <%= link_to "Cancel", admin_promotional_banners_path, class: "text-body-sm font-medium text-grey-600 hover:text-ink-950" %>
+  </div>
+<% end %>

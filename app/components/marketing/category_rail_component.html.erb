@@ -1,0 +1,42 @@
+<div data-controller="carousel" class="rail">
+  <%= render Marketing::SectionHeadingComponent.new(title: title, view_all_url: view_all_url, view_all_label: view_all_label) do |heading| %>
+    <% heading.with_actions do %>
+      <div class="hidden sm:flex items-center gap-2">
+        <button
+          type="button"
+          data-action="carousel#prev"
+          data-carousel-target="prev"
+          aria-label="Previous"
+          class="rail-arrow w-9 h-9 flex items-center justify-center"
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4" aria-hidden="true">
+            <path d="M15 18l-6-6 6-6" />
+          </svg>
+        </button>
+        <button
+          type="button"
+          data-action="carousel#next"
+          data-carousel-target="next"
+          aria-label="Next"
+          class="rail-arrow w-9 h-9 flex items-center justify-center"
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4" aria-hidden="true">
+            <path d="M9 18l6-6-6-6" />
+          </svg>
+        </button>
+      </div>
+    <% end %>
+  <% end %>
+
+  <div
+    data-carousel-target="track"
+    class="rail-track flex gap-[30px] overflow-x-auto snap-x snap-mandatory pb-2 cursor-grab"
+    style="scrollbar-width: none;"
+  >
+    <% categories.each do |category| %>
+      <div class="snap-start shrink-0 flex w-[74%] sm:w-[42%] lg:w-[calc(25%-23px)]">
+        <%= render Catalog::CategoryTileComponent.new(category: category) %>
+      </div>
+    <% end %>
+  </div>
+</div>

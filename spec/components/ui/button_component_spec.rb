@@ -36,4 +36,11 @@ RSpec.describe Ui::ButtonComponent, type: :component do
   it "raises for an unknown size" do
     expect { described_class.new(size: :mystery) }.to raise_error(ArgumentError)
   end
+
+  it "appends class_name onto the base classes without replacing them" do
+    render_inline(described_class.new(href: "/shop", class_name: "uppercase tracking-[0.04em]")) { "Shop Now" }
+
+    link = page.find("a", text: "Shop Now")
+    expect(link[:class]).to include("uppercase", "tracking-[0.04em]", "rounded-full")
+  end
 end

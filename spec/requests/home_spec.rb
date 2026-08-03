@@ -40,5 +40,16 @@ RSpec.describe "Home", type: :request do
       expect(response.body).to include("Sign In")
       expect(response.body).not_to include("Hi, ")
     end
+
+    it "renders real, DB-backed promotional banners without crashing — a component spec built on a plain Array can't catch a method the real ActiveRecord::Relation doesn't support" do
+      create(:promotional_banner, title: "Summer Sale", active: true)
+      create(:promotional_banner, title: "Hidden Banner", active: false)
+
+      get root_path
+
+      expect(response).to have_http_status(:success)
+      expect(response.body).to include("Summer Sale")
+      expect(response.body).not_to include("Hidden Banner")
+    end
   end
 end
