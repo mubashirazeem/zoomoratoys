@@ -8,6 +8,12 @@ RSpec.describe "Admin authentication", type: :request do
       expect(response).to redirect_to(new_admin_user_session_path)
     end
 
+    it "does not show the customer-facing WhatsApp button on the admin sign-in page" do
+      get new_admin_user_session_path
+
+      expect(response.body).not_to include("wa.me")
+    end
+
     it "redirects a signed-in customer — customer auth doesn't grant admin access" do
       sign_in create(:user)
 

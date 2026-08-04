@@ -51,5 +51,11 @@ RSpec.describe "Home", type: :request do
       expect(response.body).to include("Summer Sale")
       expect(response.body).not_to include("Hidden Banner")
     end
+
+    it "shows the floating WhatsApp contact button" do
+      get root_path
+
+      expect(response.body).to include("https://wa.me/971527225064")
+    end
   end
 end

@@ -2,11 +2,12 @@
 
 # categories: passed in from ApplicationController's before_action (see
 # RAILS_GUIDELINES.md) — this component never queries the database itself.
-# Contact details below are placeholders pending real business information;
-# tracked in DEVELOPMENT_PROGRESS.md.
+# SUPPORT_PHONE is real (client-provided, 2026-08-05). SUPPORT_EMAIL and the
+# footer's street address are still placeholders pending real business
+# information; tracked in DEVELOPMENT_PROGRESS.md.
 class Layout::SiteFooterComponent < ViewComponent::Base
   SUPPORT_EMAIL = "hello@zoomora.com"
-  SUPPORT_PHONE = "+971 4 000 0000"
+  SUPPORT_PHONE = "+971 52 722 5064"
 
   def initialize(categories: [])
     @categories = categories
