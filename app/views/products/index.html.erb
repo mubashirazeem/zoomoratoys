@@ -2,7 +2,16 @@
 <% content_for :title, "#{page_title} | Zoomora" %>
 
 <% products = @products.to_a %>
-<% banner_image = @selected_category ? "category-#{@selected_category.placeholder_key}.jpg" : "hero-bicycle.jpg" %>
+<% fallback_banner_image = @selected_category ? "category-#{@selected_category.placeholder_key}.jpg" : "hero-bicycle.jpg" %>
+<%# A real product photo, background removed, for the category banner —
+    pre-processed once per category (see app/assets/images/category-banners/
+    README-equivalent: ImageMagick -fuzz 8% -transparent white -trim, run
+    against one representative real product photo per category) rather than
+    on the fly, since these plain product-on-white photos need real
+    background removal to sit on a dark banner, not just a CSS crop. Falls
+    back to the old shared stock photo for categories with no real photos
+    yet (Repairs). %>
+<% banner_product_image = @selected_category && Rails.root.join("app/assets/images/category-banners/#{@selected_category.slug}.png").exist? ? "category-banners/#{@selected_category.slug}.png" : nil %>
 <% catalog_max_price = (Product.maximum(:price_cents).to_i / 100) %>
 
 <div class="max-w-7xl mx-auto px-[15px] py-8">
@@ -43,13 +52,26 @@
           <%= render Catalog::FilterSectionComponent.new(title: "Color") do |section| %>
             <% section.with_body do %>
               <% if @available_variant_colors.any? %>
-                <div class="flex flex-col gap-2">
-                  <% @available_variant_colors.each do |color| %>
-                    <label class="flex items-center gap-3 cursor-pointer text-body-sm text-ink-950">
-                      <%= check_box_tag "colors[]", color, params[:colors].to_a.include?(color), multiple: true, class: "w-4 h-4 accent-red-600" %>
-                      <%= color %>
-                    </label>
+                <div data-controller="checklist-search">
+                  <% if @available_variant_colors.size > 8 %>
+                    <div class="relative mb-3">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-grey-400" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+                      <label for="color-filter-search" class="sr-only">Search colors</label>
+                      <input type="text" id="color-filter-search" placeholder="Search colors&hellip;" autocomplete="off"
+                        data-checklist-search-target="input" data-action="input->checklist-search#filter"
+                        class="w-full rounded-[10px] border border-grey-300 bg-grey-50 pl-9 pr-3 py-2 text-body-sm text-ink-950 placeholder:text-grey-400 focus:bg-white focus:border-red-600 focus:outline-none" />
+                    </div>
                   <% end %>
+                  <div class="flex flex-col gap-2 max-h-56 overflow-y-auto pr-1">
+                    <% @available_variant_colors.each do |color| %>
+                      <label data-checklist-search-target="option" data-checklist-search-label="<%= color.downcase %>"
+                        class="flex items-center gap-3 cursor-pointer text-body-sm text-ink-950">
+                        <%= check_box_tag "colors[]", color, params[:colors].to_a.include?(color), multiple: true, class: "w-4 h-4 accent-red-600 shrink-0" %>
+                        <%= color %>
+                      </label>
+                    <% end %>
+                  </div>
+                  <p data-checklist-search-target="empty" class="hidden text-body-sm text-grey-500 mt-2">No colors match your search.</p>
                 </div>
               <% else %>
                 <p class="text-body-sm text-grey-500">No color options yet — add product variants in the admin panel to enable this filter.</p>
@@ -98,8 +120,12 @@
 
       <%# ---- Main: hero banner, toolbar, grid ---- %>
       <div>
-        <div class="relative overflow-hidden rounded-[16px] bg-ink-950">
-          <%= image_tag banner_image, alt: "", class: "w-full h-[220px] lg:h-[300px] object-cover" %>
+        <div class="relative overflow-hidden rounded-[16px] bg-ink-950 h-[220px] lg:h-[300px]">
+          <% if banner_product_image %>
+            <%= image_tag banner_product_image, alt: "", class: "w-full h-full object-cover" %>
+          <% else %>
+            <%= image_tag fallback_banner_image, alt: "", class: "w-full h-full object-cover" %>
+          <% end %>
           <div class="absolute inset-0 bg-gradient-to-r from-ink-950/85 via-ink-950/45 to-transparent" aria-hidden="true"></div>
           <div class="absolute inset-0 flex flex-col justify-end p-6 lg:p-10">
             <p class="text-[12px] uppercase font-semibold tracking-[0.12em] text-red-400 mb-2">Zoomora</p>

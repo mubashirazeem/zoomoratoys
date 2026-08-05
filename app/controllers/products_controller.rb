@@ -11,10 +11,15 @@ class ProductsController < ApplicationController
     @products = @products.search(params[:q]) if params[:q].present?
     @products = @products.where(stock_status: availability_filter) if availability_filter.present?
     @products = @products.price_between(min_price_cents, max_price_cents) if min_price_cents || max_price_cents
+
+    # Computed from the category/search/availability/price-scoped relation,
+    # but BEFORE the color filter itself is applied — so checking one color
+    # never makes another still-valid color vanish from the list (standard
+    # faceted-search behavior, same as Amazon/Shopify's own filters).
+    @available_variant_colors = @products.available_variant_colors
+
     @products = @products.with_variant_color(color_filter) if color_filter.present?
     @products = @products.page(params[:page]).per(per_page)
-
-    @available_variant_colors = Product.available_variant_colors
   end
 
   def show
