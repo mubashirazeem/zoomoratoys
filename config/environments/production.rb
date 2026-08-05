@@ -36,8 +36,9 @@ Rails.application.configure do
   # config.action_dispatch.x_sendfile_header = "X-Sendfile" # for Apache
   # config.action_dispatch.x_sendfile_header = "X-Accel-Redirect" # for NGINX
 
-  # Store uploaded files on the local file system (see config/storage.yml for options).
-  config.active_storage.service = :local
+  # Real product photo uploads live in S3 (see config/storage.yml) — the
+  # production EC2 instance authenticates via its attached IAM role.
+  config.active_storage.service = :amazon
 
   # Mount Action Cable outside main process or domain.
   # config.action_cable.mount_path = nil
@@ -93,14 +94,14 @@ Rails.application.configure do
   # AWS_SES_SMTP_USERNAME/_PASSWORD are set on the server via its
   # .rbenv-vars file, never committed here.
   config.action_mailer.delivery_method = :smtp
-  # config.action_mailer.smtp_settings = {
-  #   address: "email-smtp.us-east-1.amazonaws.com",
-  #   port: 587,
-  #   user_name: ENV["AWS_SES_SMTP_USERNAME"],
-  #   password: ENV["AWS_SES_SMTP_PASSWORD"],
-  #   authentication: :login,
-  #   enable_starttls_auto: true
-  # }
+  config.action_mailer.smtp_settings = {
+    address: "email-smtp.us-east-1.amazonaws.com",
+    port: 587,
+    user_name: ENV["AWS_SES_SMTP_USERNAME"],
+    password: ENV["AWS_SES_SMTP_PASSWORD"],
+    authentication: :login,
+    enable_starttls_auto: true
+  }
 
   # Ignore bad email addresses and do not raise email delivery errors.
   # Set this to true and configure the email server for immediate delivery to raise delivery errors.

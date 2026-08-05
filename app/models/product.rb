@@ -58,7 +58,11 @@ class Product < ApplicationRecord
   # "50%" doesn't get reinterpreted as a SQL LIKE wildcard.
   scope :search, ->(query) {
     pattern = "%#{sanitize_sql_like(query.to_s.strip)}%"
-    where("name ILIKE :pattern OR description ILIKE :pattern OR sku ILIKE :pattern", pattern: pattern)
+    # Table-qualified — an unqualified "name ILIKE" was ambiguous the moment
+    # any query joined in another table with its own name column (e.g.
+    # ActiveStorage::Attachment has one), confirmed reproducible via
+    # Product.includes(images_attachments: :blob).search(...).pluck(:id).
+    where("products.name ILIKE :pattern OR products.description ILIKE :pattern OR products.sku ILIKE :pattern", pattern: pattern)
   }
 
   scope :price_between, ->(min_cents, max_cents) { where(price_cents: min_cents..max_cents) }
@@ -80,11 +84,16 @@ class Product < ApplicationRecord
   end
 
   # Real distinct Color values across every variant in the catalog — backs
-  # the Shop page's Color filter. Small table at this catalog's scale, so a
-  # plain pluck+uniq in Ruby is simpler and clearer than a raw jsonb
-  # existence-operator query for the same result.
+  # the Shop page's Color filter. Callable on a scoped relation (e.g.
+  # `@products.available_variant_colors`, same delegation pattern as
+  # .sorted_by above) so the list only shows colors that actually belong to
+  # products in the current category/search/etc — calling it on the bare
+  # `Product` class instead would list every color in the whole catalog
+  # regardless of what page you're on, which is exactly the bug this scoping
+  # fixes (confirmed live: a 400+-item list of irrelevant colors showing on
+  # every category page once real variants existed).
   def self.available_variant_colors
-    ProductVariant.pluck(Arel.sql("options ->> 'Color'")).compact.uniq.sort
+    ProductVariant.where(product_id: pluck(:id)).pluck(Arel.sql("options ->> 'Color'")).compact.uniq.sort
   end
 
   def to_param

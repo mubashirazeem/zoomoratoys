@@ -109,6 +109,20 @@ RSpec.describe "Products", type: :request do
       expect(grid).not_to have_text("Plain Bicycle")
     end
 
+    it "only lists color filter options that belong to the current category, not the whole catalog" do
+      scooters = create(:category, name: "Scooters")
+      pools = create(:category, name: "Pools")
+      scooter_product = create(:product, category: scooters)
+      pool_product = create(:product, category: pools)
+      create(:product_variant, product: scooter_product, options: { "Color" => "Racing Red" })
+      create(:product_variant, product: pool_product, options: { "Color" => "Ocean Blue" })
+
+      get products_path(category: scooters.slug)
+
+      expect(response.body).to include("Racing Red")
+      expect(response.body).not_to include("Ocean Blue")
+    end
+
     it "sorts by real price, ascending" do
       create(:product, name: "Expensive Golf Cart", price_cents: 5_000_00)
       create(:product, name: "Cheap Scooter", price_cents: 50_00)

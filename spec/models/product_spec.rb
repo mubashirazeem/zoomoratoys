@@ -143,6 +143,17 @@ RSpec.describe Product, type: :model do
 
       expect(Product.available_variant_colors).to contain_exactly("Racing Red", "Midnight Black")
     end
+
+    it "scopes to a relation when called on one, instead of listing every color in the catalog" do
+      scooters = create(:category)
+      pools = create(:category)
+      scooter_product = create(:product, category: scooters)
+      pool_product = create(:product, category: pools)
+      create(:product_variant, product: scooter_product, options: { "Color" => "Racing Red" })
+      create(:product_variant, product: pool_product, options: { "Color" => "Ocean Blue" })
+
+      expect(Product.where(category: scooters).available_variant_colors).to contain_exactly("Racing Red")
+    end
   end
 
   describe "#to_param" do
