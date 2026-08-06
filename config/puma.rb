@@ -1,6 +1,12 @@
 # This configuration file will be evaluated by Puma. The top-level methods that
 # are invoked here are part of Puma's configuration DSL. For more information
 # about methods provided by the DSL, see https://puma.io/puma/Puma/DSL.html.
+#
+# NOTE: staging/production actually run Phusion Passenger, not Puma (see
+# Capfile/config/deploy.rb — capistrano-passenger, and production.rb's own
+# comments about Passenger's stdout capture). This file only governs `bin/rails
+# server` in local development. Passenger's own concurrency knob is
+# `passenger_max_pool_size` in the server's NGINX config, not anything here.
 
 # Puma starts a configurable number of processes (workers) and each process
 # serves each request in a thread from an internal thread pool.

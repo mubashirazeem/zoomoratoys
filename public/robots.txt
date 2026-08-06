@@ -1,3 +1,13 @@
 # See https://www.robotstxt.org/robotstxt.html for documentation on how to use the robots.txt file
 
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /admin_users
+Disallow: /users
+Disallow: /account
+Disallow: /cart
+Disallow: /checkout
+Disallow: /wishlist
+
 Sitemap: https://zoomora.com/sitemap.xml.gz

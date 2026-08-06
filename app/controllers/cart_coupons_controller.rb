@@ -9,7 +9,13 @@ class CartCouponsController < ApplicationController
   def create
     coupon = Coupon.find_by(code: params[:code].to_s.strip.upcase)
 
-    if coupon.nil? || !coupon.redeemable? || !stripe_promotion_code_active?(coupon)
+    if coupon.nil?
+      redirect_back fallback_location: cart_path, alert: "That coupon code isn't valid."
+    elsif coupon.expired?
+      redirect_back fallback_location: cart_path, alert: "That coupon code has expired."
+    elsif coupon.usage_limit_reached?
+      redirect_back fallback_location: cart_path, alert: "That coupon code has reached its usage limit."
+    elsif !coupon.active? || !stripe_promotion_code_active?(coupon)
       redirect_back fallback_location: cart_path, alert: "That coupon code isn't valid."
     else
       persisted_cart.update!(coupon: coupon)
@@ -40,7 +46,9 @@ class CartCouponsController < ApplicationController
     return false if coupon.stripe_promotion_code_id.blank?
 
     Stripe::PromotionCode.retrieve(coupon.stripe_promotion_code_id).active
-  rescue Stripe::StripeError
+  rescue Stripe::StripeError => e
+    Rails.logger.error("Coupon validation: Stripe lookup failed for #{coupon.code} (#{coupon.stripe_promotion_code_id}): #{e.message}")
+    Sentry.capture_exception(e)
     false
   end
 end

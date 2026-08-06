@@ -1,5 +1,8 @@
 <% page_title = @selected_category ? @selected_category.name : "Shop All" %>
 <% content_for :title, "#{page_title} | Zoomora" %>
+<% if @selected_category&.description.present? %>
+  <% content_for :meta_description, @selected_category.description %>
+<% end %>
 
 <% products = @products.to_a %>
 <% fallback_banner_image = @selected_category ? "category-#{@selected_category.placeholder_key}.jpg" : "hero-bicycle.jpg" %>

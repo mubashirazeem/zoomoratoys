@@ -5,16 +5,15 @@
 # but does nothing about a single IP hammering many accounts, or a bot
 # machine-gunning checkout to probe stock/coupon codes. This is the
 # complementary, IP-level layer. Throttle state lives in Rails.cache (file
-# store in production today — see config/environments/production.rb) which
-# is enough for this app's current single-server deployment; move to a
-# shared Redis cache store first if that ever changes.
+# store today — see config/environments/production.rb) which is enough for
+# this app's current single-server deployment; move to a shared Redis cache
+# store first if that ever changes.
 class Rack::Attack
   # Broad safety net: no single IP should be making an extreme number of
   # requests across the whole site in a short window. Excludes Active
-  # Storage/asset paths — product images are served through this same Rails
-  # process (see config/environments/production.rb's `:local` storage
-  # service), so a handful of page views from *one* IP can easily mean
-  # hundreds of image requests. Counting those here would make this throttle
+  # Storage/asset paths — product image *redirects* are still served through
+  # this Rails process even with S3 as the storage backend, so a handful of
+  # page views from *one* IP can easily mean hundreds of image requests. Counting those here would make this throttle
   # trip on ordinary browsing from any shared IP (office/campus/mobile
   # carrier NAT), not just abuse. Also excludes the Stripe webhook path —
   # every request there arrives from Stripe's own infrastructure (a small,
@@ -50,9 +49,38 @@ class Rack::Attack
   end
 
   # Checkout submission — stops a bot from rapid-firing order creation to
-  # probe stock levels or brute-force coupon codes.
+  # probe stock levels.
   throttle("checkout/ip", limit: 10, period: 1.minute) do |req|
     req.ip if req.path == "/checkout" && req.post?
+  end
+
+  # Coupon code entry — the actual brute-force-coupon-codes surface (checkout
+  # itself never accepts a coupon code, only an already-applied cart's
+  # discount). Anonymous-reachable, so IP is the only available key.
+  throttle("cart_coupon/ip", limit: 10, period: 1.minute) do |req|
+    req.ip if req.path == "/cart_coupon" && req.post?
+  end
+
+  # Password reset requests — both scopes. Unauthenticated and, without this,
+  # unthrottled beyond the broad 300/5min net.
+  throttle("password_reset/ip", limit: 5, period: 1.minute) do |req|
+    req.ip if req.path.in?(%w[/users/password /admin_users/password]) && req.post?
+  end
+
+  # Registration — signup spam, and a slower brake on account creation given
+  # User has no :confirmable step to already do this.
+  throttle("registrations/ip", limit: 5, period: 1.minute) do |req|
+    req.ip if req.path == "/users" && req.post?
+  end
+
+  # Contact form — reachable with no authentication at all.
+  throttle("contact/ip", limit: 5, period: 1.minute) do |req|
+    req.ip if req.path == "/contact" && req.post?
+  end
+
+  # Newsletter signup — same reasoning as contact.
+  throttle("newsletter/ip", limit: 5, period: 1.minute) do |req|
+    req.ip if req.path == "/newsletter" && req.post?
   end
 
   # Branded response instead of rack-attack's plain-text default — this

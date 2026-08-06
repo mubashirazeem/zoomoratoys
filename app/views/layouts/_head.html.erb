@@ -4,7 +4,15 @@
     <% page_title = content_for(:title) || "Zoomora — Adventure Starts Here" %>
     <% page_description = content_for(:meta_description) || "Zoomora — electric bikes, cargo scooters, ATVs, dirt bikes, and inflatables for family adventure." %>
     <% page_image = content_for(:og_image) || image_url("logo.jpeg") %>
-    <% canonical_url = request.base_url + request.path %>
+    <% page_og_type = content_for(:og_type) || "website" %>
+    <%# category/page are the only query params that change what's actually %>
+    <%# on the page (category landing pages, pagination) — preserving them %>
+    <%# in the canonical stops Google from treating every category/page as %>
+    <%# a duplicate of the unfiltered /shop. Everything else (sort, q, %>
+    <%# filters) is left out on purpose — those don't define a distinct, %>
+    <%# indexable page. %>
+    <% canonical_params = request.query_parameters.slice("category", "page").compact_blank %>
+    <% canonical_url = request.base_url + request.path + (canonical_params.any? ? "?#{canonical_params.to_query}" : "") %>
 
     <title><%= page_title %></title>
     <meta name="description" content="<%= page_description %>">
@@ -13,7 +21,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="apple-mobile-web-app-capable" content="yes">
 
-    <meta property="og:type" content="website">
+    <meta property="og:type" content="<%= page_og_type %>">
     <meta property="og:site_name" content="Zoomora">
     <meta property="og:title" content="<%= page_title %>">
     <meta property="og:description" content="<%= page_description %>">

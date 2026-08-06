@@ -17,7 +17,7 @@ class AdminUser < ApplicationRecord
   ]
 
   devise :database_authenticatable, :recoverable, :rememberable,
-         :validatable, :trackable, :lockable
+         :validatable, :trackable, :lockable, :timeoutable
 
   validates :name, presence: true
 end

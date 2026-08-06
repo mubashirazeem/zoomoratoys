@@ -21,8 +21,7 @@ module ApplicationHelper
   # amount out of the same total_cents already on screen rather than
   # changing what's charged.
   def vat_inclusive_note(total_cents)
-    vat_cents = total_cents - (total_cents / (1 + Order::VAT_RATE)).round
-    "Includes VAT (5%): #{format_aed_precise(vat_cents)}"
+    "Includes VAT (5%): #{format_aed_precise(Order.vat_portion_of(total_cents))}"
   end
 
   # Hand-rolled rather than ActionView's number_with_delimiter: that helper

@@ -32,10 +32,20 @@ class ProductsController < ApplicationController
                                 .where.not(id: @product.id)
                                 .ordered
                                 .limit(3)
+    # Backed by this visitor's own ProductView rows (viewer_token), not just
+    # the newest catalog products — "Recently Viewed" was previously showing
+    # the same 3 newest products to every visitor regardless of what they'd
+    # actually looked at.
+    recently_viewed_ids = ProductView.where(viewer_token: viewer_token)
+                                      .where.not(product_id: @product.id)
+                                      .order(updated_at: :desc)
+                                      .limit(3)
+                                      .pluck(:product_id)
     @recently_viewed = Product.includes(:product_variants, images_attachments: :blob)
-                               .where.not(id: @product.id)
-                               .newest_first
-                               .limit(3)
+                               .where(id: recently_viewed_ids)
+                               .index_by(&:id)
+                               .values_at(*recently_viewed_ids)
+                               .compact
   end
 
   private

@@ -66,7 +66,7 @@
 
 <%# ---- Customer Reviews ---- %>
 <div class="bg-grey-50">
-  <%= render Marketing::ReviewsComponent.new %>
+  <%= render Marketing::ReviewsComponent.new(reviews: @featured_reviews, average_rating: @average_rating, review_count: @review_count) %>
 </div>
 
 <%# ---- Trust badges ---- %>
