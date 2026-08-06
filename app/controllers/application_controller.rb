@@ -1,6 +1,12 @@
 class ApplicationController < ActionController::Base
   # Only allow modern browsers supporting webp images, web push, badges, import maps, CSS nesting, and CSS :has.
-  allow_browser versions: :modern
+  # :modern requires webp, web push, badges, import maps, CSS nesting and
+  # :has — effectively Safari 17.2+/Chrome 120+/Firefox 121+, which 406'd
+  # real traffic on iOS 16 and Chrome 110 in a live audit. Explicit, much
+  # lower floor instead: only what's actually required to render this app
+  # (import maps + CSS custom properties), not every "modern" API Rails
+  # bundles into the shorthand.
+  allow_browser versions: { safari: 15, chrome: 100, firefox: 100, opera: 85, ie: false }
 
   # AdminUser is a separate Devise scope with no meaning on the customer
   # site — its sign-in/password/unlock pages belong in the admin panel's
@@ -40,8 +46,28 @@ class ApplicationController < ActionController::Base
   # which runs on every single customer-facing page, on every request.
   def set_nav_categories
     @nav_categories = Category.ordered.to_a
-    @nav_category_products = @nav_categories.index_by(&:id).transform_values do |category|
-      Product.includes(images_attachments: :blob).where(category_id: category.id).ordered.limit(3)
+    category_ids = @nav_categories.map(&:id)
+
+    # Same result for every anonymous visitor on every page — cached rather
+    # than recomputed per request. Cache key includes the latest updated_at
+    # across both tables, so any category or product edit anywhere
+    # automatically busts it; expires_in is just a backstop.
+    cache_version = [ Category.maximum(:updated_at), Product.maximum(:updated_at) ]
+    @nav_category_products = Rails.cache.fetch([ "nav_category_products", cache_version ], expires_in: 1.hour) do
+      # One windowed query instead of one query-per-category (was 15
+      # categories x 3 queries = 45 queries on every single page). Ranks each
+      # category's own products by the same ordering .ordered/.limit(3) used,
+      # then keeps only the top 3 per category.
+      ranked = Product.select("products.*, ROW_NUMBER() OVER (PARTITION BY category_id ORDER BY position, name) AS rn")
+                       .where(category_id: category_ids)
+      top_products = Product.includes(images_attachments: :blob)
+                             .from(ranked, :products)
+                             .where("products.rn <= 3")
+                             .order(:category_id, :rn)
+
+      grouped = top_products.to_a.group_by(&:category_id)
+      category_ids.each { |id| grouped[id] ||= [] }
+      grouped
     end
   end
 
@@ -95,10 +121,10 @@ class ApplicationController < ActionController::Base
   # Global site chrome (header cart badge + mini-cart drawer) needs the real
   # cart contents on every page, not just /cart.
   def set_cart
-    @cart_items = current_cart.persisted? ? current_cart.cart_items.includes(:product_variant, product: { images_attachments: :blob }) : []
+    @cart_items = current_cart.persisted? ? current_cart.cart_items.includes(:product_variant, product: [ :category, { images_attachments: :blob } ]) : []
     @cart_item_count = @cart_items.sum(&:quantity)
     @cart_subtotal_cents = @cart_items.sum(&:line_total_cents)
-    @cart_suggested_products = Product.includes(:category, images_attachments: :blob)
+    @cart_suggested_products = Product.includes(images_attachments: :blob)
                                        .featured
                                        .where.not(id: @cart_items.map(&:product_id))
                                        .ordered

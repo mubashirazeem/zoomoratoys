@@ -1,15 +1,5 @@
 <% content_for :title, "Order History | Zoomora" %>
 
-<% status_classes = {
-  "awaiting_payment" => "bg-grey-100 text-grey-500",
-  "pending" => "bg-grey-100 text-grey-700",
-  "processing" => "bg-grey-200 text-ink-950",
-  "shipped" => "bg-red-600/10 text-red-600",
-  "delivered" => "bg-ink-950 text-white",
-  "cancelled" => "bg-grey-100 text-grey-400",
-  "refunded" => "bg-red-600/10 text-red-600"
-} %>
-
 <div class="max-w-7xl mx-auto px-[15px] py-8 lg:py-10">
   <%= render Ui::BreadcrumbComponent.new(items: [
     { label: "Home", url: root_path },
@@ -43,7 +33,7 @@
           <span class="font-medium text-ink-950 hover:text-red-600"><%= order.order_number %></span>
           <span class="text-body-sm text-grey-600"><%= order.placed_at.strftime("%b %-d, %Y") %></span>
           <span class="justify-self-start">
-            <span class="inline-flex items-center rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.04em] <%= status_classes.fetch(order.status, "bg-grey-100 text-grey-500") %>"><%= order.status.humanize %></span>
+            <span class="inline-flex items-center rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.04em] <%= order.customer_status_classes %>"><%= order.status.humanize %></span>
           </span>
           <span class="lg:text-right font-semibold text-ink-950"><%= format_aed(order.total_cents) %></span>
         <% end %>

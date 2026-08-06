@@ -18,7 +18,7 @@ Rails.application.configure do
 
   # Ensures that a master key has been made available in ENV["RAILS_MASTER_KEY"], config/master.key, or an environment
   # key such as config/credentials/production.key. This key is used to decrypt credentials (and other encrypted files).
-  # config.require_master_key = true
+  config.require_master_key = true
 
   # Disable serving static files from `public/`, relying on NGINX/Apache to do so instead.
   # config.public_file_server.enabled = false
@@ -45,15 +45,16 @@ Rails.application.configure do
   # config.action_cable.url = "wss://example.com/cable"
   # config.action_cable.allowed_request_origins = [ "http://example.com", /http:\/\/example.*/ ]
 
-  # Assume all access to the app is happening through a SSL-terminating reverse proxy.
-  # Can be used together with config.force_ssl for Strict-Transport-Security and secure cookies.
-  # config.assume_ssl = true
+  # Nginx/Passenger terminates TLS and forwards X-Forwarded-Proto — without
+  # this, force_ssl below can't tell the request was already secure.
+  config.assume_ssl = true
 
   # Force all access to the app over SSL, use Strict-Transport-Security, and use secure cookies.
   config.force_ssl = true
 
-  # Skip http-to-https redirect for the default health check endpoint.
-  # config.ssl_options = { redirect: { exclude: ->(request) { request.path == "/up" } } }
+  # Skip http-to-https redirect for the default health check endpoint — a
+  # plain-HTTP load balancer/uptime probe should get 200, not a 301.
+  config.ssl_options = { redirect: { exclude: ->(request) { request.path == "/up" } } }
 
   # Log to both a plain file under log/ (readable directly with tail/cat/less
   # as the deploy user — no sudo needed, unlike Passenger's nginx-owned
@@ -74,8 +75,11 @@ Rails.application.configure do
   # want to log everything, set the level to "debug".
   config.log_level = ENV.fetch("RAILS_LOG_LEVEL", "info")
 
-  # Use a different cache store in production.
-  # config.cache_store = :mem_cache_store
+  # Plain file-based cache, not Redis — this app deploys to a single server
+  # (see config/deploy/production.rb), so there's nothing to share a cache
+  # across. tmp/cache is already a Capistrano linked_dir, so this survives
+  # deploys. Revisit only if a second app server is ever added.
+  config.cache_store = :file_store, Rails.root.join("tmp", "cache")
 
   # Use a real queuing backend for Active Job (and separate queues per environment).
   # config.active_job.queue_adapter = :resque
@@ -120,11 +124,10 @@ Rails.application.configure do
   # Only use :id for inspections in production.
   config.active_record.attributes_for_inspect = [ :id ]
 
-  # Enable DNS rebinding protection and other `Host` header attacks.
-  # config.hosts = [
-  #   "example.com",     # Allow requests from example.com
-  #   /.*\.example\.com/ # Allow requests from subdomains like `www.example.com`
-  # ]
+  # Enable DNS rebinding protection and other `Host` header attacks. Without
+  # this, an attacker-supplied Host header reflects into request.base_url —
+  # used for the canonical URL, og:url, and JSON-LD in app/views/layouts/_head.html.erb.
+  config.hosts = [ "zoomora.com", /.*\.zoomora\.com/ ]
   # Skip DNS rebinding protection for the default health check endpoint.
-  # config.host_authorization = { exclude: ->(request) { request.path == "/up" } }
+  config.host_authorization = { exclude: ->(request) { request.path == "/up" } }
 end

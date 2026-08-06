@@ -8,20 +8,16 @@
 class Marketing::ReviewsComponent < ViewComponent::Base
   FEATURED_COUNT = 3
 
+  def initialize(reviews: Review.none, average_rating: nil, review_count: 0)
+    @reviews = reviews
+    @average_rating = average_rating
+    @review_count = review_count
+  end
+
+  attr_reader :reviews, :average_rating, :review_count
+
   def render?
     review_count.positive?
-  end
-
-  def reviews
-    @reviews ||= Review.includes(:user).order(rating: :desc, created_at: :desc).limit(FEATURED_COUNT)
-  end
-
-  def average_rating
-    @average_rating ||= Review.average(:rating)&.round(1)
-  end
-
-  def review_count
-    @review_count ||= Review.count
   end
 
   def formatted_review_count

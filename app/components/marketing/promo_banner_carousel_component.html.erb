@@ -4,7 +4,16 @@
     <% banners.each_with_index do |banner, i| %>
       <div class="promo-banner-slide <%= "is-active" if i.zero? %> shrink-0 w-full relative overflow-hidden h-[440px] md:h-[500px] lg:h-[560px] bg-ink-950" data-promo-banner-slideshow-target="slide" aria-hidden="<%= i.zero? ? "false" : "true" %>">
         <% if banner.image.attached? %>
-          <%= image_tag banner.image.variant(resize_to_fill: [ 2400, 1120 ]), alt: "", class: "absolute inset-0 w-full h-full object-cover" %>
+          <%# Full-bleed banner (w-full) — srcset so a phone downloads an %>
+          <%# ~800px-wide image instead of the full 2400px desktop version. %>
+          <%= image_tag banner.image.variant(resize_to_fill: [ 800, 373 ]),
+                srcset: [
+                  "#{rails_representation_url(banner.image.variant(resize_to_fill: [ 800, 373 ]))} 800w",
+                  "#{rails_representation_url(banner.image.variant(resize_to_fill: [ 1600, 747 ]))} 1600w",
+                  "#{rails_representation_url(banner.image.variant(resize_to_fill: [ 2400, 1120 ]))} 2400w"
+                ].join(", "),
+                sizes: "100vw", width: 800, height: 373,
+                alt: "", class: "absolute inset-0 w-full h-full object-cover" %>
         <% end %>
         <div class="absolute inset-0 bg-gradient-to-r from-ink-950/90 via-ink-950/55 to-ink-950/10" aria-hidden="true"></div>
 

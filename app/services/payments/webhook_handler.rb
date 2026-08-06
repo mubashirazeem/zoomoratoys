@@ -51,7 +51,9 @@ module Payments
         Order.find_by(id: session.metadata && session.metadata["order_id"])
 
       unless order
-        Rails.logger.error("Stripe webhook: no order found for checkout session #{session.id}")
+        message = "Stripe webhook: no order found for checkout session #{session.id}"
+        Rails.logger.error(message)
+        Sentry.capture_message(message, level: :error)
         return
       end
 
@@ -61,7 +63,12 @@ module Payments
       # deliveries could both see awaiting_payment? true before either
       # commits.
       order.with_lock do
-        next unless order.awaiting_payment?
+        unless order.awaiting_payment?
+          message = "Stripe webhook: paid checkout session #{session.id} for order #{order.order_number} arrived, but order status is #{order.status.inspect}, not awaiting_payment — payment was NOT recorded"
+          Rails.logger.error(message)
+          Sentry.capture_message(message, level: :error)
+          next
+        end
 
         order.update!(
           status: "pending",
@@ -91,6 +98,7 @@ module Payments
       Stripe::Invoice.retrieve(invoice_id).hosted_invoice_url
     rescue Stripe::StripeError => e
       Rails.logger.error("Stripe webhook: failed to fetch hosted_invoice_url for invoice #{invoice_id}: #{e.message}")
+      Sentry.capture_exception(e)
       nil
     end
 
@@ -151,7 +159,10 @@ module Payments
           order.update!(refunded_cents: charge.amount_refunded, refunded_at: Time.current, status: "refunded")
           order.restore_stock! if restore_stock && !already_refunded
         else
-          order.update!(refunded_cents: charge.amount_refunded)
+          # Monotonic — Stripe doesn't guarantee webhook delivery order, so
+          # an out-of-order partial-refund event must never overwrite a
+          # larger figure a later (but earlier-delivered) event already set.
+          order.update!(refunded_cents: [ order.refunded_cents.to_i, charge.amount_refunded ].max)
         end
       end
     end

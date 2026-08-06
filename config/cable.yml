@@ -4,10 +4,11 @@ development:
 test:
   adapter: test
 
+# No Action Cable channels exist yet and the redis gem isn't installed (see
+# Gemfile) — matches staging below. Switch to the redis adapter (and add the
+# gem) if/when a real channel is built.
 production:
-  adapter: redis
-  url: <%= ENV.fetch("REDIS_URL") { "redis://localhost:6379/1" } %>
-  channel_prefix: zoomora_toys_production
+  adapter: async
 
 staging:
   adapter: async

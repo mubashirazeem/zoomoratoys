@@ -8,7 +8,7 @@
 
     <div class="relative cursor-zoom-in"
       data-action="mousemove->gallery#zoomMove mouseenter->gallery#zoomEnter mouseleave->gallery#zoomLeave click->gallery#openLightbox">
-      <%= image_tag main_image, alt: product.name, data: { "gallery-target": "main" }, class: "aspect-square w-full object-cover" %>
+      <%= image_tag main_image, alt: product.name, width: 800, height: 800, data: { "gallery-target": "main" }, class: "aspect-square w-full object-cover" %>
       <div data-gallery-target="lens"
         class="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-150 bg-no-repeat"
         style="background-image: url('<%= zoom_src(gallery_items.first) %>'); background-size: 250%;"></div>
@@ -30,7 +30,7 @@
         data-zoom-src="<%= zoom_src(item) %>"
         aria-label="View image <%= index + 1 %>"
         class="rounded-[10px] overflow-hidden bg-grey-50 border-2 <%= index.zero? ? 'border-red-600' : 'border-grey-200' %> hover:border-red-600 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-red-600">
-        <%= image_tag item[:thumb], alt: "", loading: "lazy", class: "aspect-square w-full object-cover" %>
+        <%= image_tag item[:thumb], alt: "", width: 200, height: 200, loading: "lazy", class: "aspect-square w-full object-cover" %>
       </button>
     <% end %>
   </div>
@@ -77,7 +77,7 @@
             data-zoom-src="<%= zoom_src(item) %>"
             aria-label="View image <%= index + 1 %>"
             class="shrink-0 w-14 h-14 rounded-[8px] overflow-hidden border-2 <%= index.zero? ? 'border-red-600' : 'border-white/30' %> hover:border-red-600 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-white">
-            <%= image_tag item[:thumb], alt: "", class: "w-full h-full object-cover" %>
+            <%= image_tag item[:thumb], alt: "", width: 200, height: 200, class: "w-full h-full object-cover" %>
           </button>
         <% end %>
       </div>

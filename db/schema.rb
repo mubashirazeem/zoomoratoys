@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_08_02_203531) do
+ActiveRecord::Schema[7.2].define(version: 2026_08_05_234153) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_trgm"
   enable_extension "plpgsql"
@@ -90,6 +90,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_08_02_203531) do
     t.datetime "published_at", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.index ["published_at"], name: "index_blog_posts_on_published_at"
     t.index ["slug"], name: "index_blog_posts_on_slug", unique: true
   end
 
@@ -211,6 +212,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_08_02_203531) do
     t.index ["placed_at"], name: "index_orders_on_placed_at"
     t.index ["status"], name: "index_orders_on_status"
     t.index ["stripe_checkout_session_id"], name: "index_orders_on_stripe_checkout_session_id", unique: true
+    t.index ["stripe_payment_intent_id"], name: "index_orders_on_stripe_payment_intent_id"
     t.index ["user_id"], name: "index_orders_on_user_id"
   end
 
@@ -222,6 +224,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_08_02_203531) do
     t.integer "stock_quantity", default: 0, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.index "((options ->> 'Color'::text))", name: "index_product_variants_on_color_option"
     t.index ["product_id"], name: "index_product_variants_on_product_id"
     t.index ["sku"], name: "index_product_variants_on_sku", unique: true
   end
@@ -255,6 +258,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_08_02_203531) do
     t.integer "compare_at_price_cents"
     t.index ["best_seller"], name: "index_products_on_best_seller"
     t.index ["category_id"], name: "index_products_on_category_id"
+    t.index ["created_at"], name: "index_products_on_created_at"
     t.index ["description"], name: "index_products_on_description_trgm", opclass: :gin_trgm_ops, using: :gin
     t.index ["featured"], name: "index_products_on_featured"
     t.index ["name"], name: "index_products_on_name_trgm", opclass: :gin_trgm_ops, using: :gin
@@ -308,6 +312,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_08_02_203531) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.string "stripe_customer_id"
+    t.index ["created_at"], name: "index_users_on_created_at"
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["email"], name: "index_users_on_email_trgm", opclass: :gin_trgm_ops, using: :gin
     t.index ["first_name"], name: "index_users_on_first_name_trgm", opclass: :gin_trgm_ops, using: :gin

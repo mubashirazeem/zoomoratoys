@@ -1,6 +1,7 @@
 <% content_for :title, "#{@product.name} | Zoomora" %>
 <% content_for :meta_description, @product.description %>
 <% content_for :og_image, product_og_image_url(@product) %>
+<% content_for :og_type, "product" %>
 
 <div data-controller="sticky-bar">
   <div class="max-w-7xl mx-auto px-[15px] py-8 lg:py-10">
@@ -243,7 +244,7 @@
         <% if already_reviewed %>
           <p class="text-center text-body-sm text-grey-600">You've already reviewed this product — thanks!</p>
         <% elsif user_signed_in? %>
-          <%= form_with url: product_reviews_path(@product), method: :post, class: "flex flex-col gap-4" do |f| %>
+          <%= form_with model: Review.new, url: product_reviews_path(@product), method: :post, class: "flex flex-col gap-4" do |f| %>
             <div data-controller="star-rating" class="flex items-center gap-1 justify-center">
               <%= f.hidden_field :rating, value: 5, data: { "star-rating-target": "input" } %>
               <% 5.times do |index| %>

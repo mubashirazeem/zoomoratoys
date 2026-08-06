@@ -1,5 +1,6 @@
 <% content_for :title, "#{@blog_post.title} | Zoomora Blog" %>
 <% content_for :meta_description, @blog_post.excerpt %>
+<% content_for :og_type, "article" %>
 
 <div class="max-w-3xl mx-auto px-[15px] py-10">
   <%= render Ui::BreadcrumbComponent.new(items: [

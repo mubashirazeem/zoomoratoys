@@ -55,13 +55,33 @@ class Order < ApplicationRecord
     ADMIN_STATUS_TONES.fetch(status, :neutral)
   end
 
+  # Customer-facing status badge classes — was duplicated verbatim across
+  # orders/index.html.erb and orders/show.html.erb (the exact drift risk
+  # ADMIN_STATUS_TONES above was introduced to avoid, just not extended to
+  # this side).
+  CUSTOMER_STATUS_CLASSES = {
+    "awaiting_payment" => "bg-grey-100 text-grey-500",
+    "pending" => "bg-grey-100 text-grey-700",
+    "processing" => "bg-grey-200 text-ink-950",
+    "shipped" => "bg-red-600/10 text-red-600",
+    "delivered" => "bg-ink-950 text-white",
+    "cancelled" => "bg-grey-100 text-grey-400",
+    "refunded" => "bg-red-600/10 text-red-600"
+  }.freeze
+
+  def customer_status_classes
+    CUSTOMER_STATUS_CLASSES.fetch(status, "bg-grey-100 text-grey-700")
+  end
+
   validates :order_number, presence: true, uniqueness: true
   validates :total_cents, presence: true, numericality: { only_integer: true, greater_than_or_equal_to: 0 }
   validates :subtotal_cents, presence: true, numericality: { only_integer: true, greater_than_or_equal_to: 0 }
   validates :gift_wrap_cents, presence: true, numericality: { only_integer: true, greater_than_or_equal_to: 0 }
   validates :discount_cents, presence: true, numericality: { only_integer: true, greater_than_or_equal_to: 0 }
   validates :placed_at, presence: true
-  validates :shipping_name, :shipping_phone, :shipping_address_line1, :shipping_city, presence: true
+  validates :shipping_name, :shipping_address_line1, :shipping_city, presence: true, length: { maximum: 150 }
+  validates :shipping_phone, presence: true, length: { maximum: 30 }
+  validates :shipping_address_line2, length: { maximum: 150 }
   validates :shipping_emirate, presence: true, inclusion: { in: EMIRATES }
 
   scope :newest_first, -> { order(placed_at: :desc) }
@@ -235,12 +255,20 @@ class Order < ApplicationRecord
   # that total for the printed invoice's breakdown.
   VAT_RATE = 0.05
 
+  # Shared by both #vat_cents below (this order's own total) and
+  # ApplicationHelper#vat_inclusive_note (any total_cents figure shown on
+  # screen, e.g. the cart page before an Order even exists) — was
+  # implemented twice with the same arithmetic, independently.
+  def self.vat_portion_of(total_cents)
+    total_cents - (total_cents / (1 + VAT_RATE)).round
+  end
+
   def amount_excluding_vat_cents
-    (total_cents / (1 + VAT_RATE)).round
+    total_cents - vat_cents
   end
 
   def vat_cents
-    total_cents - amount_excluding_vat_cents
+    self.class.vat_portion_of(total_cents)
   end
 
   # The inverse of the stock decrement in .create_from_cart! — used when a

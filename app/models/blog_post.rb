@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 class BlogPost < ApplicationRecord
+  include ImageAttachmentValidatable
+
   has_paper_trail
 
   # Real, admin-uploaded cover photo (optional) — falls back to the shared
@@ -15,6 +17,7 @@ class BlogPost < ApplicationRecord
   validates :body, presence: true
   validates :cover_image_key, presence: true, inclusion: { in: Category::PLACEHOLDER_KEYS }
   validates :published_at, presence: true
+  validates_image_attachment :cover_image
 
   before_validation :assign_slug, on: :create
 

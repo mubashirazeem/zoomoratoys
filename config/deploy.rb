@@ -41,3 +41,22 @@ namespace :passenger do
     end
   end
 end
+
+# public/sitemap*.xml.gz is deliberately gitignored (not source — see
+# .gitignore) and public/ isn't in linked_dirs, so without this the sitemap
+# Google is told about at /sitemap.xml.gz (see public/robots.txt) never
+# actually exists on a deployed release. Regenerate fresh on every deploy
+# instead of trying to carry a stale copy forward across releases.
+namespace :sitemap do
+  desc "Regenerate the sitemap for the just-deployed release"
+  task :refresh do
+    on roles(:app) do
+      within release_path do
+        with rails_env: fetch(:rails_env) do
+          execute :rake, "sitemap:refresh:no_ping"
+        end
+      end
+    end
+  end
+end
+after "deploy:publishing", "sitemap:refresh"

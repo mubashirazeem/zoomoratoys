@@ -7,12 +7,17 @@
 # only vary by Size, a scooter by Color and Material).
 class ProductVariant < ApplicationRecord
   belongs_to :product
-  # A live cart reference, not order history (line_items has no variant
-  # column — a sale is recorded against the Product, not this row) — a
-  # deleted variant should simply disappear from any cart that has it,
-  # same as Product's cart_items association. Without this, destroying a
-  # variant currently in any cart raised a raw, unhandled
-  # ActiveRecord::InvalidForeignKey (confirmed reproducible).
+  # A variant that's ever been ordered must never be deletable — same
+  # reasoning as Product#line_items (real order history, not a live/mutable
+  # reference). Without this, destroying a sold variant raised a raw,
+  # unhandled ActiveRecord::InvalidForeignKey instead of a normal
+  # validation-style error the admin UI already knows how to show.
+  has_many :line_items, dependent: :restrict_with_error
+  # A live cart reference, not order history — a deleted variant should
+  # simply disappear from any cart that has it, same as Product's cart_items
+  # association. Without this, destroying a variant currently in any cart
+  # raised a raw, unhandled ActiveRecord::InvalidForeignKey (confirmed
+  # reproducible).
   has_many :cart_items, dependent: :destroy
 
   validates :sku, presence: true, uniqueness: true

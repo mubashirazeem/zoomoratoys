@@ -55,6 +55,12 @@ gem "sitemap_generator"
 # alongside Pay on Delivery (Milestone 4) [https://github.com/stripe/stripe-ruby]
 gem "stripe"
 
+# Error tracking (free tier: sentry.io). Inert until SENTRY_DSN is set — see
+# config/initializers/sentry.rb — so it's safe to have installed before an
+# account exists. [https://github.com/getsentry/sentry-ruby]
+gem "sentry-ruby"
+gem "sentry-rails"
+
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
   gem "debug", platforms: %i[ mri windows ], require: "debug/prelude"
