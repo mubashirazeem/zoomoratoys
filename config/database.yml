@@ -84,6 +84,7 @@ production:
   username: zoomora_toys
   password: <%= ENV["ZOOMORA_TOYS_DATABASE_PASSWORD"] %>
   host: <%= ENV["ZOOMORA_TOYS_DATABASE_HOST"] %>
+  sslmode: require
 
 staging:
   <<: *default
