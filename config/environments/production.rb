@@ -95,14 +95,14 @@ Rails.application.configure do
 
   # Without this, Rails defaults to SMTP against localhost:25, which fails on
   # every real host — password resets would error out on send.
-  # AWS_SES_SMTP_USERNAME/_PASSWORD are set on the server via its
-  # .rbenv-vars file, never committed here.
+  # SMTP_* are set on the server via its .rbenv-vars file, never committed
+  # here — provider-agnostic so any SMTP service can be dropped in.
   config.action_mailer.delivery_method = :smtp
   config.action_mailer.smtp_settings = {
-    address: "email-smtp.us-east-1.amazonaws.com",
-    port: 587,
-    user_name: ENV["AWS_SES_SMTP_USERNAME"],
-    password: ENV["AWS_SES_SMTP_PASSWORD"],
+    address: ENV["SMTP_ADDRESS"],
+    port: ENV.fetch("SMTP_PORT", 587),
+    user_name: ENV["SMTP_USERNAME"],
+    password: ENV["SMTP_PASSWORD"],
     authentication: :login,
     enable_starttls_auto: true
   }
