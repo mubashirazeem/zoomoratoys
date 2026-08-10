@@ -1,0 +1,8 @@
+Your order is on its way, <%= @order.user.first_name %>!
+
+Order <%= @order.order_number %> has shipped and is heading to:
+<%= @order.shipping_name %> · <%= @order.shipping_phone %>
+<%= @order.shipping_address_line1 %><%= ", #{@order.shipping_address_line2}" if @order.shipping_address_line2.present? %>
+<%= @order.shipping_city %>, <%= @order.shipping_emirate %>
+
+View your order: <%= order_url(@order) %>

@@ -1,0 +1,30 @@
+Thank you, <%= @order.user.first_name %>!
+
+<%= @order.pay_on_delivery? ? "Your order has been placed and will be paid on delivery." : "Your payment was successful and your order has been placed." %>
+
+Order number: <%= @order.order_number %>
+
+Items:
+<% @order.line_items.each do |line_item| -%>
+- <%= line_item.product.name %> (Qty <%= line_item.quantity %>) — <%= format_aed(line_item.price_cents * line_item.quantity) %>
+<% end -%>
+
+Subtotal: <%= format_aed(@order.subtotal_cents) %>
+<% if @order.gift_wrap_cents.positive? -%>
+Gift wrap: <%= format_aed(@order.gift_wrap_cents) %>
+<% end -%>
+<% if @order.discount_cents.positive? -%>
+Discount: -<%= format_aed(@order.discount_cents) %>
+<% end -%>
+Total: <%= format_aed(@order.total_cents) %>
+
+Shipping to:
+<%= @order.shipping_name %> · <%= @order.shipping_phone %>
+<%= @order.shipping_address_line1 %><%= ", #{@order.shipping_address_line2}" if @order.shipping_address_line2.present? %>
+<%= @order.shipping_city %>, <%= @order.shipping_emirate %>
+
+<% if @order.card? && @order.stripe_invoice_id.present? -%>
+Your Stripe invoice is attached to this email as a PDF.
+<% end -%>
+
+View your order: <%= order_url(@order) %>

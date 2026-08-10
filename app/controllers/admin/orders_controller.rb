@@ -44,6 +44,9 @@ class Admin::OrdersController < Admin::BaseController
       user: user, items: items, shipping_attributes: shipping_attributes,
       gift_wrap: order_params[:gift_wrap].present?, gift_wrap_cents: CartsController::GIFT_WRAP_CENTS
     )
+    # No AdminMailer.new_order here — the admin placing this order already
+    # knows about it; only the customer needs a receipt.
+    OrderMailer.confirmation(order).deliver_later
     redirect_to admin_order_path(order), notice: "Order #{order.order_number} created."
   rescue Order::InsufficientStock => e
     render_new_with_error(e.message)
@@ -72,9 +75,13 @@ class Admin::OrdersController < Admin::BaseController
     # actions (see the payment-status warning on this page), but stock
     # accuracy shouldn't depend on the admin remembering to also hit Refund.
     should_restore_stock = status == "cancelled" && !@order.cancelled? && @order.stock_restorable?
+    newly_shipped = status == "shipped" && !@order.shipped?
+    newly_cancelled = status == "cancelled" && !@order.cancelled?
 
     if @order.update(status: status)
       @order.restore_stock! if should_restore_stock
+      OrderMailer.shipped(@order).deliver_later if newly_shipped
+      OrderMailer.cancelled(@order).deliver_later if newly_cancelled
       redirect_to admin_order_path(@order), notice: "Order status updated to #{@order.status.humanize}."
     else
       redirect_to admin_order_path(@order), alert: @order.errors.full_messages.to_sentence

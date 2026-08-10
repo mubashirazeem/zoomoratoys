@@ -1,0 +1,13 @@
+New order placed
+
+Order: <%= @order.order_number %>
+Customer: <%= @order.user.full_name %> (<%= @order.user.email %>)
+Payment method: <%= @order.payment_method.humanize %>
+Total: <%= format_aed(@order.total_cents) %>
+
+Items:
+<% @order.line_items.each do |line_item| -%>
+- <%= line_item.product.name %> x <%= line_item.quantity %>
+<% end -%>
+
+View in admin: <%= admin_order_url(@order) %>

@@ -1,0 +1,73 @@
+<% content_for :title, "Order Confirmed — #{@order.order_number}" %>
+
+<h1 style="margin:0 0 16px;font-size:20px;font-weight:700;color:#0A0A0B;">Thank you, <%= @order.user.first_name %>!</h1>
+<p style="margin:0 0 24px;color:#3A3D42;">
+  <%= @order.pay_on_delivery? ? "Your order has been placed and will be paid on delivery." : "Your payment was successful and your order has been placed." %>
+</p>
+<p style="margin:0 0 24px;color:#3A3D42;">Order number: <strong style="color:#0A0A0B;"><%= @order.order_number %></strong></p>
+
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #E2E3E6;">
+  <tr>
+    <td style="padding:20px;">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+        <% @order.line_items.each do |line_item| %>
+          <tr>
+            <td style="padding:8px 0;border-bottom:1px solid #E2E3E6;font-size:13px;color:#0A0A0B;">
+              <%= line_item.product.name %><br>
+              <span style="font-size:12px;color:#7E8189;">Qty <%= line_item.quantity %></span>
+            </td>
+            <td align="right" style="padding:8px 0;border-bottom:1px solid #E2E3E6;font-size:13px;font-weight:600;color:#0A0A0B;white-space:nowrap;">
+              <%= format_aed(line_item.price_cents * line_item.quantity) %>
+            </td>
+          </tr>
+        <% end %>
+      </table>
+
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:12px;">
+        <tr>
+          <td style="padding:4px 0;font-size:13px;color:#5B5E66;">Subtotal</td>
+          <td align="right" style="padding:4px 0;font-size:13px;color:#0A0A0B;"><%= format_aed(@order.subtotal_cents) %></td>
+        </tr>
+        <% if @order.gift_wrap_cents.positive? %>
+          <tr>
+            <td style="padding:4px 0;font-size:13px;color:#5B5E66;">Gift wrap</td>
+            <td align="right" style="padding:4px 0;font-size:13px;color:#0A0A0B;"><%= format_aed(@order.gift_wrap_cents) %></td>
+          </tr>
+        <% end %>
+        <% if @order.discount_cents.positive? %>
+          <tr>
+            <td style="padding:4px 0;font-size:13px;color:#5B5E66;">Discount</td>
+            <td align="right" style="padding:4px 0;font-size:13px;color:#C01827;">&minus;<%= format_aed(@order.discount_cents) %></td>
+          </tr>
+        <% end %>
+        <tr>
+          <td style="padding:8px 0 0;font-size:15px;font-weight:700;color:#0A0A0B;border-top:1px solid #E2E3E6;">Total</td>
+          <td align="right" style="padding:8px 0 0;font-size:15px;font-weight:700;color:#0A0A0B;border-top:1px solid #E2E3E6;"><%= format_aed(@order.total_cents) %></td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:20px;">
+  <tr>
+    <td style="font-size:13px;color:#5B5E66;">
+      <strong style="color:#0A0A0B;">Shipping to:</strong><br>
+      <%= @order.shipping_name %> &middot; <%= @order.shipping_phone %><br>
+      <%= @order.shipping_address_line1 %><%= ", #{@order.shipping_address_line2}" if @order.shipping_address_line2.present? %><br>
+      <%= @order.shipping_city %>, <%= @order.shipping_emirate %>
+    </td>
+  </tr>
+</table>
+
+<% if @order.card? && @order.stripe_invoice_id.present? %>
+  <p style="margin:20px 0 0;font-size:12px;color:#7E8189;">Your Stripe invoice is attached to this email as a PDF.</p>
+<% end %>
+
+<table role="presentation" cellpadding="0" cellspacing="0" style="margin-top:28px;">
+  <tr>
+    <td style="background-color:#C01827;text-align:center;">
+      <a href="<%= order_url(@order) %>" style="display:inline-block;padding:12px 28px;font-size:13px;font-weight:600;color:#ffffff;text-decoration:none;">View Your Order</a>
+    </td>
+  </tr>
+</table>

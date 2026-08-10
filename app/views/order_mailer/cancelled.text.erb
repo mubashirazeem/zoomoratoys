@@ -1,0 +1,9 @@
+Hi <%= @order.user.first_name %>,
+
+Your order <%= @order.order_number %> has been cancelled.
+<% if @order.card? && @order.stripe_payment_status == :paid -%>
+
+If you were charged for this order, our team will follow up separately about a refund.
+<% end -%>
+
+If you believe this was a mistake, please contact us: sales@zoomora.com

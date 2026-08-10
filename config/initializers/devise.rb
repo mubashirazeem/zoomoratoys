@@ -24,13 +24,20 @@ Devise.setup do |config|
   # Configure the e-mail address which will be shown in Devise::Mailer,
   # note that it will be overwritten if you use your own mailer class
   # with default "from" parameter.
-  config.mailer_sender = "no-reply@zoomora.com"
+  #
+  # accounts@zoomora.com per the client's own mailbox-purpose split
+  # (accounts@ = signup/password reset, sales@ = orders, marketing@ =
+  # newsletter) — a real Zoho mailbox, not a placeholder no-reply address.
+  config.mailer_sender = "accounts@zoomora.com"
 
   # Configure the class responsible to send e-mails.
   # config.mailer = 'Devise::Mailer'
 
   # Configure the parent class responsible to send e-mails.
-  # config.parent_mailer = 'ActionMailer::Base'
+  # ApplicationMailer (not the default ActionMailer::Base) so password
+  # reset/unlock emails render inside the same branded layout — logo,
+  # colors, footer — as every other mailer, with zero duplicated styling.
+  config.parent_mailer = "ApplicationMailer"
 
   # ==> ORM configuration
   # Load and configure the ORM. Supports :active_record (default) and
@@ -305,4 +312,29 @@ Devise.setup do |config|
   # When set to false, does not sign a user in automatically after their password is
   # changed. Defaults to true, so a user is signed in automatically after changing a password.
   # config.sign_in_after_change_password = true
+end
+
+# Password reset/unlock authenticates as accounts@zoomora.com (its own real
+# Zoho mailbox) rather than ApplicationMailer's sales@zoomora.com default —
+# same reasoning as NewsletterMailer's own smtp_settings override.
+#
+# Deferred to after_initialize, not run inline here: Devise::Mailer is
+# defined in the devise gem's own app/mailers/devise/mailer.rb, which
+# Zeitwerk only autoloads on first reference — and whether the engine's
+# autoload paths are registered yet at this exact point in this specific
+# initializer's own evaluation isn't reliably guaranteed, even though
+# config.parent_mailer above is (confirmed: referencing Devise::Mailer here
+# directly raises "uninitialized constant"). after_initialize runs once
+# every initializer, from every gem/engine, has finished.
+Rails.application.config.after_initialize do
+  # ssl: true, not enable_starttls_auto — see production.rb's own
+  # ApplicationMailer smtp_settings comment for why.
+  Devise::Mailer.smtp_settings = {
+    address: ENV["SMTP_ADDRESS"],
+    port: ENV.fetch("SMTP_PORT", 465),
+    user_name: ENV["SMTP_ACCOUNTS_USERNAME"],
+    password: ENV["SMTP_ACCOUNTS_PASSWORD"],
+    authentication: :login,
+    ssl: true
+  }
 end

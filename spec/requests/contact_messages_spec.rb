@@ -28,5 +28,15 @@ RSpec.describe "ContactMessages", type: :request do
       expect(response).to have_http_status(:unprocessable_content)
       expect(response.body).to include("Please fix the following")
     end
+
+    it "silently drops the submission when the honeypot field is filled" do
+      expect {
+        post contact_path, params: { website: "http://spam.example", contact_message: attributes_for(:contact_message) }
+      }.not_to change(ContactMessage, :count)
+
+      expect(response).to redirect_to(contact_path)
+      follow_redirect!
+      expect(response.body).to include("Thanks for reaching out")
+    end
   end
 end

@@ -1,0 +1,12 @@
+New contact form message
+
+Name: <%= @contact_message.name %>
+Email: <%= @contact_message.email %>
+<% if @contact_message.phone.present? -%>
+Phone: <%= @contact_message.phone %>
+<% end -%>
+Subject: <%= @contact_message.subject %>
+
+<%= @contact_message.message %>
+
+Reply to this email to respond directly to <%= @contact_message.name %>.
