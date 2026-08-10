@@ -337,4 +337,17 @@ Rails.application.config.after_initialize do
     authentication: :login,
     ssl: true
   }
+
+  # config.mailer_sender above is NOT enough on its own: Devise::Mailer
+  # inherits ApplicationMailer's own `default from: "...sales@zoomora.com"`,
+  # and Devise's own headers_for (devise/lib/devise/mailers/helpers.rb)
+  # explicitly defers to an already-present class default over
+  # config.mailer_sender — "Give priority to the mailer's default if they
+  # exists." Without this line, every Devise email's real From header was
+  # silently sales@zoomora.com while authenticating to Zoho as
+  # accounts@zoomora.com — exactly the mismatch that produces Zoho's own
+  # "553 Sender is not allowed to relay emails" (confirmed via Zoho's SMTP
+  # docs: https://www.zoho.com/mail/help/zoho-smtp.html). This explicit
+  # default on Devise::Mailer itself is what actually wins.
+  Devise::Mailer.default from: "Zoomora Toys <accounts@zoomora.com>"
 end
