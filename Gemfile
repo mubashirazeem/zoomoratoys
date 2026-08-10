@@ -116,6 +116,11 @@ group :test do
 end
 
 group :development do
+  # Opens every sent mailer email in a browser tab instead of an SMTP
+  # connection — nothing needs SMTP_* set locally to preview real mailer
+  # output [https://github.com/ryanb/letter_opener]
+  gem "letter_opener"
+
   # Detects N+1 queries and unused eager loading, logged to the Rails log
   # and browser console — the same kind of missed-eager-load bug that's
   # been found and fixed by hand repeatedly across this app (product

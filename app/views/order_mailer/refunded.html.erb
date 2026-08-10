@@ -1,0 +1,27 @@
+<% content_for :title, "Order Refunded — #{@order.order_number}" %>
+
+<h1 style="margin:0 0 16px;font-size:20px;font-weight:700;color:#0A0A0B;">Hi <%= @order.user.first_name %>,</h1>
+<p style="margin:0 0 24px;color:#3A3D42;">Your order <strong style="color:#0A0A0B;"><%= @order.order_number %></strong> has been refunded in full.</p>
+
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #E2E3E6;">
+  <tr>
+    <td style="padding:20px;">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+        <tr>
+          <td style="font-size:13px;color:#5B5E66;">Amount refunded</td>
+          <td align="right" style="font-size:15px;font-weight:700;color:#0A0A0B;"><%= format_aed(@order.refunded_cents) %></td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+
+<p style="margin:20px 0 0;font-size:13px;color:#5B5E66;">The refund will appear on your original payment method within 5&ndash;10 business days, depending on your bank.</p>
+
+<table role="presentation" cellpadding="0" cellspacing="0" style="margin-top:28px;">
+  <tr>
+    <td style="background-color:#C01827;text-align:center;">
+      <a href="<%= order_url(@order) %>" style="display:inline-block;padding:12px 28px;font-size:13px;font-weight:600;color:#ffffff;text-decoration:none;">View Your Order</a>
+    </td>
+  </tr>
+</table>

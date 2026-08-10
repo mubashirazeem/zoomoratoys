@@ -19,13 +19,21 @@ module Payments
       # refunded?/stock_restorable? read *inside* the lock (not captured
       # before the API call) is what stops both paths from restoring the
       # same order's stock twice, same reasoning as the webhook handler.
+      # The same already_refunded read also guards OrderMailer.refunded
+      # below, so only whichever of this method or the webhook handler
+      # actually wins the race sends the one confirmation email.
+      just_refunded = false
+
       @order.with_lock do
         already_refunded = @order.refunded?
         restore_stock = @order.stock_restorable?
 
         @order.update!(refunded_cents: @order.total_cents, refunded_at: Time.current, status: "refunded")
         @order.restore_stock! if restore_stock && !already_refunded
+        just_refunded = !already_refunded
       end
+
+      OrderMailer.refunded(@order).deliver_later if just_refunded
 
       refund
     end

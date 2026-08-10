@@ -98,13 +98,16 @@ Rails.application.configure do
   # SMTP_* are set on the server via its .rbenv-vars file, never committed
   # here — provider-agnostic so any SMTP service can be dropped in.
   config.action_mailer.delivery_method = :smtp
+  # Zoho Workplace's SMTP server (smtppro.zoho.com:465) speaks implicit
+  # SSL from the first byte of the connection, not STARTTLS-upgraded —
+  # ssl: true (not enable_starttls_auto) is what that mode actually needs.
   config.action_mailer.smtp_settings = {
     address: ENV["SMTP_ADDRESS"],
-    port: ENV.fetch("SMTP_PORT", 587),
+    port: ENV.fetch("SMTP_PORT", 465),
     user_name: ENV["SMTP_USERNAME"],
     password: ENV["SMTP_PASSWORD"],
     authentication: :login,
-    enable_starttls_auto: true
+    ssl: true
   }
 
   # Ignore bad email addresses and do not raise email delivery errors.

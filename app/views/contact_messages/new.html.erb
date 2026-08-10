@@ -18,6 +18,14 @@
   <div class="mt-10 grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-10">
     <div class="lg:col-span-2 rounded-[18px] border border-grey-200 bg-white p-6 lg:p-8 shadow-[0_14px_36px_-24px_rgba(10,10,11,0.4)]">
       <%= form_with model: @contact_message, url: contact_path, class: "flex flex-col gap-5" do |form| %>
+        <%# Honeypot — invisible to a real visitor (off-screen, unreachable by
+            Tab), but a scripted bot filling every field on the page fills
+            this too. See ContactMessagesController#create. %>
+        <div aria-hidden="true" style="position:absolute;left:-9999px;top:-9999px;" tabindex="-1">
+          <%= label_tag :website, "Leave this field empty" %>
+          <%= text_field_tag :website, nil, autocomplete: "off", tabindex: "-1" %>
+        </div>
+
         <% if @contact_message.errors.any? %>
           <div role="alert" class="rounded-[12px] bg-red-50 border border-red-200 px-4 py-3 text-body-sm text-red-700">
             <p class="font-semibold">Please fix the following before submitting:</p>

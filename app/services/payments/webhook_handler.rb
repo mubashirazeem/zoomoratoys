@@ -62,6 +62,14 @@ module Payments
       # near-simultaneous duplicates, and without the lock two concurrent
       # deliveries could both see awaiting_payment? true before either
       # commits.
+      #
+      # payment_just_confirmed, checked after the lock releases, is what
+      # makes the confirmation emails below fire exactly once per order —
+      # `next` inside the block only skips the rest of the block, not any
+      # code after `with_lock` itself, so without this flag a redelivered
+      # event would re-send both emails on every duplicate delivery.
+      payment_just_confirmed = false
+
       order.with_lock do
         unless order.awaiting_payment?
           message = "Stripe webhook: paid checkout session #{session.id} for order #{order.order_number} arrived, but order status is #{order.status.inspect}, not awaiting_payment — payment was NOT recorded"
@@ -83,6 +91,12 @@ module Payments
         # makes this run exactly once per order, redelivered events can't
         # double-count it.
         order.coupon&.increment!(:times_used)
+        payment_just_confirmed = true
+      end
+
+      if payment_just_confirmed
+        OrderMailer.confirmation(order).deliver_later
+        AdminMailer.new_order(order).deliver_later
       end
     end
 
@@ -151,6 +165,13 @@ module Payments
       order = Order.find_by(stripe_payment_intent_id: charge.payment_intent)
       return unless order
 
+      # Same reasoning as payment_just_confirmed in #handle_completed: this
+      # webhook can arrive redelivered, and Payments::RefundIssuer can race
+      # this exact same handler for a refund it itself just triggered — the
+      # already_refunded check inside the lock is what makes only one of
+      # those two paths ever see false and send the email.
+      just_fully_refunded = false
+
       order.with_lock do
         if charge.refunded
           already_refunded = order.refunded?
@@ -158,6 +179,7 @@ module Payments
 
           order.update!(refunded_cents: charge.amount_refunded, refunded_at: Time.current, status: "refunded")
           order.restore_stock! if restore_stock && !already_refunded
+          just_fully_refunded = !already_refunded
         else
           # Monotonic — Stripe doesn't guarantee webhook delivery order, so
           # an out-of-order partial-refund event must never overwrite a
@@ -165,6 +187,8 @@ module Payments
           order.update!(refunded_cents: [ order.refunded_cents.to_i, charge.amount_refunded ].max)
         end
       end
+
+      OrderMailer.refunded(order).deliver_later if just_fully_refunded
     end
 
     # A dispute is the bank pulling money back on the cardholder's say-so —

@@ -2,12 +2,45 @@
 <html>
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <style>
-      /* Email styles need to be inline */
-    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= content_for?(:title) ? yield(:title) : "Zoomora Toys" %></title>
   </head>
-
-  <body>
-    <%= yield %>
+  <body style="margin:0;padding:0;background-color:#F7F7F8;font-family:'Poppins',Arial,Helvetica,sans-serif;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#F7F7F8;padding:32px 16px;">
+      <tr>
+        <td align="center">
+          <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background-color:#ffffff;">
+            <tr>
+              <td style="background-color:#0A0A0B;padding:28px 32px;text-align:center;">
+                <% if attachments["logo.png"] %>
+                  <%= image_tag attachments["logo.png"].url, alt: "Zoomora", width: "160", style: "display:inline-block;border:0;" %>
+                <% else %>
+                  <span style="color:#ffffff;font-size:20px;font-weight:700;letter-spacing:1px;">ZOOMORA</span>
+                <% end %>
+              </td>
+            </tr>
+            <tr>
+              <td style="height:4px;line-height:4px;font-size:0;background-color:#C01827;">&nbsp;</td>
+            </tr>
+            <tr>
+              <td style="padding:32px;color:#0A0A0B;font-size:14px;line-height:1.6;">
+                <%= yield %>
+              </td>
+            </tr>
+            <tr>
+              <td style="background-color:#F7F7F8;padding:24px 32px;text-align:center;border-top:1px solid #E2E3E6;">
+                <p style="margin:0 0 8px;font-size:12px;color:#5B5E66;">Zoomora Toys &middot; Free UAE Delivery &amp; Installation</p>
+                <p style="margin:0 0 8px;font-size:12px;color:#5B5E66;">
+                  <a href="tel:+971527225064" style="color:#5B5E66;text-decoration:none;">+971 52 722 5064</a>
+                  &nbsp;&middot;&nbsp;
+                  <a href="mailto:sales@zoomora.com" style="color:#5B5E66;text-decoration:none;">sales@zoomora.com</a>
+                </p>
+                <p style="margin:0;font-size:11px;color:#A8AAB2;">&copy; <%= Date.current.year %> Zoomora Toys. All rights reserved.</p>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
   </body>
 </html>

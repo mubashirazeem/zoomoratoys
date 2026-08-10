@@ -1,0 +1,9 @@
+Hi <%= @order.user.first_name %>,
+
+Your order <%= @order.order_number %> has been refunded in full.
+
+Amount refunded: <%= format_aed(@order.refunded_cents) %>
+
+The refund will appear on your original payment method within 5-10 business days, depending on your bank.
+
+View your order: <%= order_url(@order) %>

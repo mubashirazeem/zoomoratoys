@@ -48,6 +48,11 @@ class CheckoutsController < ApplicationController
         gift_wrap_cents: CartsController::GIFT_WRAP_CENTS
       )
       save_address_for_next_time if params[:save_address].present?
+      # Card orders are confirmed by mail once Payments::WebhookHandler
+      # hears back from Stripe (see that class) — a Pay on Delivery order
+      # is fully placed the moment this line runs, so it's confirmed here.
+      OrderMailer.confirmation(order).deliver_later
+      AdminMailer.new_order(order).deliver_later
       redirect_to checkout_confirmation_path(order.order_number)
     end
   rescue Order::InsufficientStock => e
