@@ -18,6 +18,10 @@ class Users::RegistrationsController < Devise::RegistrationsController
   end
 
   def subscribe_to_newsletter(user)
-    NewsletterSubscriber.find_or_create_by(email: user.email)
+    subscriber = NewsletterSubscriber.find_or_initialize_by(email: user.email)
+    return if subscriber.persisted?
+
+    subscriber.save!
+    NewsletterMailer.welcome(subscriber).deliver_later
   end
 end
