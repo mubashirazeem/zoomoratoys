@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_08_05_234153) do
+ActiveRecord::Schema[7.2].define(version: 2026_08_12_000000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_trgm"
   enable_extension "plpgsql"
@@ -256,6 +256,8 @@ ActiveRecord::Schema[7.2].define(version: 2026_08_05_234153) do
     t.text "safety_notes"
     t.text "care_notes"
     t.integer "compare_at_price_cents"
+    t.string "delivery_note"
+    t.string "warranty_note"
     t.index ["best_seller"], name: "index_products_on_best_seller"
     t.index ["category_id"], name: "index_products_on_category_id"
     t.index ["created_at"], name: "index_products_on_created_at"

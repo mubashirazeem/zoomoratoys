@@ -105,7 +105,7 @@ CATALOG.each_with_index do |(category_name, category_data), category_index|
       sku_sequence += 1
       product.sku = "ZMR-#{sku_sequence.to_s.rjust(5, '0')}"
     end
-    product.assign_attributes(
+    product_attrs = {
       category: category,
       description: product_data["description"],
       price_cents: product_data["price_aed"] * 100,
@@ -119,7 +119,23 @@ CATALOG.each_with_index do |(category_name, category_data), category_index|
       # just the same products under a second label.
       best_seller: (product_sequence % 4).zero?,
       created_at: days_ago.days.ago
-    )
+    }
+
+    # The rafplay import never carried a real per-unit stock count, so this
+    # never assigned stock_quantity at all — every imported product silently
+    # kept the schema's stock_quantity: 0 default while stock_status
+    # separately defaulted to "in_stock" (confirmed live: ~1,165/1,178
+    # products stuck in that combination), making almost the entire catalog
+    # look purchasable everywhere while failing at actual add-to-cart. Only
+    # backfill while a product is still sitting in that untouched
+    # combination — once an admin sets a real count, or deliberately sells
+    # it out (which flips stock_status via #sync_stock_status_from_quantity),
+    # a later reseed must never stomp that back.
+    if product.stock_quantity.zero? && product.stock_status == "in_stock"
+      product_attrs[:stock_quantity] = 10 + (Digest::MD5.hexdigest("#{product_data['name']}-stock").to_i(16) % 21)
+    end
+
+    product.assign_attributes(product_attrs)
     product.save!
 
     # Real rafplay photos, attached once — never re-attach on a later
@@ -153,7 +169,20 @@ CATALOG.each_with_index do |(category_name, category_data), category_index|
       # already falls back to the product's price when this is nil).
       variant_price_cents = variant_data["price_aed"] * 100
       variant.price_cents = variant_price_cents == product.price_cents ? nil : variant_price_cents
-      variant.stock_quantity = variant_data["stock"] if variant_data["stock"].to_i.positive?
+      if variant_data["stock"].to_i.positive?
+        variant.stock_quantity = variant_data["stock"]
+      elsif variant.stock_quantity.zero?
+        # rafplay's variant data has no usable stock count for most variants
+        # (confirmed live: every variant checked was stuck at the
+        # stock_quantity: 0 default, making every color/size combination
+        # of every variant-having product look purchasable everywhere while
+        # being permanently "Out of stock" the moment you actually picked
+        # one — same root cause as the parent Product backfill above, here
+        # on ProductVariant#in_stock? instead of Product#stock_status). Only
+        # touch it while still untouched, so a later reseed never clobbers a
+        # real count an admin has since set.
+        variant.stock_quantity = 10 + (Digest::MD5.hexdigest("#{variant.sku}-stock").to_i(16) % 21)
+      end
       variant.save!
     end
   end

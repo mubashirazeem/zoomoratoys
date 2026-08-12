@@ -75,6 +75,19 @@
     </label>
   </div>
 
+  <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+    <div>
+      <%= f.label :delivery_note, "Delivery badge", class: label_classes %>
+      <p class="text-body-sm text-grey-500 mb-1.5">Shown as a trust badge on the product page. Leave blank for the default: "#{Product::DEFAULT_DELIVERY_NOTE}"</p>
+      <%= f.text_field :delivery_note, placeholder: Product::DEFAULT_DELIVERY_NOTE, class: field_classes %>
+    </div>
+    <div>
+      <%= f.label :warranty_note, "Warranty badge", class: label_classes %>
+      <p class="text-body-sm text-grey-500 mb-1.5">Shown as a trust badge on the product page. Leave blank for the default: "#{Product::DEFAULT_WARRANTY_NOTE}"</p>
+      <%= f.text_field :warranty_note, placeholder: Product::DEFAULT_WARRANTY_NOTE, class: field_classes %>
+    </div>
+  </div>
+
   <div>
     <%= f.label :specifications_text, "Specifications", class: label_classes %>
     <p class="text-body-sm text-grey-500 mb-1.5">One per line, formatted as "Label: Value" — e.g. "Frame: Reinforced steel"</p>

@@ -228,6 +228,22 @@ RSpec.describe Product, type: :model do
     end
   end
 
+  describe "#delivery_note_display / #warranty_note_display" do
+    it "falls back to the site default when the admin hasn't overridden it" do
+      product = build_stubbed(:product, delivery_note: nil, warranty_note: nil)
+
+      expect(product.delivery_note_display).to eq(Product::DEFAULT_DELIVERY_NOTE)
+      expect(product.warranty_note_display).to eq(Product::DEFAULT_WARRANTY_NOTE)
+    end
+
+    it "uses the admin-entered text when present" do
+      product = build_stubbed(:product, delivery_note: "Ships in 24h", warranty_note: "2-year warranty")
+
+      expect(product.delivery_note_display).to eq("Ships in 24h")
+      expect(product.warranty_note_display).to eq("2-year warranty")
+    end
+  end
+
   describe "stock_status syncing with stock_quantity" do
     it "flips in_stock to sold_out when a normal save drops quantity to zero" do
       product = create(:product, stock_quantity: 5, stock_status: "in_stock")
@@ -324,6 +340,18 @@ RSpec.describe Product, type: :model do
       create(:product_variant, product: product, stock_quantity: 0)
 
       expect(product.out_of_stock?).to be true
+    end
+
+    it "is true for a plain in_stock product with zero real stock_quantity" do
+      product = build(:product, stock_status: "in_stock", stock_quantity: 0)
+
+      expect(product.out_of_stock?).to be true
+    end
+
+    it "is false for a preorder product with zero stock_quantity — preorder is independent of real count" do
+      product = build(:product, stock_status: "preorder", stock_quantity: 0)
+
+      expect(product.out_of_stock?).to be false
     end
   end
 

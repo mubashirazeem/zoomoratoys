@@ -42,6 +42,18 @@ RSpec.describe OrderMailer do
       expect(mail.attachments.map(&:filename)).to eq([ "logo.png" ])
       expect(mail.to).to eq([ user.email ])
     end
+
+    it "still sends the confirmation when the invoice PDF download connection is reset mid-transfer" do
+      order.update!(payment_method: "card", status: "pending", stripe_invoice_id: "in_test_1")
+      allow(Stripe::Invoice).to receive(:retrieve).with("in_test_1")
+        .and_return(double("Stripe::Invoice", invoice_pdf: "https://files.stripe.com/invoice.pdf"))
+      allow(URI).to receive(:parse).with("https://files.stripe.com/invoice.pdf").and_raise(Errno::ECONNRESET)
+
+      mail = described_class.confirmation(order)
+
+      expect(mail.attachments.map(&:filename)).to eq([ "logo.png" ])
+      expect(mail.to).to eq([ user.email ])
+    end
   end
 
   describe "#shipped" do

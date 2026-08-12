@@ -59,7 +59,8 @@ class Admin::ProductsController < Admin::BaseController
     permitted = params.require(:product).permit(
       :name, :description, :price, :compare_at_price, :sku, :stock_status,
       :stock_quantity, :featured, :best_seller, :position, :placeholder_key,
-      :category_id, :specifications_text, :safety_notes, :care_notes, images: []
+      :category_id, :specifications_text, :safety_notes, :care_notes,
+      :delivery_note, :warranty_note, images: []
     )
 
     if permitted.key?(:specifications_text)

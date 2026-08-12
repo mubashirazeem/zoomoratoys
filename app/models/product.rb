@@ -3,6 +3,12 @@
 class Product < ApplicationRecord
   include ImageAttachmentValidatable
 
+  # Shown on the product page's trust badges when an admin hasn't overridden
+  # them for this specific product — keeps the ~100 already-seeded products
+  # showing sensible badges without a data backfill.
+  DEFAULT_DELIVERY_NOTE = "Free UAE delivery & setup"
+  DEFAULT_WARRANTY_NOTE = "12-month warranty"
+
   has_paper_trail
 
   belongs_to :category
@@ -175,8 +181,12 @@ class Product < ApplicationRecord
   # with stock_quantity above) is the answer directly.
   def out_of_stock?
     return product_variants.none?(&:in_stock?) if has_variants?
+    # Preorder is a deliberate manual state independent of stock_quantity
+    # (see #sync_stock_status_from_quantity) — a preorder product legitimately
+    # has zero real stock and must still be purchasable.
+    return false if preorder?
 
-    sold_out?
+    sold_out? || stock_quantity.to_i <= 0
   end
 
   # The real admin-uploaded photo (as a variant, resized per call site) when
@@ -184,6 +194,14 @@ class Product < ApplicationRecord
   # place this fallback decision is made, so every view (grid cards, cart,
   # checkout, header mega-menu, sticky bar) shows the same real photo the
   # moment one's uploaded, instead of each duplicating this check.
+  def delivery_note_display
+    delivery_note.presence || DEFAULT_DELIVERY_NOTE
+  end
+
+  def warranty_note_display
+    warranty_note.presence || DEFAULT_WARRANTY_NOTE
+  end
+
   def display_photo(**variant_options)
     return images.first.variant(**variant_options) if images.attached?
 

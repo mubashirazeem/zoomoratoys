@@ -50,7 +50,13 @@ class OrderMailer < ApplicationMailer
 
     pdf_data = URI.parse(invoice.invoice_pdf).open.read
     attachments["#{order.order_number}-invoice.pdf"] = { mime_type: "application/pdf", content: pdf_data }
-  rescue Stripe::StripeError, OpenURI::HTTPError, SocketError, Timeout::Error => e
+  # SystemCallError covers the raw Errno::ECONNRESET/ETIMEDOUT/ECONNREFUSED
+  # family a mid-download connection drop actually raises (confirmed live:
+  # a real invoice download hit Errno::ECONNRESET mid-transfer and, before
+  # this line covered it, took the entire confirmation email down with it —
+  # exactly what this rescue's own comment says must never happen).
+  # OpenSSL::SSL::SSLError covers the TLS-level equivalent.
+  rescue Stripe::StripeError, OpenURI::HTTPError, SocketError, Timeout::Error, SystemCallError, OpenSSL::SSL::SSLError => e
     Rails.logger.error("OrderMailer: failed to attach Stripe invoice for order #{order.order_number}: #{e.message}")
     Sentry.capture_exception(e)
   end
