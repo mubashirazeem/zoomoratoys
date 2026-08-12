@@ -41,6 +41,19 @@
 
         <p class="text-body text-grey-600 leading-relaxed"><%= @product.description %></p>
 
+        <%# The wishlist toggle button below must submit to this standalone
+            form, not a button_to of its own — button_to renders its own
+            <form>, and nesting it inside the purchase panel's <form> further
+            down causes the browser to silently drop the inner <form> start
+            tag per the HTML5 parsing spec (forms can't nest), leaving the
+            button's click submit the *outer* add-to-cart form instead
+            (confirmed reproducible: clicking the wishlist heart silently
+            added the product to the cart). See carts/_coupon_stub_forms.html.erb
+            for the same pattern already established elsewhere on this page. %>
+        <% if user_signed_in? %>
+          <%= form_with url: toggle_wishlist_item_path(@product), method: :post, id: "wishlist-toggle-form" do %><% end %>
+        <% end %>
+
         <%# ---- Purchase panel ---- %>
         <%= form_with url: cart_items_path, method: :post,
               data: { controller: "product-variant-picker", "product-variant-picker-variants-value": Catalog::ProductVariantsComponent.new(product: @product).variants_json },
@@ -71,12 +84,11 @@
               Buy It Now
             </button>
             <% if user_signed_in? %>
-              <%= button_to toggle_wishlist_item_path(@product), method: :post,
-                    form: { class: "contents" },
-                    class: "w-12 h-12 shrink-0 flex items-center justify-center rounded-full border border-grey-300 text-ink-950 hover:border-red-600 hover:text-red-600 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-red-600 bg-transparent #{"border-red-600 text-red-600" if @wishlisted_product_ids.include?(@product.id)}",
-                    aria: { label: @wishlisted_product_ids.include?(@product.id) ? "Remove from wishlist" : "Add to wishlist" } do %>
+              <button type="submit" form="wishlist-toggle-form"
+                    class="w-12 h-12 shrink-0 flex items-center justify-center rounded-full border border-grey-300 text-ink-950 hover:border-red-600 hover:text-red-600 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-red-600 bg-transparent <%= "border-red-600 text-red-600" if @wishlisted_product_ids.include?(@product.id) %>"
+                    aria-label="<%= @wishlisted_product_ids.include?(@product.id) ? "Remove from wishlist" : "Add to wishlist" %>">
                 <svg viewBox="0 0 24 24" fill="<%= @wishlisted_product_ids.include?(@product.id) ? "currentColor" : "none" %>" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5" aria-hidden="true"><path d="M12 20s-7-4.3-7-9a4 4 0 0 1 7-2.6A4 4 0 0 1 19 11c0 4.7-7 9-7 9Z"/></svg>
-              <% end %>
+              </button>
             <% else %>
               <%= link_to new_user_session_path, aria: { label: "Sign in to add to wishlist" },
                     class: "w-12 h-12 shrink-0 flex items-center justify-center rounded-full border border-grey-300 text-ink-950 hover:border-red-600 hover:text-red-600 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-red-600" do %>
@@ -105,13 +117,13 @@
             <span class="shrink-0 flex items-center justify-center w-9 h-9 rounded-full bg-red-600/10 text-red-600">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" class="w-4 h-4" aria-hidden="true"><path d="M3 7h11v9H3z"/><path d="M14 10h4l3 3v3h-7z"/></svg>
             </span>
-            <span class="text-body-sm font-medium text-ink-950 leading-tight">Free UAE delivery &amp; setup</span>
+            <span class="text-body-sm font-medium text-ink-950 leading-tight"><%= @product.delivery_note_display %></span>
           </div>
           <div class="flex items-center gap-2.5 rounded-[12px] border border-grey-200 px-3.5 py-3">
             <span class="shrink-0 flex items-center justify-center w-9 h-9 rounded-full bg-red-600/10 text-red-600">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" class="w-4 h-4" aria-hidden="true"><path d="M12 3.5 19 6.5v5c0 4.4-3 7.7-7 8.9-4-1.2-7-4.5-7-8.9v-5Z"/></svg>
             </span>
-            <span class="text-body-sm font-medium text-ink-950 leading-tight">12-month warranty</span>
+            <span class="text-body-sm font-medium text-ink-950 leading-tight"><%= @product.warranty_note_display %></span>
           </div>
         </div>
 

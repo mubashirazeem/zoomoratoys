@@ -27,7 +27,18 @@
     <p class="mt-4 text-body text-grey-600">Search results for "<span class="font-semibold text-ink-950"><%= params[:q] %></span>"</p>
   <% end %>
 
-  <%= form_with url: products_path, method: :get, class: "contents" do |f| %>
+  <%# id: only the filter controls below (sidebar + the per_page/sort
+      selects further down, wired via their own form= attribute) belong to
+      this form. It must NOT wrap the product grid — button_to inside
+      Catalog::ProductCardComponent renders its own <form>, and the HTML5
+      parser silently drops a <form> start tag entirely when one is already
+      open (forms can't nest), which was leaving every wishlist/add-to-cart
+      click on this page submitting this filter form instead (confirmed
+      reproducible: clicking a card's wishlist heart turned into a GET
+      request back to this same page with the filters re-submitted). See
+      products/show.html.erb's wishlist-toggle-form comment for the same
+      root cause on the product detail page. %>
+  <%= form_with url: products_path, method: :get, id: "shop-filter-form", class: "contents" do |f| %>
     <%= hidden_field_tag :q, params[:q] if params[:q].present? %>
     <%= hidden_field_tag :category, @selected_category&.slug %>
 
@@ -120,6 +131,7 @@
           <% end %>
         </div>
       </aside>
+    <% end %>
 
       <%# ---- Main: hero banner, toolbar, grid ---- %>
       <div>
@@ -161,7 +173,7 @@
             <label class="flex items-center gap-2 text-grey-500">
               <span class="hidden sm:inline uppercase text-[12px] font-semibold tracking-[0.06em]">Items</span>
               <%= select_tag :per_page, options_for_select([ 12, 24, 48 ], params[:per_page].presence&.to_i || ProductsController::PER_PAGE),
-                    onchange: "this.form.requestSubmit()",
+                    onchange: "this.form.requestSubmit()", form: "shop-filter-form",
                     class: "rounded-[8px] border border-grey-300 bg-white h-9 px-2.5 text-ink-950 focus-visible:outline focus-visible:outline-2 focus-visible:outline-red-600" %>
             </label>
             <label class="flex items-center gap-2 text-grey-500">
@@ -169,7 +181,7 @@
               <%= select_tag :sort, options_for_select(
                     [ ["Featured", ""], ["Price: Low to High", "price_asc"], ["Price: High to Low", "price_desc"], ["Newest", "newest"] ],
                     params[:sort]),
-                    onchange: "this.form.requestSubmit()",
+                    onchange: "this.form.requestSubmit()", form: "shop-filter-form",
                     class: "rounded-[8px] border border-grey-300 bg-white h-9 px-2.5 text-ink-950 focus-visible:outline focus-visible:outline-2 focus-visible:outline-red-600" %>
             </label>
           </div>
@@ -197,5 +209,4 @@
         <% end %>
       </div>
     </div>
-  <% end %>
 </div>
