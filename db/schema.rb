@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_08_12_000000) do
+ActiveRecord::Schema[7.2].define(version: 2026_08_13_000001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_trgm"
   enable_extension "plpgsql"
@@ -154,6 +154,18 @@ ActiveRecord::Schema[7.2].define(version: 2026_08_12_000000) do
     t.index ["code"], name: "index_coupons_on_code", unique: true
   end
 
+  create_table "customer_highlights", force: :cascade do |t|
+    t.string "customer_name", null: false
+    t.text "quote", null: false
+    t.integer "rating", default: 5, null: false
+    t.integer "position", default: 0, null: false
+    t.boolean "active", default: true, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["active"], name: "index_customer_highlights_on_active"
+    t.index ["position"], name: "index_customer_highlights_on_position"
+  end
+
   create_table "line_items", force: :cascade do |t|
     t.bigint "order_id", null: false
     t.bigint "product_id", null: false
@@ -281,7 +293,9 @@ ActiveRecord::Schema[7.2].define(version: 2026_08_12_000000) do
     t.boolean "active", default: true, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "placement", default: "after_new_arrivals", null: false
     t.index ["active"], name: "index_promotional_banners_on_active"
+    t.index ["placement"], name: "index_promotional_banners_on_placement"
     t.index ["position"], name: "index_promotional_banners_on_position"
   end
 

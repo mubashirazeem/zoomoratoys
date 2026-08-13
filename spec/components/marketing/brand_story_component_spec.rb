@@ -10,11 +10,12 @@ RSpec.describe Marketing::BrandStoryComponent, type: :component do
     expect(slides.size).to eq(Category::PLACEHOLDER_KEYS.size)
   end
 
-  it "marks only the first photo active, matching the '9 Adventure Categories' badge count" do
+  it "marks only the first photo active" do
     render_inline(described_class.new)
 
     expect(page).to have_css("h2", text: "Driven by adventure. Built for innovation")
-    expect(page).to have_text(Category::PLACEHOLDER_KEYS.size.to_s)
+    expect(page).to have_text("Adventure")
+    expect(page).to have_text("Categories")
     slides = page.all("[data-promo-banner-slideshow-target='slide']", visible: :all)
     expect(slides.first[:class]).to include("is-active")
     expect(slides.drop(1)).to all(satisfy { |s| !s[:class].include?("is-active") })

@@ -16,6 +16,7 @@ Rails.application.routes.draw do
     root to: "dashboard#show"
     resources :categories, except: [ :show ]
     resources :promotional_banners, except: [ :show ]
+    resources :customer_highlights, except: [ :show ]
     resources :products, except: [ :show ] do
       resources :variants, controller: "product_variants", except: [ :show ]
     end

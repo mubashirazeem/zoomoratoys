@@ -1,0 +1,60 @@
+<% field_classes = "w-full rounded-[10px] border border-grey-300 bg-grey-50 px-3.5 py-2.5 text-body-sm text-ink-950 placeholder:text-grey-400 transition focus:bg-white focus:border-red-600 focus:ring-4 focus:ring-red-600/10 focus:outline-none" %>
+<% label_classes = "block text-body-sm font-medium text-ink-950 mb-1.5" %>
+
+<%= form_with model: [ :admin, customer_highlight ], class: "flex flex-col gap-5 max-w-xl", multipart: true do |f| %>
+  <% if customer_highlight.errors.any? %>
+    <div role="alert" class="rounded-[12px] bg-red-50 border border-red-200 px-4 py-3 text-body-sm text-red-700">
+      <p class="font-semibold">Couldn't save this highlight:</p>
+      <ul class="mt-1 list-disc list-inside">
+        <% customer_highlight.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div>
+    <%= f.label :customer_name, class: label_classes %>
+    <%= f.text_field :customer_name, placeholder: "e.g. Ahmed R.", class: field_classes %>
+  </div>
+
+  <div>
+    <%= f.label :quote, "Review text", class: label_classes %>
+    <p class="text-body-sm text-grey-500 mb-1.5">Copy this from a real Google review or a customer's message.</p>
+    <%= f.text_area :quote, rows: 3, placeholder: "e.g. Thank you for the awesome bike, really cool and the perfect size.", class: field_classes %>
+  </div>
+
+  <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+    <div>
+      <%= f.label :rating, class: label_classes %>
+      <%= f.select :rating, options_for_select([ [ "★★★★★ (5)", 5 ], [ "★★★★ (4)", 4 ], [ "★★★ (3)", 3 ], [ "★★ (2)", 2 ], [ "★ (1)", 1 ] ], customer_highlight.rating || 5), {}, class: field_classes %>
+    </div>
+    <div>
+      <%= f.label :position, "Display order (lower shows first)", class: label_classes %>
+      <%= f.number_field :position, value: customer_highlight.position || 0, min: 0, class: field_classes %>
+    </div>
+  </div>
+
+  <div>
+    <%= f.label :photo, class: label_classes %>
+    <% if customer_highlight.persisted? && customer_highlight.photo.attached? %>
+      <div class="mb-3">
+        <%= image_tag customer_highlight.photo.variant(resize_to_fill: [ 160, 160 ]), class: "w-[160px] h-[160px] rounded-[10px] object-cover border border-grey-200" %>
+      </div>
+      <p class="text-body-sm text-grey-500 mb-2">Uploading a new photo replaces this one.</p>
+    <% else %>
+      <p class="text-body-sm text-grey-500 mb-2">Optional — a real delivered-product photo works best, but this can be text-only (e.g. a Google review with no photo).</p>
+    <% end %>
+    <%= f.file_field :photo, accept: "image/*", class: "text-body-sm" %>
+  </div>
+
+  <label class="flex items-center gap-2.5 text-body-sm text-ink-950 cursor-pointer">
+    <%= f.check_box :active, class: "w-4 h-4 accent-red-600" %>
+    Show on the home page
+  </label>
+
+  <div class="flex items-center gap-3">
+    <%= render(Ui::ButtonComponent.new(variant: :primary, type: "submit")) { "Save Highlight" } %>
+    <%= link_to "Cancel", admin_customer_highlights_path, class: "text-body-sm font-medium text-grey-600 hover:text-ink-950" %>
+  </div>
+<% end %>

@@ -48,6 +48,6 @@ class Admin::PromotionalBannersController < Admin::BaseController
   end
 
   def promotional_banner_params
-    params.require(:promotional_banner).permit(:title, :description, :cta_label, :cta_url, :position, :active, :image)
+    params.require(:promotional_banner).permit(:title, :description, :cta_label, :cta_url, :position, :active, :image, :placement)
   end
 end

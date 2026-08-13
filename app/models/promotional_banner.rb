@@ -10,6 +10,14 @@ class PromotionalBanner < ApplicationRecord
 
   has_paper_trail
 
+  # Two independent carousel slots on the home page (client feedback,
+  # 2026-08-13: "put another banner here" pointing at the gap between Best
+  # Selling Products and New Arrivals — a second slot, not a replacement for
+  # the existing one between New Arrivals and Explore Categories). Each
+  # slot is its own independent carousel — a banner only ever appears in
+  # the one slot its placement names.
+  PLACEMENTS = %w[before_new_arrivals after_new_arrivals].freeze
+
   # The uploaded photo sits behind a fixed dark gradient overlay (see the
   # component template) so white title/description text stays readable
   # regardless of what image an admin uploads — no separate "tone" field to
@@ -18,6 +26,7 @@ class PromotionalBanner < ApplicationRecord
 
   validates :title, presence: true
   validates :position, presence: true, numericality: { only_integer: true, greater_than_or_equal_to: 0 }
+  validates :placement, presence: true, inclusion: { in: PLACEMENTS }
   validates_image_attachment :image
   # A CTA only makes sense as a pair — a label with nowhere to go, or a URL
   # with no visible button text, are both broken states worth catching at
@@ -30,9 +39,15 @@ class PromotionalBanner < ApplicationRecord
 
   scope :active, -> { where(active: true) }
   scope :ordered, -> { order(:position, :created_at) }
+  scope :before_new_arrivals, -> { where(placement: "before_new_arrivals") }
+  scope :after_new_arrivals, -> { where(placement: "after_new_arrivals") }
 
   def cta?
     cta_label.present? && cta_url.present?
+  end
+
+  def placement_label
+    placement == "before_new_arrivals" ? "Before New Arrivals" : "After New Arrivals"
   end
 
   private

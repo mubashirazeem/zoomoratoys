@@ -25,6 +25,13 @@
   </div>
 </section>
 
+<%# ---- Promotional banners (admin-managed, sliding like the hero) ---- %>
+<% if @promotional_banners_before_new_arrivals.any? %>
+  <div class="pb-14 lg:pb-16">
+    <%= render Marketing::PromoBannerCarouselComponent.new(banners: @promotional_banners_before_new_arrivals) %>
+  </div>
+<% end %>
+
 <%# ---- New Arrivals (grid + show more, same as Best Selling Products) ---- %>
 <% if @new_arrivals.any? %>
   <section class="max-w-7xl mx-auto px-[15px] py-14 lg:py-16">
@@ -41,9 +48,9 @@
 <% end %>
 
 <%# ---- Promotional banners (admin-managed, sliding like the hero) ---- %>
-<% if @promotional_banners.any? %>
+<% if @promotional_banners_after_new_arrivals.any? %>
   <div class="pb-14 lg:pb-16">
-    <%= render Marketing::PromoBannerCarouselComponent.new(banners: @promotional_banners) %>
+    <%= render Marketing::PromoBannerCarouselComponent.new(banners: @promotional_banners_after_new_arrivals) %>
   </div>
 <% end %>
 
@@ -78,6 +85,9 @@
     <%= render Marketing::TrustBadgeComponent.new(icon: "warranty", title: "Manufacturer Warranty", description: "Backed by warranty coverage on every vehicle.") %>
   </div>
 </section>
+
+<%# ---- Happy Customers (admin-curated photos + reviews) ---- %>
+<%= render Marketing::CustomerHighlightsComponent.new(highlights: @customer_highlights) %>
 
 <%= render Marketing::NewsletterComponent.new %>
 

@@ -13,6 +13,7 @@
         <tr class="bg-grey-50/60 border-b border-grey-200 text-[11px] uppercase font-semibold tracking-[0.08em] text-grey-500">
           <th class="px-5 py-3.5">Photo</th>
           <th class="px-5 py-3.5">Title</th>
+          <th class="px-5 py-3.5">Slot</th>
           <th class="px-5 py-3.5">Button</th>
           <th class="px-5 py-3.5">Order</th>
           <th class="px-5 py-3.5">Status</th>
@@ -30,6 +31,7 @@
               <% end %>
             </td>
             <td class="px-5 py-4 font-medium text-ink-950"><%= banner.title %></td>
+            <td class="px-5 py-4 text-grey-500"><%= banner.placement_label %></td>
             <td class="px-5 py-4 text-grey-500"><%= banner.cta? ? banner.cta_label : "—" %></td>
             <td class="px-5 py-3.5"><%= banner.position %></td>
             <td class="px-5 py-3.5">

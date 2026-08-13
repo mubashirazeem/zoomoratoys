@@ -57,4 +57,28 @@ RSpec.describe PromotionalBanner, type: :model do
       expect(PromotionalBanner.ordered).to eq([ first, second, third ])
     end
   end
+
+  describe "placement" do
+    it "defaults to after_new_arrivals — every existing banner keeps its current position" do
+      banner = create(:promotional_banner)
+
+      expect(banner.placement).to eq("after_new_arrivals")
+    end
+
+    it "rejects a placement outside the two known slots" do
+      banner = build(:promotional_banner, placement: "somewhere_else")
+
+      expect(banner).not_to be_valid
+    end
+
+    describe ".before_new_arrivals / .after_new_arrivals" do
+      it "each only returns banners in that slot" do
+        top = create(:promotional_banner, placement: "before_new_arrivals")
+        bottom = create(:promotional_banner, placement: "after_new_arrivals")
+
+        expect(PromotionalBanner.before_new_arrivals).to eq([ top ])
+        expect(PromotionalBanner.after_new_arrivals).to eq([ bottom ])
+      end
+    end
+  end
 end
