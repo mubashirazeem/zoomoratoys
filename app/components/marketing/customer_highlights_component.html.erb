@@ -1,0 +1,37 @@
+<section class="max-w-7xl mx-auto px-[15px] py-14 lg:py-16">
+  <div data-controller="carousel" class="rail">
+    <%= render Marketing::SectionHeadingComponent.new(title: "Happy Customers") do |heading| %>
+      <% heading.with_actions do %>
+        <div class="hidden sm:flex items-center gap-2">
+          <button type="button" data-action="carousel#prev" data-carousel-target="prev" aria-label="Previous" class="rail-arrow w-9 h-9 flex items-center justify-center">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4" aria-hidden="true"><path d="M15 18l-6-6 6-6" /></svg>
+          </button>
+          <button type="button" data-action="carousel#next" data-carousel-target="next" aria-label="Next" class="rail-arrow w-9 h-9 flex items-center justify-center">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4" aria-hidden="true"><path d="M9 18l6-6-6-6" /></svg>
+          </button>
+        </div>
+      <% end %>
+    <% end %>
+
+    <div data-carousel-target="track" class="rail-track flex gap-[30px] overflow-x-auto snap-x snap-mandatory pb-2 cursor-grab" style="scrollbar-width: none;">
+      <% highlights.each do |highlight| %>
+        <div class="snap-start shrink-0 flex w-[80%] sm:w-[46%] lg:w-[calc(33.333%-20px)]">
+          <div class="flex flex-col w-full rounded-[14px] border border-grey-200 bg-white overflow-hidden transition-all duration-300 ease-out hover:-translate-y-1 hover:border-transparent hover:shadow-[0_4px_14px_-6px_rgba(192,24,39,0.1),0_26px_48px_-24px_rgba(10,10,11,0.22)]">
+            <% if highlight.photo.attached? %>
+              <%= image_tag highlight.photo.variant(resize_to_fill: [ 480, 320 ]), alt: "", class: "w-full h-[220px] object-cover" %>
+            <% end %>
+            <div class="flex flex-col gap-3 p-6">
+              <span class="flex items-center gap-0.5" aria-label="<%= highlight.rating %> out of 5 stars">
+                <% highlight.rating.times do %>
+                  <svg viewBox="0 0 24 24" fill="currentColor" class="w-4 h-4 text-red-600" aria-hidden="true"><path d="m12 3.5 2.6 5.2 5.8.8-4.2 4.1 1 5.8-5.2-2.8-5.2 2.8 1-5.8-4.2-4.1 5.8-.8Z"/></svg>
+                <% end %>
+              </span>
+              <p class="text-body-sm text-grey-600 leading-relaxed">&ldquo;<%= highlight.quote %>&rdquo;</p>
+              <span class="text-body-sm font-semibold text-ink-950"><%= highlight.customer_name %></span>
+            </div>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</section>

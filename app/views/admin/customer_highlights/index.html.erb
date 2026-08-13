@@ -1,0 +1,54 @@
+<% content_for :title, "Customer Highlights | Zoomora Admin" %>
+
+<%= render Admin::PageHeaderComponent.new(title: "Customer Highlights", subtitle: "Shown on the home page as a \"Happy Customers\" carousel — real delivered-product photos and reviews, curated by you.") do |header| %>
+  <% header.with_action { render(Ui::ButtonComponent.new(variant: :primary, href: new_admin_customer_highlight_path)) { "New Highlight" } } %>
+<% end %>
+
+<% if @customer_highlights.none? %>
+  <p class="mt-8 text-body-sm text-grey-500">No customer highlights yet. Add one to start showing it on the home page.</p>
+<% else %>
+  <div class="mt-8 rounded-[20px] border border-grey-200 bg-white overflow-hidden shadow-[0_1px_2px_rgba(10,10,11,0.04)] overflow-x-auto">
+    <table class="w-full text-left text-body-sm">
+      <thead>
+        <tr class="bg-grey-50/60 border-b border-grey-200 text-[11px] uppercase font-semibold tracking-[0.08em] text-grey-500">
+          <th class="px-5 py-3.5">Photo</th>
+          <th class="px-5 py-3.5">Customer</th>
+          <th class="px-5 py-3.5">Quote</th>
+          <th class="px-5 py-3.5">Rating</th>
+          <th class="px-5 py-3.5">Order</th>
+          <th class="px-5 py-3.5">Status</th>
+          <th class="px-5 py-3.5"></th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @customer_highlights.each do |highlight| %>
+          <tr class="border-b border-grey-100 last:border-b-0 hover:bg-grey-50/60 transition-colors">
+            <td class="px-5 py-3">
+              <% if highlight.photo.attached? %>
+                <%= image_tag highlight.photo.variant(resize_to_fill: [ 56, 56 ]), class: "w-[56px] h-[56px] rounded-[6px] object-cover border border-grey-200" %>
+              <% else %>
+                <span class="flex items-center justify-center w-[56px] h-[56px] rounded-[6px] bg-grey-100 text-grey-400 text-[10px] font-medium">No photo</span>
+              <% end %>
+            </td>
+            <td class="px-5 py-4 font-medium text-ink-950"><%= highlight.customer_name %></td>
+            <td class="px-5 py-4 text-grey-500 max-w-xs truncate"><%= highlight.quote %></td>
+            <td class="px-5 py-3.5 text-grey-500"><%= "★" * highlight.rating %></td>
+            <td class="px-5 py-3.5"><%= highlight.position %></td>
+            <td class="px-5 py-3.5">
+              <span class="inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.04em] <%= highlight.active? ? "bg-red-600/10 text-red-600" : "bg-grey-100 text-grey-500" %>">
+                <%= highlight.active? ? "Active" : "Hidden" %>
+              </span>
+            </td>
+            <td class="px-5 py-4 text-right whitespace-nowrap">
+              <%= link_to "Edit", edit_admin_customer_highlight_path(highlight), class: "text-red-600 font-medium hover:text-red-700" %>
+              <%= button_to "Delete", admin_customer_highlight_path(highlight), method: :delete,
+                    form: { class: "inline-block ml-3" },
+                    data: { turbo_confirm: "Delete this highlight from #{highlight.customer_name}?" },
+                    class: "text-grey-500 font-medium hover:text-red-600 bg-transparent" %>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+<% end %>

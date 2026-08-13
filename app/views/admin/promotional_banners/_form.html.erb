@@ -50,7 +50,18 @@
   </div>
 
   <div>
-    <%= f.label :position, "Display order (lower shows first)", class: label_classes %>
+    <%= f.label :placement, "Where on the home page", class: label_classes %>
+    <p class="text-body-sm text-grey-500 mb-1.5">Each option is its own separate sliding carousel.</p>
+    <%= f.select :placement,
+          options_for_select([
+            [ "Between Best Selling Products and New Arrivals", "before_new_arrivals" ],
+            [ "Between New Arrivals and Explore Categories", "after_new_arrivals" ]
+          ], promotional_banner.placement),
+          {}, class: field_classes %>
+  </div>
+
+  <div>
+    <%= f.label :position, "Display order within this slot (lower shows first)", class: label_classes %>
     <%= f.number_field :position, value: promotional_banner.position || 0, min: 0, class: field_classes %>
   </div>
 
