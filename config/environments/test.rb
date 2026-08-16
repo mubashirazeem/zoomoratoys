@@ -47,6 +47,13 @@ Rails.application.configure do
   # incoming request so you'll need to provide the :host parameter yourself.
   config.action_mailer.default_url_options = { host: "www.example.com" }
 
+  # Jobs enqueued in a spec (e.g. ExchangeRates::RefreshJob) are recorded,
+  # not actually run — real jobs already run fine via the default :async
+  # adapter outside tests; this just lets specs assert on what got enqueued
+  # (have_enqueued_job) without a job's side effects (a real HTTP call, for
+  # ExchangeRates::RefreshJob) ever firing during a test run.
+  config.active_job.queue_adapter = :test
+
   # Print deprecation notices to the stderr.
   config.active_support.deprecation = :stderr
 

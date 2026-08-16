@@ -20,6 +20,18 @@ RSpec.describe "Carts", type: :request do
       expect(response.body).to include("AED 200")
     end
 
+    it "shows the converted USD price and an AED-billing disclaimer when the visitor has picked USD" do
+      product = create(:product, name: "Trailhawk Off-Road Scooter", price_cents: 100_00)
+      ExchangeRate.create!(usd_per_aed: 0.272294, fetched_at: Time.current)
+      cookies[:currency] = "USD"
+
+      post cart_items_path, params: { product_id: product.slug, quantity: 2 }
+      get cart_path
+
+      expect(response.body).to include("$54.46 USD")
+      expect(response.body).to include("We process all orders in AED")
+    end
+
     it "shows a signed-in user's own cart" do
       user = create(:user)
       product = create(:product, name: "Boardwalk Cruiser")

@@ -17,7 +17,7 @@ class Layout::MiniCartComponent < ViewComponent::Base
 
   attr_reader :cart_items, :subtotal_cents, :suggested_products
 
-  def format_aed(cents)
-    helpers.format_aed(cents)
+  def format_price(cents)
+    helpers.format_price(cents)
   end
 end

@@ -11,7 +11,10 @@ Items:
 
 Subtotal: <%= format_aed(@order.subtotal_cents) %>
 <% if @order.gift_wrap_cents.positive? -%>
-Gift wrap: <%= format_aed(@order.gift_wrap_cents) %>
+Gift wrap<%= " (#{@order.gift_wrap_name})" if @order.gift_wrap_name.present? %>: <%= format_aed(@order.gift_wrap_cents) %>
+<% end -%>
+<% if @order.delivery_fee_cents.positive? -%>
+Express delivery: <%= format_aed(@order.delivery_fee_cents) %>
 <% end -%>
 <% if @order.discount_cents.positive? -%>
 Discount: -<%= format_aed(@order.discount_cents) %>

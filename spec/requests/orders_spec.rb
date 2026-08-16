@@ -71,6 +71,23 @@ RSpec.describe "Orders", type: :request do
       expect(response.body).to include(order.shipping_name)
     end
 
+    it "shows the real AED total on a past order even if the customer is currently shopping in USD" do
+      user = create(:user)
+      order = create(:order, user: user, total_cents: 21_500)
+      create(:line_item, order: order, quantity: 2, price_cents: 5_000)
+      sign_in user
+      ExchangeRate.create!(usd_per_aed: 0.272294, fetched_at: Time.current)
+      cookies[:currency] = "USD"
+
+      get order_path(order)
+
+      # Scoped to the order details card, not the whole page — the header's
+      # mega-menu legitimately shows *other* products converted to USD.
+      order_card = Nokogiri::HTML::Document.parse(response.body).at_css("div.mt-10.grid")
+      expect(order_card.text).to include("AED 215")
+      expect(order_card.text).not_to match(/\$[\d,]+\.\d{2}/)
+    end
+
     it "shows a real, no-login-required Stripe invoice link to the order's own customer" do
       user = create(:user)
       order = create(:order, user: user, payment_method: "card", status: "processing",

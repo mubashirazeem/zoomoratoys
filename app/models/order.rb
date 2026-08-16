@@ -77,6 +77,9 @@ class Order < ApplicationRecord
   validates :total_cents, presence: true, numericality: { only_integer: true, greater_than_or_equal_to: 0 }
   validates :subtotal_cents, presence: true, numericality: { only_integer: true, greater_than_or_equal_to: 0 }
   validates :gift_wrap_cents, presence: true, numericality: { only_integer: true, greater_than_or_equal_to: 0 }
+  validates :gift_wrap_name, length: { maximum: 100 }
+  validates :delivery_method, presence: true, inclusion: { in: %w[standard express] }
+  validates :delivery_fee_cents, presence: true, numericality: { only_integer: true, greater_than_or_equal_to: 0 }
   validates :discount_cents, presence: true, numericality: { only_integer: true, greater_than_or_equal_to: 0 }
   validates :placed_at, presence: true
   validates :shipping_name, :shipping_address_line1, :shipping_city, presence: true, length: { maximum: 150 }
@@ -115,7 +118,7 @@ class Order < ApplicationRecord
   # forces a concurrent second attempt to wait until the first commits (and
   # destroys cart_items), then re-read cart_items fresh via a direct query
   # (not the cart's possibly-already-loaded association) and find it empty.
-  def self.create_from_cart!(cart:, user:, shipping_attributes:, gift_wrap: false, gift_wrap_cents: 0, payment_method: "pay_on_delivery", discount_cents: 0, coupon: nil)
+  def self.create_from_cart!(cart:, user:, shipping_attributes:, gift_wrap: false, gift_wrap_cents: 0, gift_wrap_name: nil, delivery_method: "standard", delivery_fee_cents: 0, payment_method: "pay_on_delivery", discount_cents: 0, coupon: nil)
     transaction do
       cart.lock!
       items = CartItem.where(cart_id: cart.id).includes(:product, :product_variant).to_a
@@ -140,14 +143,19 @@ class Order < ApplicationRecord
       end
 
       applied_gift_wrap_cents = gift_wrap ? gift_wrap_cents : 0
+      applied_gift_wrap_name = gift_wrap ? gift_wrap_name.presence : nil
+      applied_delivery_fee_cents = delivery_method == "express" ? delivery_fee_cents : 0
       order = create!(
         user: user,
         order_number: generate_order_number,
         placed_at: Time.current,
         subtotal_cents: cart.total_cents,
         gift_wrap_cents: applied_gift_wrap_cents,
+        gift_wrap_name: applied_gift_wrap_name,
+        delivery_method: delivery_method,
+        delivery_fee_cents: applied_delivery_fee_cents,
         discount_cents: discount_cents,
-        total_cents: cart.total_cents + applied_gift_wrap_cents - discount_cents,
+        total_cents: cart.total_cents + applied_gift_wrap_cents + applied_delivery_fee_cents - discount_cents,
         payment_method: payment_method,
         status: payment_method == "card" ? "awaiting_payment" : "pending",
         coupon: coupon,
