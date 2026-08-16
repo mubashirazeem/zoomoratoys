@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_08_13_000001) do
+ActiveRecord::Schema[7.2].define(version: 2026_08_16_184522) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_trgm"
   enable_extension "plpgsql"
@@ -166,6 +166,15 @@ ActiveRecord::Schema[7.2].define(version: 2026_08_13_000001) do
     t.index ["position"], name: "index_customer_highlights_on_position"
   end
 
+  create_table "exchange_rates", force: :cascade do |t|
+    t.decimal "usd_per_aed", precision: 12, scale: 6, null: false
+    t.datetime "fetched_at", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.integer "singleton_guard", default: 1, null: false
+    t.index ["singleton_guard"], name: "index_exchange_rates_on_singleton_guard", unique: true
+  end
+
   create_table "line_items", force: :cascade do |t|
     t.bigint "order_id", null: false
     t.bigint "product_id", null: false
@@ -218,6 +227,9 @@ ActiveRecord::Schema[7.2].define(version: 2026_08_13_000001) do
     t.string "stripe_hosted_invoice_url"
     t.bigint "coupon_id"
     t.string "stripe_dispute_status"
+    t.string "gift_wrap_name"
+    t.string "delivery_method", default: "standard", null: false
+    t.integer "delivery_fee_cents", default: 0, null: false
     t.index ["coupon_id"], name: "index_orders_on_coupon_id"
     t.index ["order_number"], name: "index_orders_on_order_number", unique: true
     t.index ["order_number"], name: "index_orders_on_order_number_trgm", opclass: :gin_trgm_ops, using: :gin

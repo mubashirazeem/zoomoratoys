@@ -31,7 +31,7 @@ RSpec.describe Layout::SiteFooterComponent, type: :component do
   it "renders contact details and the current year in the copyright line" do
     render_inline(described_class.new)
 
-    expect(page).to have_link(href: "mailto:hello@zoomora.com")
+    expect(page).to have_link(href: "mailto:sales@zoomora.com")
     expect(page).to have_text("Dubai, United Arab Emirates")
     expect(page).to have_text("#{Date.current.year} Zoomora")
   end

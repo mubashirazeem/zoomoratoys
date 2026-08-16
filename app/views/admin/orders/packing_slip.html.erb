@@ -17,7 +17,12 @@
     <p class="text-[11px] uppercase font-semibold tracking-[0.08em] text-grey-500 mb-2">Shipment Details</p>
     <p class="text-body-sm text-grey-600">Items: <%= @line_items.sum(&:quantity) %></p>
     <% if @order.gift_wrap_cents.to_i.positive? %>
-      <p class="text-body-sm text-grey-600">Gift wrap requested</p>
+      <p class="text-body-sm text-grey-600">
+        Gift wrap requested<%= " — sticker name: #{@order.gift_wrap_name}" if @order.gift_wrap_name.present? %>
+      </p>
+    <% end %>
+    <% if @order.delivery_fee_cents.to_i.positive? %>
+      <p class="text-body-sm font-semibold text-red-600">Express delivery — pack and ship first</p>
     <% end %>
   </div>
 </div>

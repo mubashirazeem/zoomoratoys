@@ -45,8 +45,14 @@
     </tr>
     <% if @order.gift_wrap_cents.to_i.positive? %>
       <tr>
-        <td colspan="3" class="pt-1.5 text-right text-grey-600">Gift wrap</td>
+        <td colspan="3" class="pt-1.5 text-right text-grey-600">Gift wrap<%= " (#{@order.gift_wrap_name})" if @order.gift_wrap_name.present? %></td>
         <td class="pt-1.5 text-right font-mono"><%= format_aed(@order.gift_wrap_cents) %></td>
+      </tr>
+    <% end %>
+    <% if @order.delivery_fee_cents.to_i.positive? %>
+      <tr>
+        <td colspan="3" class="pt-1.5 text-right text-grey-600">Express delivery</td>
+        <td class="pt-1.5 text-right font-mono"><%= format_aed(@order.delivery_fee_cents) %></td>
       </tr>
     <% end %>
     <% if @order.discount_cents.to_i.positive? %>

@@ -275,6 +275,88 @@ RSpec.describe Order, type: :model do
       expect(order.total_cents).to eq(11_500)
     end
 
+    it "saves the gift wrap sticker name only when gift wrap is actually requested" do
+      product = create(:product, price_cents: 10_000, stock_quantity: 5)
+      cart = create(:cart, user: user)
+      create(:cart_item, cart: cart, product: product, quantity: 1)
+
+      order = Order.create_from_cart!(
+        cart: cart, user: user, shipping_attributes: shipping_attributes,
+        gift_wrap: true, gift_wrap_cents: 5_000, gift_wrap_name: "Happy Birthday, Sara!"
+      )
+
+      expect(order.gift_wrap_name).to eq("Happy Birthday, Sara!")
+    end
+
+    it "does not save a gift wrap name when gift wrap itself wasn't requested" do
+      product = create(:product, price_cents: 10_000, stock_quantity: 5)
+      cart = create(:cart, user: user)
+      create(:cart_item, cart: cart, product: product, quantity: 1)
+
+      order = Order.create_from_cart!(
+        cart: cart, user: user, shipping_attributes: shipping_attributes,
+        gift_wrap: false, gift_wrap_name: "Should be ignored"
+      )
+
+      expect(order.gift_wrap_cents).to eq(0)
+      expect(order.gift_wrap_name).to be_nil
+    end
+
+    it "defaults to standard delivery with no fee" do
+      product = create(:product, price_cents: 10_000, stock_quantity: 5)
+      cart = create(:cart, user: user)
+      create(:cart_item, cart: cart, product: product, quantity: 1)
+
+      order = Order.create_from_cart!(cart: cart, user: user, shipping_attributes: shipping_attributes)
+
+      expect(order.delivery_method).to eq("standard")
+      expect(order.delivery_fee_cents).to eq(0)
+      expect(order.total_cents).to eq(10_000)
+    end
+
+    it "adds the express delivery fee to the total when requested" do
+      product = create(:product, price_cents: 10_000, stock_quantity: 5)
+      cart = create(:cart, user: user)
+      create(:cart_item, cart: cart, product: product, quantity: 1)
+
+      order = Order.create_from_cart!(
+        cart: cart, user: user, shipping_attributes: shipping_attributes,
+        delivery_method: "express", delivery_fee_cents: 10_000
+      )
+
+      expect(order.delivery_method).to eq("express")
+      expect(order.delivery_fee_cents).to eq(10_000)
+      expect(order.total_cents).to eq(20_000)
+    end
+
+    it "ignores a delivery fee unless delivery_method is actually express" do
+      product = create(:product, price_cents: 10_000, stock_quantity: 5)
+      cart = create(:cart, user: user)
+      create(:cart_item, cart: cart, product: product, quantity: 1)
+
+      order = Order.create_from_cart!(
+        cart: cart, user: user, shipping_attributes: shipping_attributes,
+        delivery_method: "standard", delivery_fee_cents: 10_000
+      )
+
+      expect(order.delivery_fee_cents).to eq(0)
+      expect(order.total_cents).to eq(10_000)
+    end
+
+    it "combines gift wrap and express delivery in the total together" do
+      product = create(:product, price_cents: 10_000, stock_quantity: 5)
+      cart = create(:cart, user: user)
+      create(:cart_item, cart: cart, product: product, quantity: 1)
+
+      order = Order.create_from_cart!(
+        cart: cart, user: user, shipping_attributes: shipping_attributes,
+        gift_wrap: true, gift_wrap_cents: 5_000, gift_wrap_name: "For Ahmed",
+        delivery_method: "express", delivery_fee_cents: 10_000
+      )
+
+      expect(order.total_cents).to eq(10_000 + 5_000 + 10_000)
+    end
+
     it "creates a card order as awaiting_payment instead of pending" do
       product = create(:product, price_cents: 10_000, stock_quantity: 5)
       cart = create(:cart, user: user)

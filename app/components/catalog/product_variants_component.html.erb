@@ -26,7 +26,7 @@
     This combination isn't available.
   </p>
   <p class="text-body-sm text-grey-600">
-    <span data-product-variant-picker-target="priceSummary" class="font-semibold text-ink-950"><%= helpers.format_aed(default_variant.effective_price_cents) %></span>
+    <span data-product-variant-picker-target="priceSummary" class="font-semibold text-ink-950"><%= helpers.format_price(default_variant.effective_price_cents) %></span>
     · SKU: <span data-product-variant-picker-target="sku"><%= default_variant.sku %></span>
     <span data-product-variant-picker-target="stockNotice" class="text-red-600 font-medium ml-1"><%= default_variant.in_stock? ? "" : "Out of stock" %></span>
   </p>

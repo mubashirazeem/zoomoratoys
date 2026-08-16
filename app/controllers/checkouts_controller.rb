@@ -17,6 +17,7 @@ class CheckoutsController < ApplicationController
 
   def show
     @gift_wrap_cents = CartsController::GIFT_WRAP_CENTS
+    @express_delivery_cents = CartsController::EXPRESS_DELIVERY_CENTS
     @addresses = current_user.addresses.ordered
   end
 
@@ -34,6 +35,8 @@ class CheckoutsController < ApplicationController
       stripe_checkout_url = Payments::CreateCardOrder.call(
         cart: current_cart, user: current_user, shipping_attributes: shipping_attributes,
         gift_wrap: params[:gift_wrap].present?, gift_wrap_cents: CartsController::GIFT_WRAP_CENTS,
+        gift_wrap_name: params[:gift_wrap_name], delivery_method: selected_delivery_method,
+        delivery_fee_cents: CartsController::EXPRESS_DELIVERY_CENTS,
         success_url_for: ->(order) { checkout_confirmation_url(order.order_number) },
         cancel_url: checkout_url
       )
@@ -45,7 +48,10 @@ class CheckoutsController < ApplicationController
         user: current_user,
         shipping_attributes: shipping_attributes,
         gift_wrap: params[:gift_wrap].present?,
-        gift_wrap_cents: CartsController::GIFT_WRAP_CENTS
+        gift_wrap_cents: CartsController::GIFT_WRAP_CENTS,
+        gift_wrap_name: params[:gift_wrap_name],
+        delivery_method: selected_delivery_method,
+        delivery_fee_cents: CartsController::EXPRESS_DELIVERY_CENTS
       )
       save_address_for_next_time if params[:save_address].present?
       # Card orders are confirmed by mail once Payments::WebhookHandler
@@ -61,6 +67,7 @@ class CheckoutsController < ApplicationController
     redirect_to cart_path, alert: "It looks like this order was already placed — check your order history before trying again."
   rescue ActiveRecord::RecordInvalid => e
     @gift_wrap_cents = CartsController::GIFT_WRAP_CENTS
+    @express_delivery_cents = CartsController::EXPRESS_DELIVERY_CENTS
     @addresses = current_user.addresses.ordered
     flash.now[:alert] = e.record.errors.full_messages.to_sentence
     render :show, status: :unprocessable_content
@@ -93,6 +100,14 @@ class CheckoutsController < ApplicationController
     return unless current_cart.cart_items.any?(&:stock_shortfall?)
 
     redirect_to cart_path, alert: "Something in your cart is no longer available in that quantity — please update your cart before checking out."
+  end
+
+  # Only "express" is ever opted into from the form (a radio button) —
+  # anything else, including a tampered or missing param, falls back to the
+  # always-free "standard" delivery rather than raising, so a malformed
+  # request never lands on the Order model's stricter validation instead.
+  def selected_delivery_method
+    params[:delivery_method] == "express" ? "express" : "standard"
   end
 
   def shipping_attributes

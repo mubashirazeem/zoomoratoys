@@ -59,11 +59,24 @@ module Payments
       end
 
       if order.gift_wrap_cents.positive?
+        gift_wrap_name = order.gift_wrap_name.presence
         items << {
           price_data: {
             currency: "aed",
             unit_amount: order.gift_wrap_cents,
-            product_data: { name: "Gift wrap" }
+            product_data: { name: gift_wrap_name ? "Gift wrap (#{gift_wrap_name})" : "Gift wrap" }
+          },
+          quantity: 1,
+          tax_rates: [ tax_rate_id ]
+        }
+      end
+
+      if order.delivery_fee_cents.positive?
+        items << {
+          price_data: {
+            currency: "aed",
+            unit_amount: order.delivery_fee_cents,
+            product_data: { name: "Express delivery" }
           },
           quantity: 1,
           tax_rates: [ tax_rate_id ]

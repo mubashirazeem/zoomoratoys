@@ -21,7 +21,8 @@ module Payments
       new(...).call
     end
 
-    def initialize(cart:, user:, shipping_attributes:, success_url_for:, cancel_url:, gift_wrap: false, gift_wrap_cents: 0)
+    def initialize(cart:, user:, shipping_attributes:, success_url_for:, cancel_url:, gift_wrap: false, gift_wrap_cents: 0,
+                   gift_wrap_name: nil, delivery_method: "standard", delivery_fee_cents: 0)
       @cart = cart
       @user = user
       @shipping_attributes = shipping_attributes
@@ -29,6 +30,9 @@ module Payments
       @cancel_url = cancel_url
       @gift_wrap = gift_wrap
       @gift_wrap_cents = gift_wrap_cents
+      @gift_wrap_name = gift_wrap_name
+      @delivery_method = delivery_method
+      @delivery_fee_cents = delivery_fee_cents
     end
 
     def call
@@ -37,7 +41,8 @@ module Payments
       ActiveRecord::Base.transaction do
         order = Order.create_from_cart!(
           cart: @cart, user: @user, shipping_attributes: @shipping_attributes,
-          gift_wrap: @gift_wrap, gift_wrap_cents: @gift_wrap_cents, payment_method: "card",
+          gift_wrap: @gift_wrap, gift_wrap_cents: @gift_wrap_cents, gift_wrap_name: @gift_wrap_name,
+          delivery_method: @delivery_method, delivery_fee_cents: @delivery_fee_cents, payment_method: "card",
           discount_cents: applied_discount_cents, coupon: applicable_coupon
         )
         session = StripeCheckoutSessionBuilder.call(

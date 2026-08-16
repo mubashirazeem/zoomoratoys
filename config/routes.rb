@@ -46,6 +46,8 @@ Rails.application.routes.draw do
   get "wishlist", to: "wishlists#show", as: :wishlist
   post "wishlist_items/:product_id/toggle", to: "wishlist_items#toggle", as: :toggle_wishlist_item
 
+  post "currency", to: "currencies#update", as: :currency
+
   resource :checkout, only: [ :show, :create ]
   get "checkout/confirmation/:order_number", to: "checkouts#confirmation", as: :checkout_confirmation
   resource :billing_portal, only: :create, controller: "billing_portal"

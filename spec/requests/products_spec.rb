@@ -161,6 +161,25 @@ RSpec.describe "Products", type: :request do
       expect(response).to have_http_status(:not_found)
     end
 
+    it "shows the AED price by default" do
+      product = create(:product, name: "Ember Trail Dirt Bike 125", price_cents: 60_000)
+
+      get product_path(product)
+
+      expect(response.body).to include("AED 600")
+    end
+
+    it "shows the converted USD price when the visitor has picked USD" do
+      product = create(:product, name: "Ember Trail Dirt Bike 125", price_cents: 60_000)
+      ExchangeRate.create!(usd_per_aed: 0.272294, fetched_at: Time.current)
+      cookies[:currency] = "USD"
+
+      get product_path(product)
+
+      expect(response.body).to include("$163.38 USD")
+      expect(response.body).not_to include("AED 600")
+    end
+
     it "disables Add to Cart and Buy It Now for a plain out-of-stock product" do
       product = create(:product, stock_quantity: 0, stock_status: "sold_out")
 

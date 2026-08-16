@@ -69,7 +69,7 @@
               </div>
 
               <div class="lg:text-center text-body-sm">
-                <span class="lg:hidden text-grey-500">Price: </span><%= format_aed(item.unit_price_cents) %>
+                <span class="lg:hidden text-grey-500">Price: </span><%= format_price(item.unit_price_cents) %>
               </div>
 
               <div class="lg:flex lg:justify-center">
@@ -90,7 +90,7 @@
                 </div>
               </div>
 
-              <div class="lg:text-center font-semibold text-ink-950"><%= format_aed(item.line_total_cents) %></div>
+              <div class="lg:text-center font-semibold text-ink-950"><%= format_price(item.line_total_cents) %></div>
 
               <%= button_to cart_item_path(item), method: :delete,
                     form: { class: "justify-self-end lg:justify-self-center" },
@@ -119,12 +119,12 @@
         <div class="flex flex-col gap-3 text-body-sm">
           <div class="flex justify-between">
             <span class="text-grey-600">Subtotal</span>
-            <span class="font-medium text-ink-950"><%= format_aed(@cart_subtotal_cents) %></span>
+            <span class="font-medium text-ink-950"><%= format_price(@cart_subtotal_cents) %></span>
           </div>
           <% if current_cart.persisted? && current_cart.discount_cents.positive? %>
             <div class="flex justify-between">
               <span class="text-grey-600">Discount</span>
-              <span class="font-medium text-red-600">−<%= format_aed(current_cart.discount_cents) %></span>
+              <span class="font-medium text-red-600">−<%= format_price(current_cart.discount_cents) %></span>
             </div>
           <% end %>
           <div class="flex justify-between">
@@ -137,12 +137,15 @@
         <div class="border-t border-grey-200 pt-4 flex justify-between items-baseline">
           <span class="font-display font-bold text-ink-950">Total</span>
           <span class="font-display font-bold text-[22px] text-ink-950">
-            <%= format_aed(current_cart.persisted? ? current_cart.total_after_discount_cents : @cart_subtotal_cents) %>
+            <%= format_price(current_cart.persisted? ? current_cart.total_after_discount_cents : @cart_subtotal_cents) %>
           </span>
         </div>
         <p class="text-[12px] text-grey-500 -mt-3"><%= vat_inclusive_note(current_cart.persisted? ? current_cart.total_after_discount_cents : @cart_subtotal_cents) %></p>
         <% if current_cart.persisted? && current_cart.discount_cents.positive? %>
           <p class="text-[12px] text-grey-500 -mt-3">Coupon preview only — not yet applied at checkout.</p>
+        <% end %>
+        <% if display_currency != "AED" %>
+          <p class="text-[12px] text-grey-500 -mt-3">We process all orders in AED — you'll be charged using the most current exchange rate at checkout.</p>
         <% end %>
 
         <% if @cart_items.any?(&:stock_shortfall?) %>

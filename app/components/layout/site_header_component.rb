@@ -4,9 +4,14 @@
 # (phone/email), main bar (logo + search + account/wishlist/cart/currency),
 # and a category-driven primary nav that wraps and condenses on scroll.
 #
-# Currency selection is a presentational placeholder for this frontend-only
-# pass — there is no multi-currency support yet (see PROJECT_VISION.md
-# non-goals). The account link reflects a real Devise session (see
+# Currency selection (see CurrenciesController/ExchangeRate) is real:
+# picking AED/USD sets a cookie that ApplicationHelper#format_price reads
+# on every subsequent page, converting every shopping-flow price shown
+# (product cards, product detail, cart, checkout summary). It never
+# touches what's actually charged — Payments::StripeCheckoutSessionBuilder
+# stays hardcoded to "aed", same as every post-purchase record (order
+# confirmation, invoices, emails). The account link reflects a real Devise
+# session (see
 # Users::RegistrationsController), the wishlist link opens the real (session-
 # less, demo-data) wishlist page — see WishlistsController — and the cart
 # icon opens the real (session-less, demo-data) mini-cart drawer — see
@@ -33,7 +38,11 @@ class Layout::SiteHeaderComponent < ViewComponent::Base
   end
 
   def formatted_price(cents)
-    helpers.format_aed(cents)
+    helpers.format_price(cents)
+  end
+
+  def display_currency
+    helpers.display_currency
   end
 
   def nav_items

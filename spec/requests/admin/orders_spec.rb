@@ -290,6 +290,24 @@ RSpec.describe "Admin::Orders", type: :request do
       expect(response.body).to include("AED 10.24")
     end
 
+    it "ignores the storefront currency cookie entirely — the invoice, packing slip, and order show page are all real AED receipts regardless of what a shopper had picked" do
+      order = create(:order, total_cents: 21_500, subtotal_cents: 20_000, gift_wrap_cents: 1_500)
+      create(:line_item, order: order, quantity: 2, price_cents: 10_000)
+      ExchangeRate.create!(usd_per_aed: 0.272294, fetched_at: Time.current)
+      cookies[:currency] = "USD"
+
+      get invoice_admin_order_path(order)
+      expect(response.body).to include("AED 215")
+      expect(response.body).not_to match(/\$[\d,]+\.\d{2}/)
+
+      get packing_slip_admin_order_path(order)
+      expect(response.body).not_to match(/\$[\d,]+\.\d{2}/)
+
+      get admin_order_path(order)
+      expect(response.body).to include("AED 215")
+      expect(response.body).not_to match(/\$[\d,]+\.\d{2}/)
+    end
+
     it "shows a discount line on the invoice when the order has one" do
       order = create(:order, discount_cents: 2_000, total_cents: 8_000)
       create(:line_item, order: order, quantity: 1, price_cents: 10_000)

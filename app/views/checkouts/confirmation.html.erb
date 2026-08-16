@@ -38,8 +38,14 @@
       </div>
       <% if @order.gift_wrap_cents.positive? %>
         <div class="flex justify-between">
-          <span class="text-grey-600">Gift wrap</span>
+          <span class="text-grey-600">Gift wrap<%= " (#{@order.gift_wrap_name})" if @order.gift_wrap_name.present? %></span>
           <span class="font-medium text-ink-950"><%= format_aed(@order.gift_wrap_cents) %></span>
+        </div>
+      <% end %>
+      <% if @order.delivery_fee_cents.positive? %>
+        <div class="flex justify-between">
+          <span class="text-grey-600">Express delivery</span>
+          <span class="font-medium text-ink-950"><%= format_aed(@order.delivery_fee_cents) %></span>
         </div>
       <% end %>
       <div class="flex justify-between font-display font-bold text-ink-950 text-[16px] pt-2">

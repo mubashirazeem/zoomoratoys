@@ -69,7 +69,7 @@
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" class="w-3 h-3" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
                     <% end %>
                   </div>
-                  <span class="text-body-sm font-semibold text-ink-950"><%= format_aed(item.line_total_cents) %></span>
+                  <span class="text-body-sm font-semibold text-ink-950"><%= format_price(item.line_total_cents) %></span>
                 </div>
               </div>
               <%= button_to cart_item_path(item), method: :delete,
@@ -89,7 +89,7 @@
                 <%= link_to product_path(product), class: "shrink-0 w-28 group" do %>
                   <%= image_tag product.display_photo(resize_to_fill: [ 224, 224 ]), alt: "", class: "w-28 h-28 rounded-[10px] object-cover bg-grey-50 transition-transform duration-300 group-hover:scale-105" %>
                   <p class="mt-1.5 text-[12px] text-ink-950 line-clamp-2 group-hover:text-red-600"><%= product.name %></p>
-                  <p class="text-[12px] font-semibold text-ink-950"><%= format_aed(product.price_cents) %></p>
+                  <p class="text-[12px] font-semibold text-ink-950"><%= format_price(product.price_cents) %></p>
                 <% end %>
               <% end %>
             </div>
@@ -99,11 +99,11 @@
         <div class="mt-5 pt-4 border-t border-grey-200 flex flex-col gap-2 text-body-sm">
           <div class="flex justify-between">
             <span class="text-grey-600">Subtotal</span>
-            <span class="font-semibold text-ink-950"><%= format_aed(subtotal_cents) %></span>
+            <span class="font-semibold text-ink-950"><%= format_price(subtotal_cents) %></span>
           </div>
           <div class="flex justify-between">
             <span class="text-grey-600">Total</span>
-            <span class="font-bold text-ink-950 text-[16px]"><%= format_aed(subtotal_cents) %></span>
+            <span class="font-bold text-ink-950 text-[16px]"><%= format_price(subtotal_cents) %></span>
           </div>
           <p class="text-[12px] text-grey-500">Shipping is free across the UAE.</p>
         </div>

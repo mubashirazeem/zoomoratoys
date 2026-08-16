@@ -1,10 +1,45 @@
 module ApplicationHelper
-  # Renders an integer cent amount (see DATABASE_GUIDELINES.md) as "AED
+  # See CurrenciesController and ExchangeRate — the only two currencies a
+  # visitor can pick to *display* prices in. The actual charge is always
+  # AED (Payments::StripeCheckoutSessionBuilder is hardcoded to "aed" and
+  # stays that way); nothing here ever touches money that's actually
+  # collected, only what a shopping page shows before checkout.
+  DISPLAY_CURRENCIES = %w[AED USD].freeze
+
+  # The visitor's chosen display currency — a plain (not signed) cookie,
+  # since tampering with it can only change what's shown, never what's
+  # charged. Defaults to AED for anyone who's never picked one.
+  def display_currency
+    cookies[:currency].presence_in(DISPLAY_CURRENCIES) || "AED"
+  end
+
+  # Renders an integer AED-cent amount (see DATABASE_GUIDELINES.md) as "AED
   # 1,234" — this catalog's price points have no fractional AED, so there's
   # no decimal handling to worry about. The single formatter for currency
   # anywhere in the app; components reach it via `helpers.format_aed`.
+  #
+  # This always renders the real AED amount regardless of
+  # display_currency — used for anything that's a record of what was
+  # actually charged (admin, invoices, packing slip, order confirmation,
+  # order history, every email) or a VAT figure tied to that real amount.
+  # For a pre-purchase shopping page, use format_price instead.
   def format_aed(cents)
     "AED #{number_with_thousands(cents / 100)}"
+  end
+
+  # Same amount as format_aed, converted to the visitor's chosen display
+  # currency (ExchangeRate.current_usd_per_aed backs the AED->USD rate).
+  # For shopping-flow pages only (product cards, cart, checkout summary) —
+  # see format_aed's own comment for where to use that one instead. Unlike
+  # format_aed, this keeps two decimal places once converted: AED price
+  # points land on whole dirhams, but their USD equivalent routinely
+  # doesn't (AED 600 -> $163.38, not $163).
+  def format_price(cents)
+    return format_aed(cents) if display_currency == "AED"
+
+    usd_cents = (cents * ExchangeRate.current_usd_per_aed).round
+    whole, sub_units = usd_cents.divmod(100)
+    "$#{number_with_thousands(whole)}.#{sub_units.to_s.rjust(2, '0')} USD"
   end
 
   # Same currency, but keeps fils (the 2 decimal places format_aed
