@@ -203,6 +203,51 @@ RSpec.describe "Orders", type: :request do
       expect(order.reload.stripe_checkout_session_id).to be_present
     end
 
+    it "sends a still-awaiting-payment Tabby order to a fresh Tabby checkout session, never reusing the old payment_id" do
+      user = create(:user)
+      product = create(:product, price_cents: 10_000, stock_quantity: 5)
+      order = create(:order, user: user, payment_method: "tabby", status: "awaiting_payment",
+                              total_cents: 10_000, subtotal_cents: 10_000, tabby_payment_id: "pay_old")
+      create(:line_item, order: order, product: product, quantity: 1, price_cents: 10_000)
+      sign_in user
+
+      http = instance_double(Net::HTTP)
+      allow(Net::HTTP).to receive(:start).and_yield(http)
+      response_double = instance_double(Net::HTTPResponse, body: {
+        "payment" => { "id" => "pay_new" },
+        "configuration" => { "available_products" => { "installments" => [ { "web_url" => "https://checkout.tabby.ai/pay_new" } ] } }
+      }.to_json, is_a?: true, code: "200")
+      allow(http).to receive(:request).and_return(response_double)
+
+      post resume_payment_order_path(order)
+
+      expect(response).to redirect_to("https://checkout.tabby.ai/pay_new")
+      expect(order.reload.tabby_payment_id).to eq("pay_new")
+    end
+
+    it "shows Tabby's rejection message (not a generic error) when a resume attempt is rejected, leaving the order untouched" do
+      user = create(:user)
+      product = create(:product, price_cents: 10_000, stock_quantity: 5)
+      order = create(:order, user: user, payment_method: "tabby", status: "awaiting_payment",
+                              total_cents: 10_000, subtotal_cents: 10_000, tabby_payment_id: "pay_old")
+      create(:line_item, order: order, product: product, quantity: 1, price_cents: 10_000)
+      sign_in user
+
+      allow(Payments::Tabby).to receive(:post).and_return({
+        "status" => "rejected",
+        "configuration" => { "products" => { "installments" => { "is_available" => false, "rejection_reason" => "not_available" } } }
+      })
+      expect(Sentry).not_to receive(:capture_exception)
+
+      post resume_payment_order_path(order)
+
+      expect(response).to redirect_to(order_path(order))
+      follow_redirect!
+      expect(response.body).to include("Tabby isn&#39;t available for this order right now.")
+      expect(order.reload.status).to eq("awaiting_payment")
+      expect(order.tabby_payment_id).to eq("pay_old")
+    end
+
     it "refuses to resume a Pay on Delivery order — there's no Stripe payment to restart" do
       user = create(:user)
       order = create(:order, user: user, payment_method: "pay_on_delivery", status: "pending")

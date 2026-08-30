@@ -148,6 +148,16 @@
           <p class="text-[12px] text-grey-500 -mt-3">We process all orders in AED — you'll be charged using the most current exchange rate at checkout.</p>
         <% end %>
 
+        <%# Cart quantity/remove changes are full page reloads (button_to, no
+            Turbo Stream), so a fresh server-rendered price on every load is
+            all that's needed here — no client-side re-init required, unlike
+            the product page's variant picker. %>
+        <div id="TabbyPromoCart" data-controller="tabby-promo"
+             data-tabby-promo-public-key-value="<%= ENV["TABBY_PUBLIC_KEY"] %>"
+             data-tabby-promo-merchant-code-value="<%= ENV["TABBY_MERCHANT_CODE"] %>"
+             data-tabby-promo-source-value="cart"
+             data-tabby-promo-price-value="<%= format("%.2f", (current_cart.persisted? ? current_cart.total_after_discount_cents : @cart_subtotal_cents) / 100.0) %>"></div>
+
         <% if @cart_items.any?(&:stock_shortfall?) %>
           <p class="text-[12px] text-red-600 text-center -mt-2">Resolve the stock issues above before checking out.</p>
           <%= render(Ui::ButtonComponent.new(variant: :secondary, size: :lg, full_width: true, disabled: true)) { "Proceed to Checkout" } %>

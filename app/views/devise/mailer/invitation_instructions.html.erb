@@ -1,0 +1,22 @@
+<% content_for :title, "You've been invited to the Zoomora admin panel" %>
+
+<h1 style="margin:0 0 16px;font-size:20px;font-weight:700;color:#0A0A0B;">You've been invited to the Zoomora admin panel</h1>
+<p style="margin:0 0 8px;color:#3A3D42;">
+  <%= @resource.invited_by&.name || "An admin" %> invited you (<%= @resource.email %>) as
+  <strong><%= @resource.role.humanize %></strong>. Set a password to get started.
+</p>
+<% if @resource.invitation_due_at %>
+  <p style="margin:0 0 24px;color:#7E8189;font-size:13px;">This link expires <%= l(@resource.invitation_due_at, format: :long) %>.</p>
+<% else %>
+  <p style="margin:0 0 24px;"></p>
+<% end %>
+
+<table role="presentation" cellpadding="0" cellspacing="0">
+  <tr>
+    <td style="background-color:#C01827;text-align:center;">
+      <%= link_to "Set My Password", accept_invitation_url(@resource, invitation_token: @token), style: "display:inline-block;padding:12px 28px;font-size:13px;font-weight:600;color:#ffffff;text-decoration:none;" %>
+    </td>
+  </tr>
+</table>
+
+<p style="margin:24px 0 0;font-size:12px;color:#7E8189;">If you weren't expecting this, you can safely ignore this email.</p>

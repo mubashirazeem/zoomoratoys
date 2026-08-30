@@ -38,7 +38,12 @@
   <tbody>
     <% @line_items.each do |line_item| %>
       <tr class="border-b border-grey-200">
-        <td class="py-3.5 font-medium text-ink-950"><%= line_item.product.name %></td>
+        <td class="py-3.5 font-medium text-ink-950">
+          <div class="flex items-center gap-2.5">
+            <%= image_tag line_item.product.display_photo(resize_to_fill: [ 36, 36 ]), alt: "", class: "w-9 h-9 rounded object-cover bg-grey-50 shrink-0" %>
+            <%= line_item.product.name %>
+          </div>
+        </td>
         <td class="py-3.5 font-mono text-grey-600"><%= line_item.product.sku %></td>
         <td class="py-3.5 text-right font-mono"><%= line_item.quantity %></td>
       </tr>

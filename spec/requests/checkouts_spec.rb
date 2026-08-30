@@ -77,6 +77,76 @@ RSpec.describe "Checkouts", type: :request do
       expect(response.body).to include("Trailhawk Off-Road Scooter")
     end
 
+    it "hides Tabby as a selectable payment method and shows the rejection message when background pre-scoring rejects the customer" do
+      user = create(:user)
+      sign_in user
+      create(:address, user: user, phone: "+971501234567", default_address: true)
+      product = create(:product, price_cents: 100_00)
+      post cart_items_path, params: { product_id: product.slug }
+      allow(Payments::Tabby).to receive(:post).and_return({
+        "status" => "rejected",
+        "configuration" => { "products" => { "installments" => { "is_available" => false, "rejection_reason" => "not_available" } } }
+      })
+
+      get checkout_path
+
+      doc = Nokogiri::HTML::Document.parse(response.body)
+      tabby_radio = doc.at_css('input[name="payment_method"][value="tabby"]')
+      expect(tabby_radio["disabled"]).to be_present
+      expect(response.body).to include("Tabby isn&#39;t available for this order right now.")
+    end
+
+    it "still shows Tabby normally when background pre-scoring approves the customer" do
+      user = create(:user)
+      sign_in user
+      create(:address, user: user, phone: "+971501234567", default_address: true)
+      product = create(:product, price_cents: 100_00)
+      post cart_items_path, params: { product_id: product.slug }
+      allow(Payments::Tabby).to receive(:post).and_return({ "status" => "created" })
+
+      get checkout_path
+
+      doc = Nokogiri::HTML::Document.parse(response.body)
+      tabby_radio = doc.at_css('input[name="payment_method"][value="tabby"]')
+      expect(tabby_radio["disabled"]).to be_nil
+    end
+
+    it "restores the cart and releases the stock reservation when a customer bounces back from a cancelled/failed Tabby attempt" do
+      user = create(:user)
+      sign_in user
+      product = create(:product, price_cents: 100_00, stock_quantity: 5)
+      order = create(:order, user: user, payment_method: "tabby", status: "awaiting_payment",
+                              total_cents: 100_00, subtotal_cents: 100_00, tabby_payment_id: "pay_abandoned")
+      create(:line_item, order: order, product: product, quantity: 1, price_cents: 100_00)
+      product.decrement!(:stock_quantity, 1) # mirrors the reservation Order.create_from_cart! would have made
+
+      get checkout_path, params: { tabby_recover: order.order_number }
+
+      expect(response).to have_http_status(:success)
+      expect(user.cart.cart_items.sole.product).to eq(product)
+      expect(user.cart.cart_items.sole.quantity).to eq(1)
+      expect(order.reload.status).to eq("cancelled")
+      expect(product.reload.stock_quantity).to eq(5)
+    end
+
+    it "leaves an already-resolved order alone — a redelivered/late bounce-back must not double-restore stock" do
+      user = create(:user)
+      sign_in user
+      product = create(:product, price_cents: 100_00, stock_quantity: 5)
+      order = create(:order, user: user, payment_method: "tabby", status: "processing",
+                              total_cents: 100_00, subtotal_cents: 100_00, tabby_payment_id: "pay_paid")
+      create(:line_item, order: order, product: product, quantity: 1, price_cents: 100_00)
+      cart_product = create(:product, price_cents: 50_00)
+      post cart_items_path, params: { product_id: cart_product.slug }
+
+      get checkout_path, params: { tabby_recover: order.order_number }
+
+      expect(user.cart.cart_items.count).to eq(1)
+      expect(user.cart.cart_items.sole.product).to eq(cart_product)
+      expect(order.reload.status).to eq("processing")
+      expect(product.reload.stock_quantity).to eq(5)
+    end
+
     it "warns that an applied coupon isn't deducted from a Pay on Delivery order",
        vcr: { cassette_name: "checkouts/pay_on_delivery_coupon_warning" } do
       user = create(:user)
@@ -380,6 +450,98 @@ RSpec.describe "Checkouts", type: :request do
       expect(sent_line_items[0][:price_data][:currency]).to eq("aed")
       expect(sent_line_items[0][:price_data][:unit_amount]).to eq(10_000)
       expect(user.orders.sole.total_cents).to eq(10_000)
+    end
+  end
+
+  describe "POST /checkout with payment_method=tabby" do
+    it "creates an awaiting_payment order and redirects to Tabby's hosted page" do
+      user = create(:user)
+      sign_in user
+      product = create(:product, price_cents: 10_000, stock_quantity: 5)
+      post cart_items_path, params: { product_id: product.slug }
+      allow(Payments::Tabby).to receive(:post).and_return({
+        "payment" => { "id" => "pay_123" },
+        "configuration" => { "available_products" => { "installments" => [ { "web_url" => "https://checkout.tabby.ai/pay_123" } ] } }
+      })
+
+      post checkout_path, params: {
+        payment_method: "tabby", shipping_name: "Layla Ahmed", shipping_phone: "+971501234567",
+        shipping_address_line1: "Villa 12, Al Wasl Road", shipping_city: "Dubai", shipping_emirate: "Dubai"
+      }
+
+      order = Order.last
+      expect(order.payment_method).to eq("tabby")
+      expect(order.status).to eq("awaiting_payment")
+      expect(order.tabby_payment_id).to eq("pay_123")
+      expect(response).to redirect_to("https://checkout.tabby.ai/pay_123")
+    end
+
+    it "shows a friendly error and creates nothing if Tabby can't be reached" do
+      user = create(:user)
+      sign_in user
+      product = create(:product, price_cents: 10_000, stock_quantity: 5)
+      post cart_items_path, params: { product_id: product.slug }
+      allow(Payments::Tabby).to receive(:post).and_raise(Payments::ProviderError, "simulated")
+
+      expect {
+        post checkout_path, params: {
+          payment_method: "tabby", shipping_name: "Layla Ahmed", shipping_phone: "+971501234567",
+          shipping_address_line1: "Villa 12, Al Wasl Road", shipping_city: "Dubai", shipping_emirate: "Dubai"
+        }
+      }.not_to change(Order, :count)
+
+      expect(response).to redirect_to(cart_path)
+      expect(flash[:alert]).to match(/couldn't start your payment/i)
+    end
+
+    it "re-renders checkout with Tabby's own rejection message on a rejected session — not a redirect, not an error/Sentry alert" do
+      user = create(:user)
+      sign_in user
+      product = create(:product, price_cents: 10_000, stock_quantity: 5)
+      post cart_items_path, params: { product_id: product.slug }
+      allow(Payments::Tabby).to receive(:post).and_return({
+        "status" => "rejected",
+        "configuration" => { "products" => { "installments" => { "is_available" => false, "rejection_reason" => "order_amount_too_high" } } }
+      })
+      expect(Sentry).not_to receive(:capture_exception)
+      expect(Rails.logger).not_to receive(:error)
+
+      expect {
+        post checkout_path, params: {
+          payment_method: "tabby", shipping_name: "Layla Ahmed", shipping_phone: "+971501234567",
+          shipping_address_line1: "Villa 12, Al Wasl Road", shipping_city: "Dubai", shipping_emirate: "Dubai"
+        }
+      }.not_to change(Order, :count)
+
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(response.body).to include("This order total is too high for Tabby")
+      expect(product.reload.stock_quantity).to eq(5)
+      expect(user.cart.cart_items.count).to eq(1)
+    end
+  end
+
+  describe "POST /checkout with payment_method=tamara" do
+    # Tamara isn't offered in the UI (no radio for it, see checkouts/show)
+    # and its backend isn't part of this deploy — but nothing stops a
+    # hand-crafted request from still sending payment_method=tamara. This
+    # must degrade safely (Pay on Delivery, the same as any other
+    # unrecognized value) rather than error, since Payments::Tamara isn't
+    # guaranteed to even be loaded.
+    it "falls back to Pay on Delivery instead of erroring on an unrecognized payment method" do
+      user = create(:user)
+      sign_in user
+      product = create(:product, price_cents: 10_000, stock_quantity: 5)
+      post cart_items_path, params: { product_id: product.slug }
+
+      post checkout_path, params: {
+        payment_method: "tamara", shipping_name: "Layla Ahmed", shipping_phone: "+971501234567",
+        shipping_address_line1: "Villa 12, Al Wasl Road", shipping_city: "Dubai", shipping_emirate: "Dubai"
+      }
+
+      order = Order.last
+      expect(order.payment_method).to eq("pay_on_delivery")
+      expect(order.status).to eq("pending")
+      expect(response).to redirect_to(checkout_confirmation_path(order.order_number))
     end
   end
 

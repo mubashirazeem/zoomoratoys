@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 class Admin::CouponsController < Admin::BaseController
+  before_action :require_owner!
   before_action :set_coupon, only: [ :edit, :update, :destroy ]
 
   def index

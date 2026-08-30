@@ -19,7 +19,7 @@ RSpec.describe Order, type: :model do
 
   it {
     is_expected.to define_enum_for(:payment_method)
-      .with_values(pay_on_delivery: "pay_on_delivery", card: "card")
+      .with_values(pay_on_delivery: "pay_on_delivery", card: "card", tabby: "tabby", tamara: "tamara")
       .backed_by_column_of_type(:string)
   }
 
@@ -27,6 +27,38 @@ RSpec.describe Order, type: :model do
     it "excludes the two system-managed statuses" do
       expect(Order::MANUALLY_SETTABLE_STATUSES).not_to include("awaiting_payment", "refunded")
       expect(Order::MANUALLY_SETTABLE_STATUSES).to include("pending", "processing", "shipped", "delivered", "cancelled")
+    end
+  end
+
+  describe "#refundable?" do
+    it "is true for a captured card order" do
+      order = create(:order, payment_method: "card", status: "processing", stripe_payment_intent_id: "pi_123")
+      expect(order.refundable?).to be true
+    end
+
+    it "is true for a captured (past awaiting_payment) Tabby order" do
+      order = create(:order, payment_method: "tabby", status: "pending", tabby_payment_id: "pay_123")
+      expect(order.refundable?).to be true
+    end
+
+    it "is false for a Tabby order still awaiting_payment — tabby_payment_id is set at session creation, before any payment is confirmed" do
+      order = create(:order, payment_method: "tabby", status: "awaiting_payment", tabby_payment_id: "pay_123")
+      expect(order.refundable?).to be false
+    end
+
+    it "is false for a cancelled Tabby order" do
+      order = create(:order, payment_method: "tabby", status: "cancelled", tabby_payment_id: "pay_123")
+      expect(order.refundable?).to be false
+    end
+
+    it "is false once refunded_cents is non-zero, regardless of payment method" do
+      order = create(:order, payment_method: "tabby", status: "refunded", tabby_payment_id: "pay_123", refunded_cents: 10_000)
+      expect(order.refundable?).to be false
+    end
+
+    it "is false for Pay on Delivery — nothing was ever charged" do
+      order = create(:order, payment_method: "pay_on_delivery", status: "pending")
+      expect(order.refundable?).to be false
     end
   end
 

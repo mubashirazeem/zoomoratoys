@@ -10,7 +10,7 @@ export default class extends Controller {
   static values = { variants: Array, currency: { type: String, default: "AED" }, usdPerAed: Number }
   static targets = [
     "option", "label", "priceSummary", "sku", "stockNotice",
-    "unavailable", "variantIdField", "addToCartButton"
+    "unavailable", "variantIdField", "addToCartButton", "tabbyPromo"
   ]
 
   connect() {
@@ -58,6 +58,10 @@ export default class extends Controller {
       if (this.hasVariantIdFieldTarget) this.variantIdFieldTarget.value = match.id
       if (this.hasSkuTarget) this.skuTarget.textContent = match.sku
       if (this.hasPriceSummaryTarget) this.priceSummaryTarget.textContent = this.formatPrice(match.price_cents)
+      // Tabby's snippet always tracks the real AED charge, never the
+      // display currency — see formatPrice's own comment on why display
+      // currency never affects what's actually charged.
+      if (this.hasTabbyPromoTarget) this.tabbyPromoTarget.dataset.tabbyPromoPriceValue = (match.price_cents / 100).toFixed(2)
       if (this.hasStockNoticeTarget) this.stockNoticeTarget.textContent = match.stock_quantity > 0 ? "" : "Out of stock"
       if (this.hasUnavailableTarget) this.unavailableTarget.hidden = true
       this.addToCartButtonTargets.forEach((button) => (button.disabled = match.stock_quantity <= 0))

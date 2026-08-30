@@ -4,6 +4,8 @@
 # until checkout exists and starts creating real orders. No fabricated
 # numbers standing in for a chart that doesn't have data yet.
 class Admin::SalesReportsController < Admin::BaseController
+  before_action :require_owner!
+
   REVENUE_STATUSES = %w[processing shipped delivered].freeze
 
   def show

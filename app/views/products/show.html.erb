@@ -63,6 +63,12 @@
 
           <%= render Catalog::ProductVariantsComponent.new(product: @product) %>
 
+          <div id="TabbyPromo" data-controller="tabby-promo" data-product-variant-picker-target="tabbyPromo"
+               data-tabby-promo-public-key-value="<%= ENV["TABBY_PUBLIC_KEY"] %>"
+               data-tabby-promo-merchant-code-value="<%= ENV["TABBY_MERCHANT_CODE"] %>"
+               data-tabby-promo-source-value="product"
+               data-tabby-promo-price-value="<%= format("%.2f", @product.price_cents / 100.0) %>"></div>
+
           <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3" data-controller="quantity">
             <div class="inline-flex items-center rounded-full border border-grey-300 overflow-hidden shrink-0 self-start sm:self-auto">
               <button type="button" data-action="quantity#decrease" aria-label="Decrease quantity" class="w-11 h-12 flex items-center justify-center text-ink-950 hover:bg-grey-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-red-600">

@@ -14,5 +14,7 @@
   <%= render Admin::StatCardComponent.new(value: @customer_count, label: "Customers", icon: :people, href: admin_customers_path) %>
   <%= render Admin::StatCardComponent.new(value: @order_count, label: "Total Orders", icon: :bag, href: admin_orders_path) %>
   <%= render Admin::StatCardComponent.new(value: @pending_order_count, label: "Pending Orders", icon: :clock, href: admin_orders_path(status: "pending"), accent: :alert) %>
-  <%= render Admin::StatCardComponent.new(value: @coupon_count, label: "Coupons", icon: :tag, href: admin_coupons_path) %>
+  <% if current_admin_user.owner? %>
+    <%= render Admin::StatCardComponent.new(value: @coupon_count, label: "Coupons", icon: :tag, href: admin_coupons_path) %>
+  <% end %>
 </div>

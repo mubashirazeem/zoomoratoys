@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_08_16_184522) do
+ActiveRecord::Schema[7.2].define(version: 2026_08_19_194833) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_trgm"
   enable_extension "plpgsql"
@@ -76,7 +76,20 @@ ActiveRecord::Schema[7.2].define(version: 2026_08_16_184522) do
     t.string "name", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "invitation_token"
+    t.datetime "invitation_created_at"
+    t.datetime "invitation_sent_at"
+    t.datetime "invitation_accepted_at"
+    t.integer "invitation_limit"
+    t.string "invited_by_type"
+    t.bigint "invited_by_id"
+    t.integer "invitations_count", default: 0
+    t.string "role", default: "staff", null: false
+    t.boolean "active", default: true, null: false
     t.index ["email"], name: "index_admin_users_on_email", unique: true
+    t.index ["invitation_accepted_at"], name: "index_admin_users_on_invitation_accepted_at"
+    t.index ["invitation_token"], name: "index_admin_users_on_invitation_token", unique: true
+    t.index ["invited_by_id"], name: "index_admin_users_on_invited_by_id"
     t.index ["reset_password_token"], name: "index_admin_users_on_reset_password_token", unique: true
     t.index ["unlock_token"], name: "index_admin_users_on_unlock_token", unique: true
   end
@@ -230,6 +243,8 @@ ActiveRecord::Schema[7.2].define(version: 2026_08_16_184522) do
     t.string "gift_wrap_name"
     t.string "delivery_method", default: "standard", null: false
     t.integer "delivery_fee_cents", default: 0, null: false
+    t.string "tabby_payment_id"
+    t.string "tamara_order_id"
     t.index ["coupon_id"], name: "index_orders_on_coupon_id"
     t.index ["order_number"], name: "index_orders_on_order_number", unique: true
     t.index ["order_number"], name: "index_orders_on_order_number_trgm", opclass: :gin_trgm_ops, using: :gin
@@ -237,6 +252,8 @@ ActiveRecord::Schema[7.2].define(version: 2026_08_16_184522) do
     t.index ["status"], name: "index_orders_on_status"
     t.index ["stripe_checkout_session_id"], name: "index_orders_on_stripe_checkout_session_id", unique: true
     t.index ["stripe_payment_intent_id"], name: "index_orders_on_stripe_payment_intent_id"
+    t.index ["tabby_payment_id"], name: "index_orders_on_tabby_payment_id", unique: true
+    t.index ["tamara_order_id"], name: "index_orders_on_tamara_order_id", unique: true
     t.index ["user_id"], name: "index_orders_on_user_id"
   end
 
