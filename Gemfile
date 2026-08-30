@@ -22,6 +22,17 @@ gem "jbuilder"
 gem "view_component"
 # Flexible authentication solution for Rails with Warden [https://github.com/heartcombo/devise]
 gem "devise"
+# Devise extension: invite an admin by email, they set their own password
+# via a secure token — same maintainers/ecosystem as devise itself, only
+# handles token security, never renders any UI of its own
+# [https://github.com/scambra/devise_invitable]
+gem "devise_invitable"
+# JWT decode/verify — Tamara signs webhook notifications with a real
+# HS256 JWT, not a plain shared-secret header like Tabby's; verifying that
+# signature by hand would mean re-implementing HMAC-SHA256 and base64url
+# decoding myself for a security-critical check, exactly the kind of thing
+# a small, widely-used, audited gem exists for [https://github.com/jwt/ruby-jwt]
+gem "jwt"
 # Pagination [https://github.com/kaminari/kaminari]
 gem "kaminari"
 # Use Redis adapter to run Action Cable in production
@@ -100,6 +111,8 @@ group :development, :test do
   gem "capistrano-rails", "~> 1.6", require: false
   gem "capistrano-passenger", "~> 0.2.1", require: false
   gem "capistrano-rbenv", "~> 2.2", require: false
+
+  gem "byebug"
 end
 
 group :test do

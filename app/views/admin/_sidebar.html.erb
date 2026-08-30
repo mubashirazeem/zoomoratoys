@@ -19,13 +19,16 @@
     icon: '<path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18M16 10a4 4 0 0 1-8 0"/>'.html_safe },
   { path: admin_customers_path, label: "Customers", match: "customers",
     icon: '<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>'.html_safe },
-  { path: admin_coupons_path, label: "Coupons", match: "coupons",
+  { path: admin_coupons_path, label: "Coupons", match: "coupons", owner_only: true,
     icon: '<path d="M20.59 13.41 13.41 20.6a2 2 0 0 1-2.83 0L2 12.99V2h10.99l8.6 8.58a2 2 0 0 1 0 2.83Z"/><circle cx="7.5" cy="7.5" r="1.5"/>'.html_safe },
   { path: admin_blog_posts_path, label: "Blog", match: "blog_posts",
     icon: '<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/>'.html_safe },
-  { path: admin_sales_reports_path, label: "Sales Reports", match: "sales_reports",
-    icon: '<path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/>'.html_safe }
+  { path: admin_sales_reports_path, label: "Sales Reports", match: "sales_reports", owner_only: true,
+    icon: '<path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/>'.html_safe },
+  { path: admin_admin_users_path, label: "Admin Users", match: "admin_users", owner_only: true,
+    icon: '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="m17 11 2 2 4-4"/>'.html_safe }
 ] %>
+<% nav_links = nav_links.reject { |link| link[:owner_only] && !current_admin_user.owner? } %>
 
 <div data-controller="admin-drawer" class="lg:shrink-0">
   <%# ---- Mobile top bar (hidden lg and up) ---- %>

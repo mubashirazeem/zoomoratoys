@@ -38,4 +38,14 @@ RSpec.describe "Admin::SalesReports", type: :request do
       expect(response.body).to include(">5<")
     end
   end
+
+  describe "as a signed-in staff admin (not owner)" do
+    it "is redirected away — Sales Reports is owner-only" do
+      sign_in create(:admin_user, :staff), scope: :admin_user
+
+      get admin_sales_reports_path
+
+      expect(response).to redirect_to(admin_root_path)
+    end
+  end
 end

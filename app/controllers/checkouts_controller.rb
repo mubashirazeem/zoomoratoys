@@ -12,6 +12,11 @@
 class CheckoutsController < ApplicationController
   before_action :authenticate_user!
   before_action -> { @robots_noindex = true }
+  # Must run before ensure_cart_has_items — a customer bouncing back from a
+  # cancelled/failed Tabby attempt arrives here with an empty cart (see its
+  # own comment); this is what hands their cart back before that check can
+  # redirect them away from it.
+  before_action :recover_from_incomplete_tabby_payment, only: :show
   before_action :ensure_cart_has_items, only: [ :show, :create ]
   before_action :ensure_cart_is_purchasable, only: [ :show, :create ]
 
@@ -19,47 +24,16 @@ class CheckoutsController < ApplicationController
     @gift_wrap_cents = CartsController::GIFT_WRAP_CENTS
     @express_delivery_cents = CartsController::EXPRESS_DELIVERY_CENTS
     @addresses = current_user.addresses.ordered
+    @tabby_rejection_message = Payments::Tabby::CheckEligibility.call(
+      amount_cents: current_cart.total_cents, email: current_user.email, phone: @addresses.first&.phone
+    )
   end
 
   def create
-    if params[:payment_method] == "card"
-      # Named stripe_checkout_url, not checkout_url — this method is inside
-      # a controller where `checkout_url` is already the Rails route helper
-      # for /checkout (singular `resource :checkout`). Assigning a local
-      # variable of that same name would shadow the helper for the rest of
-      # this method, including inside this very call's own `cancel_url:`
-      # argument (Ruby resolves a bare identifier to a local variable the
-      # moment the parser has seen an assignment to that name anywhere
-      # earlier in the same statement, even though it hasn't run yet) —
-      # silently passing `nil` instead of "/checkout".
-      stripe_checkout_url = Payments::CreateCardOrder.call(
-        cart: current_cart, user: current_user, shipping_attributes: shipping_attributes,
-        gift_wrap: params[:gift_wrap].present?, gift_wrap_cents: CartsController::GIFT_WRAP_CENTS,
-        gift_wrap_name: params[:gift_wrap_name], delivery_method: selected_delivery_method,
-        delivery_fee_cents: CartsController::EXPRESS_DELIVERY_CENTS,
-        success_url_for: ->(order) { checkout_confirmation_url(order.order_number) },
-        cancel_url: checkout_url
-      )
-      save_address_for_next_time if params[:save_address].present?
-      redirect_to stripe_checkout_url, allow_other_host: true
-    else
-      order = Order.create_from_cart!(
-        cart: current_cart,
-        user: current_user,
-        shipping_attributes: shipping_attributes,
-        gift_wrap: params[:gift_wrap].present?,
-        gift_wrap_cents: CartsController::GIFT_WRAP_CENTS,
-        gift_wrap_name: params[:gift_wrap_name],
-        delivery_method: selected_delivery_method,
-        delivery_fee_cents: CartsController::EXPRESS_DELIVERY_CENTS
-      )
-      save_address_for_next_time if params[:save_address].present?
-      # Card orders are confirmed by mail once Payments::WebhookHandler
-      # hears back from Stripe (see that class) — a Pay on Delivery order
-      # is fully placed the moment this line runs, so it's confirmed here.
-      OrderMailer.confirmation(order).deliver_later
-      AdminMailer.new_order(order).deliver_later
-      redirect_to checkout_confirmation_path(order.order_number)
+    case params[:payment_method]
+    when "card" then create_redirect_order(:card)
+    when "tabby" then create_redirect_order(:tabby)
+    else create_pay_on_delivery_order
     end
   rescue Order::InsufficientStock => e
     redirect_to cart_path, alert: e.message
@@ -74,6 +48,21 @@ class CheckoutsController < ApplicationController
   rescue Stripe::StripeError => e
     Rails.logger.error("Checkout: Stripe error creating session for user #{current_user.id}: #{e.message}")
     redirect_to cart_path, alert: "We couldn't start your card payment. Please try again."
+  rescue Payments::ProviderError => e
+    Rails.logger.error("Checkout: #{params[:payment_method]} error creating session for user #{current_user.id}: #{e.message}")
+    Sentry.capture_exception(e)
+    redirect_to cart_path, alert: "We couldn't start your payment. Please try again or choose a different payment method."
+  rescue Payments::SessionRejected => e
+    # Deliberately not Rails.logger.error/Sentry — a reject is a business
+    # outcome, not a failure (see Payments::SessionRejected). No web_url
+    # exists to redirect to, so this re-renders checkout in place instead
+    # of bouncing anywhere, with the provider's own message.
+    @gift_wrap_cents = CartsController::GIFT_WRAP_CENTS
+    @express_delivery_cents = CartsController::EXPRESS_DELIVERY_CENTS
+    @addresses = current_user.addresses.ordered
+    @tabby_rejection_message = e.message
+    flash.now[:alert] = e.message
+    render :show, status: :unprocessable_content
   end
 
   def confirmation
@@ -81,6 +70,106 @@ class CheckoutsController < ApplicationController
   end
 
   private
+
+  # Card and Tabby both follow the exact same shape: create the order as
+  # awaiting_payment, get back a URL to redirect the customer to, and let
+  # that provider's own webhook (never the browser redirect back) confirm
+  # the order is actually paid. Shared here instead of duplicated.
+  #
+  # redirect_url, not checkout_url — this controller already has a
+  # checkout_url route helper for /checkout (singular `resource :checkout`),
+  # and assigning a local of that same name would shadow the helper for the
+  # rest of this method, including inside this very call's own cancel_url:
+  # argument (Ruby resolves a bare identifier to a local the moment the
+  # parser has seen an assignment to that name anywhere earlier in the same
+  # statement, even though it hasn't run yet) — silently passing nil.
+  def create_redirect_order(provider)
+    common_args = {
+      cart: current_cart, user: current_user, shipping_attributes: shipping_attributes,
+      gift_wrap: params[:gift_wrap].present?, gift_wrap_cents: CartsController::GIFT_WRAP_CENTS,
+      gift_wrap_name: params[:gift_wrap_name], delivery_method: selected_delivery_method,
+      delivery_fee_cents: CartsController::EXPRESS_DELIVERY_CENTS,
+      success_url_for: ->(order) { checkout_confirmation_url(order.order_number) },
+      cancel_url: checkout_url
+    }
+
+    redirect_url = case provider
+    when :card
+      Payments::CreateCardOrder.call(**common_args)
+    when :tabby
+      Payments::Tabby::CreateOrder.call(**common_args, failure_url: checkout_url)
+    end
+
+    save_address_for_next_time if params[:save_address].present?
+    redirect_to redirect_url, allow_other_host: true
+  end
+
+  def create_pay_on_delivery_order
+    order = Order.create_from_cart!(
+      cart: current_cart,
+      user: current_user,
+      shipping_attributes: shipping_attributes,
+      gift_wrap: params[:gift_wrap].present?,
+      gift_wrap_cents: CartsController::GIFT_WRAP_CENTS,
+      gift_wrap_name: params[:gift_wrap_name],
+      delivery_method: selected_delivery_method,
+      delivery_fee_cents: CartsController::EXPRESS_DELIVERY_CENTS
+    )
+    save_address_for_next_time if params[:save_address].present?
+    # Pay on Delivery is fully placed the moment this line runs (no
+    # provider to wait on) — card/Tabby orders are confirmed by mail once
+    # their own webhook hears back instead (see each provider's
+    # WebhookHandler).
+    OrderMailer.confirmation(order).deliver_later
+    AdminMailer.new_order(order).deliver_later
+    redirect_to checkout_confirmation_path(order.order_number)
+  end
+
+  # Tabby's own testing checklist: "the cart is kept after cancellation/
+  # failure and cleared after a successful payment." Order.create_from_cart!
+  # already destroys the cart the moment an order is placed (needed so a
+  # second Place Order click can't reserve the same stock twice) — so a
+  # customer bounced back here via Tabby's cancel/failure URL (tagged with
+  # tabby_recover=<order_number>, see SessionBuilder) would otherwise land
+  # on an empty cart with no way to retry. This puts their items back and
+  # releases the abandoned order's stock reservation in the same breath,
+  # so there's never a moment with both the cart and the reservation alive
+  # at once.
+  #
+  # with_lock + the awaiting_payment? check make this safe against the
+  # rare race where a webhook confirms this exact payment at the same
+  # moment: whichever of the two commits first wins, and the other finds
+  # the order already moved on and no-ops — same pattern as
+  # Payments::WebhookHandler#handle_expired.
+  def recover_from_incomplete_tabby_payment
+    return if params[:tabby_recover].blank?
+
+    order = current_user.orders.find_by(order_number: params[:tabby_recover], payment_method: "tabby")
+    return unless order
+
+    order.with_lock do
+      next unless order.awaiting_payment?
+
+      cart = persisted_cart # current_cart may be a new, unsaved record — needs a row to attach cart_items to
+      order.line_items.includes(:product, :product_variant).each do |line_item|
+        # find_or_… by product+variant, not a plain create! — the customer
+        # may have already re-added this same product in another tab while
+        # this order sat awaiting_payment, and cart_items has a unique
+        # index on [cart_id, product_id, product_variant_id] (same merge
+        # pattern as CartItemsController#create).
+        existing = cart.cart_items.find_by(product: line_item.product, product_variant: line_item.product_variant)
+        if existing
+          existing.update!(quantity: existing.quantity + line_item.quantity)
+        else
+          cart.cart_items.create!(
+            product: line_item.product, product_variant: line_item.product_variant, quantity: line_item.quantity
+          )
+        end
+      end
+      order.restore_stock!
+      order.update!(status: "cancelled")
+    end
+  end
 
   # Runs before both show and create — an empty cart has nothing to check
   # out, whether someone lands here directly or their cart emptied out from

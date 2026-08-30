@@ -7,6 +7,6 @@ class Admin::DashboardController < Admin::BaseController
     @customer_count = User.count
     @order_count = Order.count
     @pending_order_count = Order.pending.count
-    @coupon_count = Coupon.count
+    @coupon_count = Coupon.count if current_admin_user.owner?
   end
 end

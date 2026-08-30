@@ -8,13 +8,19 @@ export default class extends Controller {
   static targets = [
     "radio", "codTotal", "cardTotal",
     "deliveryRadio", "standardBadge", "expressBadge",
-    "giftWrapCheckbox", "giftWrapNameWrap"
+    "giftWrapCheckbox", "giftWrapNameWrap", "tabbyCheckoutPromo"
   ]
 
   toggle() {
-    const isCard = this.radioTargets.find((radio) => radio.checked)?.value === "card"
+    const selected = this.radioTargets.find((radio) => radio.checked)?.value
+    const isCard = selected === "card"
     this.codTotalTargets.forEach((el) => el.classList.toggle("hidden", isCard))
     this.cardTotalTargets.forEach((el) => el.classList.toggle("hidden", !isCard))
+    // Tabby's own checklist recommends showing the real Checkout snippet
+    // under the selected Tabby radio, rather than hand-matching their
+    // dynamic "4 payments of X/mo" copy in static text — see
+    // tabby_promo_controller.js.
+    this.tabbyCheckoutPromoTargets.forEach((el) => el.classList.toggle("hidden", selected !== "tabby"))
   }
 
   toggleDelivery() {

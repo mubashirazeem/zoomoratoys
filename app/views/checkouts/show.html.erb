@@ -109,7 +109,7 @@
         <h2 class="text-h3 font-display text-ink-950 mb-4">Payment</h2>
         <div class="flex flex-col gap-3">
           <label class="flex items-center gap-3 rounded-[12px] border border-grey-200 p-4 cursor-pointer has-[:checked]:border-red-600">
-            <input type="radio" name="payment_method" value="pay_on_delivery" <%= "checked" if params[:payment_method].to_s != "card" %> class="accent-red-600" data-action="change->payment-method#toggle" data-payment-method-target="radio">
+            <input type="radio" name="payment_method" value="pay_on_delivery" <%= "checked" if params[:payment_method].blank? || params[:payment_method] == "pay_on_delivery" %> class="accent-red-600" data-action="change->payment-method#toggle" data-payment-method-target="radio">
             <span class="shrink-0 flex items-center justify-center w-10 h-10 rounded-full bg-red-600/10 text-red-600">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5" aria-hidden="true"><path d="M3 7h11v9H3z"/><path d="M14 10h4l3 3v3h-7z"/></svg>
             </span>
@@ -128,6 +128,40 @@
               <span class="block text-body-sm text-grey-600">Secure checkout hosted by Stripe.</span>
             </span>
           </label>
+          <% if @tabby_rejection_message %>
+            <%# Background pre-scoring rejected this customer/order — per
+                Tabby's own testing checklist: "hide Tabby or mark it
+                unavailable with the rejection message." %>
+            <label class="flex items-center gap-3 rounded-[12px] border border-grey-200 p-4 opacity-50 cursor-not-allowed">
+              <input type="radio" name="payment_method" value="tabby" disabled class="accent-grey-400">
+              <%= image_tag "tabby-badge.svg", alt: "Tabby", class: "shrink-0 h-10 w-auto rounded-[10px] grayscale opacity-70" %>
+              <span>
+                <span class="block text-body font-semibold text-ink-950">Pay later with Tabby</span>
+                <span class="block text-body-sm text-grey-600"><%= @tabby_rejection_message %></span>
+              </span>
+            </label>
+          <% else %>
+            <label class="flex items-center gap-3 rounded-[12px] border border-grey-200 p-4 cursor-pointer has-[:checked]:border-red-600">
+              <input type="radio" name="payment_method" value="tabby" <%= "checked" if params[:payment_method] == "tabby" %> class="accent-red-600" data-action="change->payment-method#toggle" data-payment-method-target="radio">
+              <%# Official Tabby badge (docs.tabby.ai brand assets, "For screen"
+                  pack) — replaces the earlier placeholder "t" text badge. %>
+              <%= image_tag "tabby-badge.svg", alt: "Tabby", class: "shrink-0 h-10 w-auto rounded-[10px]" %>
+              <span>
+                <span class="block text-body font-semibold text-ink-950">Pay later with Tabby</span>
+                <span class="block text-body-sm text-grey-600">Split into 4 interest-free payments.</span>
+              </span>
+            </label>
+            <%# Tabby's own checklist recommends this Checkout snippet under the
+                selected radio over hand-matching their dynamic description
+                copy — see payment_method_controller.js#toggle. Starts hidden;
+                only shown once Tabby is actually selected. %>
+            <div id="TabbyCheckoutPromo" data-payment-method-target="tabbyCheckoutPromo" class="hidden -mt-3 ml-[52px]"
+                 data-controller="tabby-promo"
+                 data-tabby-promo-public-key-value="<%= ENV["TABBY_PUBLIC_KEY"] %>"
+                 data-tabby-promo-merchant-code-value="<%= ENV["TABBY_MERCHANT_CODE"] %>"
+                 data-tabby-promo-source-value="checkout"
+                 data-tabby-promo-price-value="<%= format("%.2f", current_cart.total_after_discount_cents / 100.0) %>"></div>
+          <% end %>
         </div>
       </div>
 

@@ -66,4 +66,22 @@ RSpec.describe "Admin::Coupons", type: :request do
       expect(flash[:alert]).to match(/Stripe sync failed/i)
     end
   end
+
+  describe "as a signed-in staff admin (not owner)" do
+    before { sign_in create(:admin_user, :staff), scope: :admin_user }
+
+    it "is redirected away from the coupons list — Coupons is owner-only" do
+      get admin_coupons_path
+
+      expect(response).to redirect_to(admin_root_path)
+      follow_redirect!
+      expect(response.body).to include("only available to owners")
+    end
+
+    it "cannot create a coupon by posting directly to the endpoint either" do
+      expect {
+        post admin_coupons_path, params: { coupon: { code: "SNEAKY10", discount_type: "percentage", discount_value: 10 } }
+      }.not_to change(Coupon, :count)
+    end
+  end
 end

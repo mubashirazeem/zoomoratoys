@@ -1,0 +1,51 @@
+<% content_for :title, "Admin Users | Zoomora Admin" %>
+
+<%= render Admin::PageHeaderComponent.new(title: "Admin Users", subtitle: "Who has access to this admin panel, and what they can do here.") do |header| %>
+  <% header.with_action { render(Ui::ButtonComponent.new(variant: :primary, href: new_admin_admin_user_path)) { "Invite Admin" } } %>
+<% end %>
+
+<div class="mt-8 rounded-[20px] border border-grey-200 bg-white overflow-hidden shadow-[0_1px_2px_rgba(10,10,11,0.04)] overflow-x-auto">
+  <table class="w-full text-left text-body-sm">
+    <thead>
+      <tr class="bg-grey-50/60 border-b border-grey-200 text-[11px] uppercase font-semibold tracking-[0.08em] text-grey-500">
+        <th class="px-5 py-3.5">Name</th>
+        <th class="px-5 py-3.5">Email</th>
+        <th class="px-5 py-3.5">Role</th>
+        <th class="px-5 py-3.5">Status</th>
+        <th class="px-5 py-3.5">Last Signed In</th>
+        <th class="px-5 py-3.5"></th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @admin_users.each do |admin_user| %>
+        <tr class="border-b border-grey-100 last:border-b-0 hover:bg-grey-50/60 transition-colors">
+          <td class="px-5 py-4 font-medium text-ink-950">
+            <%= admin_user.name %>
+            <% if admin_user == current_admin_user %><span class="text-grey-400 font-normal">(you)</span><% end %>
+          </td>
+          <td class="px-5 py-4 text-grey-600"><%= admin_user.email %></td>
+          <td class="px-5 py-4">
+            <span class="inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.04em] <%= admin_user.owner? ? "bg-red-600/10 text-red-600" : "bg-grey-100 text-grey-500" %>">
+              <%= admin_user.role.humanize %>
+            </span>
+          </td>
+          <td class="px-5 py-4">
+            <% if !admin_user.active? %>
+              <span class="inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.04em] bg-grey-100 text-grey-500">Deactivated</span>
+            <% elsif admin_user.invited_to_sign_up? %>
+              <span class="inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.04em] bg-amber-100 text-amber-700">Invite pending</span>
+            <% else %>
+              <span class="inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.04em] bg-emerald-100 text-emerald-700">Active</span>
+            <% end %>
+          </td>
+          <td class="px-5 py-4 text-grey-500"><%= admin_user.last_sign_in_at&.strftime("%b %-d, %Y") || "Never" %></td>
+          <td class="px-5 py-4 text-right whitespace-nowrap">
+            <% if admin_user != current_admin_user %>
+              <%= link_to "Manage", edit_admin_admin_user_path(admin_user), class: "text-red-600 font-medium hover:text-red-700" %>
+            <% end %>
+          </td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>

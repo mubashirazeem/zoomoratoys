@@ -21,17 +21,23 @@ class Order < ApplicationRecord
   enum :status, { awaiting_payment: "awaiting_payment", pending: "pending", processing: "processing",
                    shipped: "shipped", delivered: "delivered", cancelled: "cancelled", refunded: "refunded" },
        default: "pending", validate: true
-  # Only two payment methods exist — Pay on Delivery and real Stripe card
-  # payments (Milestone 4, see PROJECT_VISION.md).
-  enum :payment_method, { pay_on_delivery: "pay_on_delivery", card: "card" },
+  # Pay on Delivery, real Stripe card payments (Milestone 4, see
+  # PROJECT_VISION.md), and two BNPL providers (Tabby, Tamara) — both follow
+  # the same shape as card: awaiting_payment until their own webhook
+  # confirms it (see Payments::Tabby::WebhookHandler /
+  # Payments::Tamara::WebhookHandler), never trusting the browser redirect
+  # alone as proof of payment.
+  enum :payment_method, { pay_on_delivery: "pay_on_delivery", card: "card", tabby: "tabby", tamara: "tamara" },
        default: "pay_on_delivery", validate: true
 
-  # awaiting_payment is only ever set by Order.create_from_cart! for a card
-  # order, and only ever left by the Stripe webhook (Payments::WebhookHandler)
-  # confirming or expiring the payment. refunded is only ever set by
-  # Payments::RefundIssuer or a webhook-confirmed Stripe refund. Neither
-  # should be a choice in the admin panel's manual status dropdown — see
-  # app/views/admin/orders/show.html.erb.
+  AWAITING_PAYMENT_METHODS = %w[card tabby tamara].freeze
+
+  # awaiting_payment is only ever set by Order.create_from_cart! for a card,
+  # Tabby, or Tamara order, and only ever left by that provider's own
+  # webhook handler confirming or expiring the payment. refunded is only
+  # ever set by Payments::RefundIssuer or a webhook-confirmed Stripe refund.
+  # Neither should be a choice in the admin panel's manual status dropdown —
+  # see app/views/admin/orders/show.html.erb.
   MANUALLY_SETTABLE_STATUSES = statuses.keys - %w[awaiting_payment refunded]
 
   # Single source of truth for the admin badge color of every status — the
@@ -157,7 +163,7 @@ class Order < ApplicationRecord
         discount_cents: discount_cents,
         total_cents: cart.total_cents + applied_gift_wrap_cents + applied_delivery_fee_cents - discount_cents,
         payment_method: payment_method,
-        status: payment_method == "card" ? "awaiting_payment" : "pending",
+        status: AWAITING_PAYMENT_METHODS.include?(payment_method) ? "awaiting_payment" : "pending",
         coupon: coupon,
         **shipping_attributes
       )
@@ -298,12 +304,23 @@ class Order < ApplicationRecord
     end
   end
 
-  # Card orders only, with a real Stripe payment to refund, that haven't
-  # already been refunded — guards both Payments::RefundIssuer (which would
-  # otherwise happily re-refund an already-refunded order or blow up on a
-  # missing payment_intent) and the admin Refund button's visibility.
+  # Card or Tabby orders with a real captured payment to refund, that
+  # haven't already been refunded — guards both Payments::RefundIssuer /
+  # Payments::Tabby::RefundIssuer (which would otherwise happily re-refund
+  # an already-refunded order or blow up on a missing payment reference)
+  # and the admin Refund button's visibility.
+  #
+  # tabby_payment_id is set at session-creation time, well before any
+  # payment is confirmed (unlike stripe_payment_intent_id, only ever set
+  # once Payments::WebhookHandler confirms the card payment) — so a Tabby
+  # order additionally has to be past awaiting_payment/cancelled to prove
+  # it was actually captured, not just attempted.
   def refundable?
-    card? && stripe_payment_intent_id.present? && refunded_cents.zero?
+    return false unless refunded_cents.zero?
+    return true if card? && stripe_payment_intent_id.present?
+    return true if tabby? && tabby_payment_id.present? && !awaiting_payment? && !cancelled?
+
+    false
   end
 
   # A partial refund (e.g. issued directly from the Stripe Dashboard, not

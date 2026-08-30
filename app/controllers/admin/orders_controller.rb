@@ -78,6 +78,16 @@ class Admin::OrdersController < Admin::BaseController
     newly_shipped = status == "shipped" && !@order.shipped?
     newly_cancelled = status == "cancelled" && !@order.cancelled?
 
+    # Tamara only finds out an order is cancelled if we tell it — called
+    # before @order.update so a failure here leaves our own status
+    # untouched too, rather than our records and Tamara's silently
+    # diverging (Tamara would otherwise auto-capture the payment anyway
+    # once its 21-day authorisation window closes on an order we've
+    # already cancelled and will never ship).
+    if newly_cancelled && @order.tamara? && @order.tamara_order_id.present?
+      Payments::Tamara::CancelOrder.call(order: @order)
+    end
+
     if @order.update(status: status)
       @order.restore_stock! if should_restore_stock
       OrderMailer.shipped(@order).deliver_later if newly_shipped
@@ -86,6 +96,8 @@ class Admin::OrdersController < Admin::BaseController
     else
       redirect_to admin_order_path(@order), alert: @order.errors.full_messages.to_sentence
     end
+  rescue Payments::ProviderError => e
+    redirect_to admin_order_path(@order), alert: "Couldn't cancel this order with Tamara: #{e.message}. Order status was not changed."
   end
 
   # Print-ready delivery note — shipping details and line items only, no
@@ -113,9 +125,15 @@ class Admin::OrdersController < Admin::BaseController
       return
     end
 
-    Payments::RefundIssuer.call(order: @order)
+    if @order.tabby?
+      Payments::Tabby::RefundIssuer.call(order: @order)
+    else
+      Payments::RefundIssuer.call(order: @order)
+    end
     redirect_to admin_order_path(@order), notice: "Order refunded."
   rescue Stripe::StripeError => e
+    redirect_to admin_order_path(@order), alert: "Refund failed: #{e.message}"
+  rescue Payments::ProviderError => e
     redirect_to admin_order_path(@order), alert: "Refund failed: #{e.message}"
   end
 

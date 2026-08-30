@@ -10,7 +10,7 @@ Rails.application.routes.draw do
   root "home#index"
 
   devise_for :users, controllers: { registrations: "users/registrations" }
-  devise_for :admin_users
+  devise_for :admin_users, controllers: { invitations: "admin/invitations" }
 
   namespace :admin do
     root to: "dashboard#show"
@@ -28,6 +28,7 @@ Rails.application.routes.draw do
       end
     end
     resources :customers, only: [ :index, :show ]
+    resources :admin_users, only: [ :index, :new, :create, :edit, :update ]
     resources :coupons, except: [ :show ]
     resources :blog_posts, except: [ :show ]
     get "sales-reports", to: "sales_reports#show", as: :sales_reports
@@ -71,4 +72,6 @@ Rails.application.routes.draw do
   post "newsletter", to: "newsletter_subscribers#create", as: :newsletter_subscribers
 
   post "/stripe/webhooks", to: "stripe_webhooks#create"
+  post "/tabby/webhooks", to: "tabby_webhooks#create"
+  post "/tamara/webhooks", to: "tamara_webhooks#create"
 end

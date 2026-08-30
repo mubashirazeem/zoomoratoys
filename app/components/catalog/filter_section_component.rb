@@ -5,7 +5,7 @@
 class Catalog::FilterSectionComponent < ViewComponent::Base
   renders_one :body
 
-  def initialize(title:, open: true)
+  def initialize(title:, open: false)
     @title = title
     @open = open
   end

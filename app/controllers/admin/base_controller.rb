@@ -18,4 +18,14 @@ class Admin::BaseController < ActionController::Base
   def user_for_paper_trail
     current_admin_user&.id
   end
+
+  # Coupons, Sales Reports, and Admin Users management are Owner-only —
+  # each of those controllers adds this as its own before_action. Not
+  # applied globally here: most of the admin panel (Products, Orders, etc.)
+  # is meant for Staff too.
+  def require_owner!
+    return if current_admin_user.owner?
+
+    redirect_to admin_root_path, alert: "That page is only available to owners."
+  end
 end
