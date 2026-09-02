@@ -73,7 +73,7 @@ module Payments
             amount: format("%.2f", @order.total_cents / 100.0),
             currency: "AED",
             buyer: { name: @user.full_name, email: @user.email, phone: @order.shipping_phone },
-            buyer_history: { registered_since: @user.created_at.iso8601, loyalty_level: 0 },
+            buyer_history: { registered_since: @user.created_at.iso8601, loyalty_level: loyalty_level_for(@order) },
             order: {
               reference_id: @order.order_number,
               items: @order.line_items.includes(:product).map { |li| line_item_payload(li) }
@@ -122,14 +122,27 @@ module Payments
       end
 
       # Our enum -> Tabby's documented order_history status enum ("new",
-      # "processing", "complete", "refunded", "canceled", "unknown").
+      # "processing", "complete", "refunded", "canceled", "unknown"). "new"
+      # is deliberately never produced here — order_history only ever
+      # includes orders past awaiting_payment (see order_history_for), so
+      # every one of them has already been paid; Tabby's own QA flagged
+      # "new" showing for already-captured orders as wrong. "pending" is
+      # our status for "paid, not yet processing" — closest to Tabby's
+      # "processing", not "new".
       TABBY_ORDER_HISTORY_STATUS = {
-        "pending" => "new", "processing" => "processing", "shipped" => "complete",
+        "pending" => "processing", "processing" => "processing", "shipped" => "complete",
         "delivered" => "complete", "cancelled" => "canceled", "refunded" => "refunded"
       }.freeze
 
       def tabby_status_for(status)
         TABBY_ORDER_HISTORY_STATUS.fetch(status, "unknown")
+      end
+
+      # "Number of successfully placed orders in the store with any payment
+      # methods" per Tabby's own QA — a cancelled order was never really a
+      # completed purchase, so it doesn't count; a refunded one still was.
+      def loyalty_level_for(order)
+        @user.orders.where.not(id: order.id).where.not(status: %w[awaiting_payment cancelled]).count
       end
 
       def line_item_payload(line_item)
