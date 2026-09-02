@@ -96,6 +96,35 @@ RSpec.describe Payments::Tabby::CreateOrder, type: :model do
     expect(history.first["amount"]).to eq("50.00")
     expect(history.first["purchased_at"]).to eq(old_order.placed_at.iso8601)
     expect(history.first["buyer"]["name"]).to eq("Layla")
+    # loyalty_level: real count of successfully placed past orders — the
+    # awaiting_payment one above must not count.
+    expect(sent_body["payment"]["buyer_history"]["loyalty_level"]).to eq(1)
+  end
+
+  it "never reports order_history status as \"new\" for an already-paid order, and excludes cancelled orders from loyalty_level — both real gaps Tabby's own QA caught" do
+    create(:order, user: user, status: "pending", placed_at: 1.day.ago, total_cents: 5_000) # paid, not yet processing
+    create(:order, user: user, status: "cancelled", placed_at: 2.days.ago) # never a completed purchase
+
+    sent_body = nil
+    http = instance_double(Net::HTTP)
+    allow(Net::HTTP).to receive(:start).and_yield(http)
+    allow(http).to receive(:request) do |req|
+      sent_body = JSON.parse(req.body)
+      instance_double(Net::HTTPResponse, body: {
+        "payment" => { "id" => "pay_123" },
+        "configuration" => { "available_products" => { "installments" => [ { "web_url" => "https://checkout.tabby.ai/pay_123" } ] } }
+      }.to_json, is_a?: true, code: "200")
+    end
+
+    described_class.call(
+      cart: cart, user: user, shipping_attributes: { shipping_name: "Layla", shipping_phone: "+971500000000",
+        shipping_address_line1: "Villa 1", shipping_city: "Dubai", shipping_emirate: "Dubai" },
+      success_url_for: ->(order) { "x" }, cancel_url: "x", failure_url: "x"
+    )
+
+    history = sent_body["payment"]["order_history"]
+    expect(history.map { |h| h["status"] }).to eq([ "processing", "canceled" ])
+    expect(sent_body["payment"]["buyer_history"]["loyalty_level"]).to eq(1) # the pending one only, not the cancelled one
   end
 
   it "raises SessionRejected (not ProviderError) on a rejected session, creating nothing and leaving the cart intact" do

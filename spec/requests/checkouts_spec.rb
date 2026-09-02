@@ -77,6 +77,38 @@ RSpec.describe "Checkouts", type: :request do
       expect(response.body).to include("Trailhawk Off-Road Scooter")
     end
 
+    it "includes gift wrap and express delivery in the displayed Total — Tabby's own QA caught this staying at the bare subtotal" do
+      user = create(:user)
+      sign_in user
+      product = create(:product, price_cents: 100_00)
+      post cart_items_path, params: { product_id: product.slug }
+
+      get checkout_path, params: { gift_wrap: "1", delivery_method: "express" }
+
+      # AED 100 subtotal + AED 50 gift wrap + AED 100 express delivery = AED 250
+      expect(response.body).to include("AED 250")
+      expect(response.body).not_to include("+ gift wrap / express delivery if selected")
+    end
+
+    it "shows the AED equivalent next to the USD total, and notes Tabby charges in AED, when shopping in USD — Tabby's own QA asked for both" do
+      user = create(:user)
+      sign_in user
+      create(:address, user: user, phone: "+971501234567", default_address: true)
+      product = create(:product, price_cents: 100_00)
+      ExchangeRate.create!(usd_per_aed: 0.272294, fetched_at: Time.current)
+      cookies[:currency] = "USD"
+      post cart_items_path, params: { product_id: product.slug }
+
+      get checkout_path
+
+      # AED 100 -> $27.23 at this rate; the AED figure must still be on
+      # screen somewhere so the customer can see what Tabby will actually
+      # charge before they ever redirect.
+      expect(response.body).to include("$27.23 USD")
+      expect(response.body).to include("(AED 100)")
+      expect(response.body).to include("Tabby processes your payment in AED")
+    end
+
     it "hides Tabby as a selectable payment method and shows the rejection message when background pre-scoring rejects the customer" do
       user = create(:user)
       sign_in user
@@ -127,6 +159,51 @@ RSpec.describe "Checkouts", type: :request do
       expect(user.cart.cart_items.sole.quantity).to eq(1)
       expect(order.reload.status).to eq("cancelled")
       expect(product.reload.stock_quantity).to eq(5)
+      # The real bug Tabby's own QA caught: ApplicationController#set_cart
+      # runs before this recovery (it's a parent-class before_action) and
+      # computed @cart_subtotal_cents from the cart while it was still
+      # empty — showing "AED 0" until a manual reload recomputed it.
+      expect(response.body).to include("AED 100")
+      expect(response.body).not_to include("AED 0")
+      # Tabby's cancel/failure redirect carries no shipping form data at
+      # all — without falling back to the recovered order's own shipping
+      # fields, the customer would have to retype their whole address
+      # before they could actually complete the order another way.
+      expect(response.body).to include(order.shipping_phone)
+      expect(response.body).to include(CGI.escapeHTML(order.shipping_address_line1))
+    end
+
+    it "keeps gift wrap and Express Delivery selected (and in the displayed Total) after a Tabby cancel/failure — found by testing the full combination together, not each piece alone" do
+      user = create(:user)
+      sign_in user
+      product = create(:product, price_cents: 100_00, stock_quantity: 5)
+      order = create(:order, user: user, payment_method: "tabby", status: "awaiting_payment",
+                              total_cents: 250_00, subtotal_cents: 100_00, gift_wrap_cents: 50_00,
+                              delivery_method: "express", delivery_fee_cents: 100_00, tabby_payment_id: "pay_abandoned")
+      create(:line_item, order: order, product: product, quantity: 1, price_cents: 100_00)
+
+      get checkout_path, params: { tabby_recover: order.order_number }
+
+      doc = Nokogiri::HTML::Document.parse(response.body)
+      expect(doc.at_css('input[name="gift_wrap"]')["checked"]).to be_present
+      expect(doc.at_css('input[name="delivery_method"][value="express"]')["checked"]).to be_present
+      expect(response.body).to include("AED 250") # 100 subtotal + 50 gift wrap + 100 express — not the bare AED 100
+    end
+
+    it "shows a distinct message for a cancellation vs. a failure — Tabby's own QA caught that neither showed any message at all before" do
+      user = create(:user)
+      sign_in user
+      order = create(:order, user: user, payment_method: "tabby", status: "awaiting_payment", tabby_payment_id: "pay_cancelled")
+      create(:line_item, order: order, product: create(:product), quantity: 1)
+
+      get checkout_path, params: { tabby_recover: order.order_number, tabby_outcome: "cancelled" }
+      expect(response.body).to include("You cancelled the Tabby payment")
+
+      order2 = create(:order, user: user, payment_method: "tabby", status: "awaiting_payment", tabby_payment_id: "pay_failed")
+      create(:line_item, order: order2, product: create(:product), quantity: 1)
+
+      get checkout_path, params: { tabby_recover: order2.order_number, tabby_outcome: "failed" }
+      expect(response.body).to include("Your Tabby payment couldn&#39;t be completed")
     end
 
     it "leaves an already-resolved order alone — a redelivered/late bounce-back must not double-restore stock" do

@@ -29,7 +29,15 @@
       page instead of ever reaching Stripe. Disabling Turbo for this one
       form makes the browser submit and follow the redirect natively, which
       works identically for the same-origin Pay on Delivery branch too. %>
-  <%= form_with url: checkout_path, method: :post, class: "mt-8 grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-10", data: { controller: "payment-method", turbo: false } do |f| %>
+  <%= form_with url: checkout_path, method: :post, class: "mt-8 grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-10", data: {
+        controller: "payment-method", turbo: false,
+        "payment-method-cod-base-cents-value": @cart_subtotal_cents,
+        "payment-method-card-base-cents-value": current_cart.total_after_discount_cents,
+        "payment-method-gift-wrap-cents-value": @gift_wrap_cents,
+        "payment-method-express-cents-value": @express_delivery_cents,
+        "payment-method-display-currency-value": display_currency,
+        "payment-method-usd-per-aed-value": ExchangeRate.current_usd_per_aed
+      } do |f| %>
     <div class="lg:col-span-2 flex flex-col gap-6" data-controller="address-picker">
       <% if @addresses.present? %>
         <div class="rounded-[18px] border border-grey-200 bg-white p-5 lg:p-6">
@@ -63,38 +71,38 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
           <div>
             <%= label_tag :shipping_name, "Full Name", class: label_classes %>
-            <%= text_field_tag :shipping_name, params[:shipping_name] || default_address&.full_name || current_user.full_name,
+            <%= text_field_tag :shipping_name, params[:shipping_name] || @recovered_order&.shipping_name || default_address&.full_name || current_user.full_name,
                   required: true, class: field_classes, data: { "address-picker-target": "name" } %>
           </div>
           <div>
             <%= label_tag :shipping_phone, "Phone", class: label_classes %>
-            <%= telephone_field_tag :shipping_phone, params[:shipping_phone] || default_address&.phone, required: true,
+            <%= telephone_field_tag :shipping_phone, params[:shipping_phone] || @recovered_order&.shipping_phone || default_address&.phone, required: true,
                   placeholder: "+971 5X XXX XXXX", class: field_classes, data: { "address-picker-target": "phone" } %>
           </div>
         </div>
 
         <div class="mt-5">
           <%= label_tag :shipping_address_line1, "Address", class: label_classes %>
-          <%= text_field_tag :shipping_address_line1, params[:shipping_address_line1] || default_address&.address_line1, required: true,
+          <%= text_field_tag :shipping_address_line1, params[:shipping_address_line1] || @recovered_order&.shipping_address_line1 || default_address&.address_line1, required: true,
                 placeholder: "Street address, villa/apartment number", class: field_classes, data: { "address-picker-target": "line1" } %>
         </div>
 
         <div class="mt-5">
           <%= label_tag :shipping_address_line2, "Address line 2 (optional)", class: label_classes %>
-          <%= text_field_tag :shipping_address_line2, params[:shipping_address_line2] || default_address&.address_line2,
+          <%= text_field_tag :shipping_address_line2, params[:shipping_address_line2] || @recovered_order&.shipping_address_line2 || default_address&.address_line2,
                 class: field_classes, data: { "address-picker-target": "line2" } %>
         </div>
 
         <div class="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-5">
           <div>
             <%= label_tag :shipping_city, "City", class: label_classes %>
-            <%= text_field_tag :shipping_city, params[:shipping_city] || default_address&.city, required: true,
+            <%= text_field_tag :shipping_city, params[:shipping_city] || @recovered_order&.shipping_city || default_address&.city, required: true,
                   class: field_classes, data: { "address-picker-target": "city" } %>
           </div>
           <div>
             <%= label_tag :shipping_emirate, "Emirate", class: label_classes %>
             <%= select_tag :shipping_emirate,
-                  options_for_select([ [ "Select an Emirate", "" ] ] + Order::EMIRATES, params[:shipping_emirate] || default_address&.emirate),
+                  options_for_select([ [ "Select an Emirate", "" ] ] + Order::EMIRATES, params[:shipping_emirate] || @recovered_order&.shipping_emirate || default_address&.emirate),
                   required: true, class: field_classes, data: { "address-picker-target": "emirate" } %>
           </div>
         </div>
@@ -165,18 +173,29 @@
         </div>
       </div>
 
+      <%# Same gap as the shipping fields just above: Tabby's cancel/failure
+          redirect carries no form params at all, only tabby_recover — so
+          without falling back to the order actually being recovered,
+          gift wrap/Express Delivery silently reset to unchecked even
+          though that exact order (and the AED amount already sent to
+          Tabby for it) still has them. @recovered_order is only ever set
+          during a genuine recovery (see recover_from_incomplete_tabby_
+          payment), so this can never misfire on an ordinary page load or
+          a real validation-error re-render — both leave it nil. %>
+      <% express_selected = params[:delivery_method].to_s == "express" || (@recovered_order&.delivery_method == "express") %>
+      <% gift_wrap_selected = params[:gift_wrap].present? || (@recovered_order&.gift_wrap_cents.to_i.positive?) %>
       <div class="rounded-[18px] border border-grey-200 bg-white p-5 lg:p-6">
         <h2 class="text-h3 font-display text-ink-950 mb-4">Delivery</h2>
         <div class="flex flex-col gap-3">
           <label class="flex items-center gap-3 rounded-[12px] border border-grey-200 p-4 cursor-pointer has-[:checked]:border-red-600">
-            <input type="radio" name="delivery_method" value="standard" <%= "checked" if params[:delivery_method].to_s != "express" %> class="accent-red-600" data-action="change->payment-method#toggleDelivery" data-payment-method-target="deliveryRadio">
+            <input type="radio" name="delivery_method" value="standard" <%= "checked" unless express_selected %> class="accent-red-600" data-action="change->payment-method#toggleDelivery" data-payment-method-target="deliveryRadio">
             <span>
               <span class="block text-body font-semibold text-ink-950">Standard Delivery</span>
               <span class="block text-body-sm text-grey-600">Free — usual delivery time.</span>
             </span>
           </label>
           <label class="flex items-center gap-3 rounded-[12px] border border-grey-200 p-4 cursor-pointer has-[:checked]:border-red-600">
-            <input type="radio" name="delivery_method" value="express" <%= "checked" if params[:delivery_method].to_s == "express" %> class="accent-red-600" data-action="change->payment-method#toggleDelivery" data-payment-method-target="deliveryRadio">
+            <input type="radio" name="delivery_method" value="express" <%= "checked" if express_selected %> class="accent-red-600" data-action="change->payment-method#toggleDelivery" data-payment-method-target="deliveryRadio">
             <span>
               <span class="block text-body font-semibold text-ink-950">Express Delivery — <%= format_price(@express_delivery_cents) %></span>
               <span class="block text-body-sm text-grey-600">Priority handling for a faster delivery.</span>
@@ -187,12 +206,12 @@
 
       <div class="rounded-[18px] border border-grey-200 bg-white p-5 lg:p-6">
         <label class="flex items-center gap-3 cursor-pointer">
-          <%= check_box_tag :gift_wrap, "1", params[:gift_wrap].present?, class: "w-4 h-4 accent-red-600", data: { action: "change->payment-method#toggleGiftWrapName", "payment-method-target": "giftWrapCheckbox" } %>
+          <%= check_box_tag :gift_wrap, "1", gift_wrap_selected, class: "w-4 h-4 accent-red-600", data: { action: "change->payment-method#toggleGiftWrapName", "payment-method-target": "giftWrapCheckbox" } %>
           <span class="text-body text-ink-950">Add gift wrap for <span class="font-semibold"><%= format_price(@gift_wrap_cents) %></span></span>
         </label>
-        <div class="<%= "hidden" unless params[:gift_wrap].present? %> mt-4" data-payment-method-target="giftWrapNameWrap">
+        <div class="<%= "hidden" unless gift_wrap_selected %> mt-4" data-payment-method-target="giftWrapNameWrap">
           <%= label_tag :gift_wrap_name, "Name for the gift sticker (optional)", class: label_classes %>
-          <%= text_field_tag :gift_wrap_name, params[:gift_wrap_name], maxlength: 100,
+          <%= text_field_tag :gift_wrap_name, params[:gift_wrap_name] || @recovered_order&.gift_wrap_name, maxlength: 100,
                 placeholder: "e.g. Happy Birthday, Sara!", class: field_classes %>
         </div>
       </div>
@@ -226,8 +245,8 @@
         <div class="flex justify-between">
           <span class="text-grey-600">Delivery</span>
           <span class="font-medium text-red-600">
-            <span data-payment-method-target="standardBadge" class="<%= "hidden" if params[:delivery_method].to_s == "express" %>">Free</span>
-            <span data-payment-method-target="expressBadge" class="<%= "hidden" unless params[:delivery_method].to_s == "express" %>"><%= format_price(@express_delivery_cents) %></span>
+            <span data-payment-method-target="standardBadge" class="<%= "hidden" if express_selected %>">Free</span>
+            <span data-payment-method-target="expressBadge" class="<%= "hidden" unless express_selected %>"><%= format_price(@express_delivery_cents) %></span>
           </span>
         </div>
       </div>
@@ -240,21 +259,35 @@
         </div>
       <% end %>
 
+      <%# Server-rendered starting values match exactly what
+          payment_method_controller.js#recalculateTotal computes — JS takes
+          over from here the moment the customer touches a toggle, but the
+          very first paint (including no-JS) already has to be correct too.
+          Tabby's own QA caught this: the Total never used to include gift
+          wrap/express delivery, so it silently didn't match the amount
+          actually sent to Tabby (or charged) once either was selected. %>
+      <% addon_cents = (gift_wrap_selected ? @gift_wrap_cents : 0) + (express_selected ? @express_delivery_cents : 0) %>
       <div class="border-t border-grey-200 pt-4 flex justify-between items-baseline">
         <span class="font-display font-bold text-ink-950">Total</span>
         <span class="font-display font-bold text-[22px] text-ink-950">
-          <span data-payment-method-target="codTotal"><%= format_price(@cart_subtotal_cents) %></span>
-          <span data-payment-method-target="cardTotal" class="hidden"><%= format_price(current_cart.total_after_discount_cents) %></span>
-          <span class="text-body-sm font-normal text-grey-500">+ gift wrap / express delivery if selected</span>
+          <span data-payment-method-target="totalAmount codTotal" data-payment-method-base="cod"><%= format_price(@cart_subtotal_cents + addon_cents) %></span>
+          <span data-payment-method-target="totalAmount cardTotal" data-payment-method-base="card" class="hidden"><%= format_price(current_cart.total_after_discount_cents + addon_cents) %></span>
         </span>
       </div>
+      <% if display_currency != "AED" %>
+        <p class="text-[12px] text-grey-500 -mt-3">
+          <span data-payment-method-target="aedEquivalent codTotal" data-payment-method-base="cod">(<%= format_aed(@cart_subtotal_cents + addon_cents) %>)</span>
+          <span data-payment-method-target="aedEquivalent cardTotal" data-payment-method-base="card" class="hidden">(<%= format_aed(current_cart.total_after_discount_cents + addon_cents) %>)</span>
+        </p>
+      <% end %>
       <p class="text-[12px] text-grey-500 -mt-3">
-        <span data-payment-method-target="codTotal"><%= vat_inclusive_note(@cart_subtotal_cents) %></span>
-        <span data-payment-method-target="cardTotal" class="hidden"><%= vat_inclusive_note(current_cart.total_after_discount_cents) %></span>
+        <span data-payment-method-target="vatNote codTotal" data-payment-method-base="cod"><%= vat_inclusive_note(@cart_subtotal_cents + addon_cents) %></span>
+        <span data-payment-method-target="vatNote cardTotal" data-payment-method-base="card" class="hidden"><%= vat_inclusive_note(current_cart.total_after_discount_cents + addon_cents) %></span>
       </p>
       <% if display_currency != "AED" %>
         <p class="text-[12px] text-grey-500 -mt-3">We process all orders in AED — you'll be charged using the most current exchange rate.</p>
       <% end %>
+      <p data-payment-method-target="tabbyCurrencyNote" class="hidden text-[12px] text-grey-500 -mt-3">Tabby processes your payment in AED, regardless of the currency shown above.</p>
 
       <%= render(Ui::ButtonComponent.new(variant: :primary, size: :lg, full_width: true, type: "submit")) { "Place Order" } %>
       <p class="text-[12px] text-grey-500 text-center">By placing your order, you agree to our <%= link_to "Terms & Conditions", terms_and_conditions_path, class: "text-red-600 hover:text-red-700" %>.</p>

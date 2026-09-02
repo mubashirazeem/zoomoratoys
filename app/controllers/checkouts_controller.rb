@@ -97,7 +97,15 @@ class CheckoutsController < ApplicationController
     when :card
       Payments::CreateCardOrder.call(**common_args)
     when :tabby
-      Payments::Tabby::CreateOrder.call(**common_args, failure_url: checkout_url)
+      # Distinct cancel_url/failure_url (not the shared common_args one) —
+      # tagged with the outcome so recover_from_incomplete_tabby_payment
+      # can show the right message for each, per Tabby's own QA: showing
+      # nothing at all on either redirect isn't acceptable.
+      Payments::Tabby::CreateOrder.call(
+        **common_args,
+        cancel_url: checkout_url(tabby_outcome: "cancelled"),
+        failure_url: checkout_url(tabby_outcome: "failed")
+      )
     end
 
     save_address_for_next_time if params[:save_address].present?
@@ -141,15 +149,26 @@ class CheckoutsController < ApplicationController
   # moment: whichever of the two commits first wins, and the other finds
   # the order already moved on and no-ops — same pattern as
   # Payments::WebhookHandler#handle_expired.
+  # Tabby's QA explicitly flagged this: cancel and failure used to redirect
+  # here with no message at all, so the customer had no idea what had
+  # happened or why they were back on this page.
+  RECOVERY_MESSAGES = {
+    "cancelled" => "You cancelled the Tabby payment — your cart is unchanged, so you can try again or choose another payment method.",
+    "failed" => "Your Tabby payment couldn't be completed — your cart is unchanged, so you can try again or choose another payment method."
+  }.freeze
+
   def recover_from_incomplete_tabby_payment
     return if params[:tabby_recover].blank?
 
     order = current_user.orders.find_by(order_number: params[:tabby_recover], payment_method: "tabby")
     return unless order
 
+    recovered = false
+
     order.with_lock do
       next unless order.awaiting_payment?
 
+      recovered = true
       cart = persisted_cart # current_cart may be a new, unsaved record — needs a row to attach cart_items to
       order.line_items.includes(:product, :product_variant).each do |line_item|
         # find_or_… by product+variant, not a plain create! — the customer
@@ -169,6 +188,26 @@ class CheckoutsController < ApplicationController
       order.restore_stock!
       order.update!(status: "cancelled")
     end
+
+    return unless recovered
+
+    # Tabby's cancel/failure redirect only ever carries tabby_recover/
+    # tabby_outcome — none of the shipping form fields the customer had
+    # already typed. Without this, the form comes back blank and the
+    # customer can't actually complete the order with another payment
+    # method (the whole point of keeping the cart) without retyping
+    # everything first. The order still has exactly what they entered.
+    @recovered_order = order
+    flash.now[:alert] = RECOVERY_MESSAGES.fetch(params[:tabby_outcome], RECOVERY_MESSAGES["failed"])
+    # ApplicationController's own before_action :set_cart already ran (it's
+    # registered on the parent class, so it always runs before this
+    # controller's own before_actions) and computed @cart_items/
+    # @cart_subtotal_cents from the cart as it was *before* the items above
+    # were restored — still empty at that point. Re-running it is what
+    # fixed the real bug Tabby's own QA caught: the Total staying AED 0
+    # until a manual reload, because nothing had refreshed those ivars
+    # after the restore.
+    set_cart
   end
 
   # Runs before both show and create — an empty cart has nothing to check
