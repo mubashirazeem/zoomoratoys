@@ -197,13 +197,13 @@ RSpec.describe "Checkouts", type: :request do
       create(:line_item, order: order, product: create(:product), quantity: 1)
 
       get checkout_path, params: { tabby_recover: order.order_number, tabby_outcome: "cancelled" }
-      expect(response.body).to include("You cancelled the Tabby payment")
+      expect(response.body).to include("You aborted the payment")
 
       order2 = create(:order, user: user, payment_method: "tabby", status: "awaiting_payment", tabby_payment_id: "pay_failed")
       create(:line_item, order: order2, product: create(:product), quantity: 1)
 
       get checkout_path, params: { tabby_recover: order2.order_number, tabby_outcome: "failed" }
-      expect(response.body).to include("Your Tabby payment couldn&#39;t be completed")
+      expect(response.body).to include("unable to approve this purchase")
     end
 
     it "leaves an already-resolved order alone — a redelivered/late bounce-back must not double-restore stock" do
@@ -222,6 +222,65 @@ RSpec.describe "Checkouts", type: :request do
       expect(user.cart.cart_items.sole.product).to eq(cart_product)
       expect(order.reload.status).to eq("processing")
       expect(product.reload.stock_quantity).to eq(5)
+    end
+
+    it "still restores the cart and shows the message when Tabby's rejected/expired webhook already cancelled the order before the browser redirect arrives — the real race that left rejection showing an empty cart with no message" do
+      user = create(:user)
+      sign_in user
+      product = create(:product, price_cents: 100_00, stock_quantity: 5)
+      order = create(:order, user: user, payment_method: "tabby", status: "awaiting_payment",
+                              total_cents: 100_00, subtotal_cents: 100_00, tabby_payment_id: "pay_raced")
+      create(:line_item, order: order, product: product, quantity: 1, price_cents: 100_00)
+      # Simulate WebhookHandler#handle_failed winning the race: order
+      # already cancelled + stock already restored before the customer's
+      # browser gets here.
+      order.update!(status: "cancelled")
+
+      get checkout_path, params: { tabby_recover: order.order_number, tabby_outcome: "failed" }
+
+      expect(user.cart.cart_items.sole.product).to eq(product)
+      expect(response.body).to include("unable to approve this purchase")
+      expect(product.reload.stock_quantity).to eq(5) # unchanged — webhook already restored it, this must not double-restore
+    end
+
+    it "does not double-add cart items on a second visit to the same recovery link" do
+      user = create(:user)
+      sign_in user
+      product = create(:product, price_cents: 100_00, stock_quantity: 5)
+      order = create(:order, user: user, payment_method: "tabby", status: "awaiting_payment",
+                              total_cents: 100_00, subtotal_cents: 100_00, tabby_payment_id: "pay_revisit")
+      create(:line_item, order: order, product: product, quantity: 1, price_cents: 100_00)
+      product.decrement!(:stock_quantity, 1) # mirrors the reservation Order.create_from_cart! would have made
+
+      get checkout_path, params: { tabby_recover: order.order_number }
+      get checkout_path, params: { tabby_recover: order.order_number } # customer hits back/refresh on the same link
+
+      expect(user.cart.cart_items.sole.quantity).to eq(1)
+      expect(product.reload.stock_quantity).to eq(5)
+    end
+
+    it "still shows the preserved shipping details, delivery method, and gift wrap on a second visit to the same recovery link — a plain refresh must not blank the form even though the one-time cart-restore itself only runs once" do
+      user = create(:user)
+      sign_in user
+      product = create(:product, price_cents: 100_00, stock_quantity: 5)
+      order = create(:order, user: user, payment_method: "tabby", status: "awaiting_payment",
+        total_cents: 150_00, subtotal_cents: 100_00, gift_wrap_cents: 50_00, delivery_method: "express",
+        delivery_fee_cents: 0, tabby_payment_id: "pay_refresh",
+        shipping_name: "Layla", shipping_phone: "+971500000000", shipping_address_line1: "Villa 1",
+        shipping_city: "Dubai", shipping_emirate: "Dubai")
+      create(:line_item, order: order, product: product, quantity: 1, price_cents: 100_00)
+      product.decrement!(:stock_quantity, 1)
+
+      get checkout_path, params: { tabby_recover: order.order_number, tabby_outcome: "failed" }
+      get checkout_path, params: { tabby_recover: order.order_number, tabby_outcome: "failed" } # plain refresh
+
+      expect(response.body).to include("Layla")
+      expect(response.body).to include("Villa 1")
+      expect(response.body).to match(/name="delivery_method" value="express"[^>]*checked/)
+      expect(response.body).to match(/name="gift_wrap"[^>]*checked/)
+      # The one-time flash message correctly does NOT repeat on a refresh —
+      # only the underlying form/cart state must survive.
+      expect(response.body).not_to include(CheckoutsController::RECOVERY_MESSAGES["failed"])
     end
 
     it "warns that an applied coupon isn't deducted from a Pay on Delivery order",
