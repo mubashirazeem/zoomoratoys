@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_08_19_194833) do
+ActiveRecord::Schema[7.2].define(version: 2026_09_03_172548) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_trgm"
   enable_extension "plpgsql"
@@ -245,6 +245,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_08_19_194833) do
     t.integer "delivery_fee_cents", default: 0, null: false
     t.string "tabby_payment_id"
     t.string "tamara_order_id"
+    t.datetime "cart_restored_at"
     t.index ["coupon_id"], name: "index_orders_on_coupon_id"
     t.index ["order_number"], name: "index_orders_on_order_number", unique: true
     t.index ["order_number"], name: "index_orders_on_order_number_trgm", opclass: :gin_trgm_ops, using: :gin

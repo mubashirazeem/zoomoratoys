@@ -149,12 +149,13 @@ class CheckoutsController < ApplicationController
   # moment: whichever of the two commits first wins, and the other finds
   # the order already moved on and no-ops — same pattern as
   # Payments::WebhookHandler#handle_expired.
-  # Tabby's QA explicitly flagged this: cancel and failure used to redirect
-  # here with no message at all, so the customer had no idea what had
-  # happened or why they were back on this page.
+  # Tabby's own approved copy, verbatim — docs.tabby.ai/pay-in-4-custom-
+  # integration/checkout-flow#approved-messages-for-redirects. Not a
+  # paraphrase: this checklist expects the exact text, the same way the
+  # payment method label had to be exactly "Pay later with Tabby".
   RECOVERY_MESSAGES = {
-    "cancelled" => "You cancelled the Tabby payment — your cart is unchanged, so you can try again or choose another payment method.",
-    "failed" => "Your Tabby payment couldn't be completed — your cart is unchanged, so you can try again or choose another payment method."
+    "cancelled" => "You aborted the payment. Please retry or choose another payment method.",
+    "failed" => "Sorry, Tabby is unable to approve this purchase. Please use an alternative payment method for your order"
   }.freeze
 
   def recover_from_incomplete_tabby_payment
@@ -166,7 +167,20 @@ class CheckoutsController < ApplicationController
     recovered = false
 
     order.with_lock do
-      next unless order.awaiting_payment?
+      # Rejected payments race the webhook: Tabby can call
+      # Payments::Tabby::WebhookHandler#handle_failed (which cancels the
+      # order + restores stock) before the browser even finishes
+      # redirecting back here — much faster than a cancellation, which
+      # never fires a webhook at all since nothing was ever decided
+      # server-side. That race is exactly why rejection alone showed an
+      # empty cart with no message: the old `awaiting_payment?`-only guard
+      # treated an order the webhook had already resolved as nothing left
+      # to do. cart_restored_at is the real idempotency key now — separate
+      # from order status, so a webhook that got there first doesn't
+      # block the customer from getting their cart back, and a repeat
+      # visit to this same URL can't double-add cart items.
+      next if order.cart_restored_at.present?
+      next unless order.awaiting_payment? || order.cancelled?
 
       recovered = true
       cart = persisted_cart # current_cart may be a new, unsaved record — needs a row to attach cart_items to
@@ -185,11 +199,21 @@ class CheckoutsController < ApplicationController
           )
         end
       end
-      order.restore_stock!
-      order.update!(status: "cancelled")
+      order.restore_stock! if order.awaiting_payment? # webhook already restored it if we're not
+      order.update!(status: "cancelled", cart_restored_at: Time.current)
     end
 
-    return unless recovered
+    # Deliberately NOT gated on `recovered` alone: that flag is only true on
+    # the one request that actually ran the cart-merge above, so gating the
+    # rest on it too meant a second hit to this exact URL — a plain browser
+    # refresh, back/forward, or revisiting it from history — rendered the
+    # shipping form blank and delivery/gift-wrap back to their defaults,
+    # even though the cart items themselves (already persisted to the real
+    # cart row) were still there. order.cart_restored_at.present? is true
+    # both on the request that just set it and on every later visit, so the
+    # fallback below now survives a refresh the same way the cart itself
+    # already does.
+    return unless recovered || order.cart_restored_at.present?
 
     # Tabby's cancel/failure redirect only ever carries tabby_recover/
     # tabby_outcome — none of the shipping form fields the customer had
@@ -198,7 +222,10 @@ class CheckoutsController < ApplicationController
     # method (the whole point of keeping the cart) without retyping
     # everything first. The order still has exactly what they entered.
     @recovered_order = order
-    flash.now[:alert] = RECOVERY_MESSAGES.fetch(params[:tabby_outcome], RECOVERY_MESSAGES["failed"])
+    # Only shown on the request that actually performed the recovery —
+    # standard one-time flash.now semantics, same as everywhere else in the
+    # app; a refresh naturally drops it, same as the cancellation path.
+    flash.now[:alert] = RECOVERY_MESSAGES.fetch(params[:tabby_outcome], RECOVERY_MESSAGES["failed"]) if recovered
     # ApplicationController's own before_action :set_cart already ran (it's
     # registered on the parent class, so it always runs before this
     # controller's own before_actions) and computed @cart_items/
