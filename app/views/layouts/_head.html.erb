@@ -62,6 +62,23 @@
     <%# snippets) — see app/javascript/controllers/tabby_promo_controller.js. %>
     <script src="https://checkout.tabby.ai/tabby-promo.js"></script>
 
+    <%# Tamara's on-site "Tamara Summary" widget (Product/Cart snippets) — %>
+    <%# spec confirmed live against https://widget-docs.tamara.co (their %>
+    <%# actual interactive widget-builder tool; docs.tamara.co's own pages %>
+    <%# don't cover this). Unlike Tabby's per-element TabbyPromo class, %>
+    <%# Tamara's <tamara-widget> is a custom element that reads this global %>
+    <%# config once at script-load time — see %>
+    <%# app/javascript/controllers/tamara_promo_controller.js for how a %>
+    <%# later amount change (e.g. a variant switch) re-renders it. %>
+    <script>
+      var tamaraWidgetConfig = {
+        lang: "en",
+        country: "AE",
+        publicKey: "<%= ENV["TAMARA_PUBLIC_KEY"] %>"
+      }
+    </script>
+    <script defer src="https://cdn.tamara.co/widget-v2/tamara-widget.js"></script>
+
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
       tailwind.config = {

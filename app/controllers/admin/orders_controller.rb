@@ -88,6 +88,17 @@ class Admin::OrdersController < Admin::BaseController
       Payments::Tamara::CancelOrder.call(order: @order)
     end
 
+    # Tamara's own words: "Orders NOT captured are NOT settled to your
+    # account!" — marking an order shipped is the real-world moment
+    # capture is meant to represent, so this is where it's triggered
+    # rather than leaving every order to Tamara's 21-day auto-capture
+    # fallback. Same before-@order.update ordering as the cancel call
+    # above, for the same reason: a failed capture must not leave our own
+    # status saying "shipped" while Tamara never actually got paid.
+    if newly_shipped && @order.tamara? && @order.tamara_order_id.present?
+      Payments::Tamara::CaptureOrder.call(order: @order)
+    end
+
     if @order.update(status: status)
       @order.restore_stock! if should_restore_stock
       OrderMailer.shipped(@order).deliver_later if newly_shipped
@@ -97,7 +108,8 @@ class Admin::OrdersController < Admin::BaseController
       redirect_to admin_order_path(@order), alert: @order.errors.full_messages.to_sentence
     end
   rescue Payments::ProviderError => e
-    redirect_to admin_order_path(@order), alert: "Couldn't cancel this order with Tamara: #{e.message}. Order status was not changed."
+    action = newly_cancelled ? "cancel" : "capture"
+    redirect_to admin_order_path(@order), alert: "Couldn't #{action} this order with Tamara: #{e.message}. Order status was not changed."
   end
 
   # Print-ready delivery note — shipping details and line items only, no
@@ -127,6 +139,8 @@ class Admin::OrdersController < Admin::BaseController
 
     if @order.tabby?
       Payments::Tabby::RefundIssuer.call(order: @order)
+    elsif @order.tamara?
+      Payments::Tamara::RefundIssuer.call(order: @order)
     else
       Payments::RefundIssuer.call(order: @order)
     end

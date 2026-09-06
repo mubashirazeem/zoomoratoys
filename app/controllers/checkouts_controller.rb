@@ -17,6 +17,7 @@ class CheckoutsController < ApplicationController
   # own comment); this is what hands their cart back before that check can
   # redirect them away from it.
   before_action :recover_from_incomplete_tabby_payment, only: :show
+  before_action :recover_from_incomplete_tamara_payment, only: :show
   before_action :ensure_cart_has_items, only: [ :show, :create ]
   before_action :ensure_cart_is_purchasable, only: [ :show, :create ]
 
@@ -27,12 +28,20 @@ class CheckoutsController < ApplicationController
     @tabby_rejection_message = Payments::Tabby::CheckEligibility.call(
       amount_cents: current_cart.total_cents, email: current_user.email, phone: @addresses.first&.phone
     )
+    # Tamara's own contract is a plain eligible/ineligible boolean, not a
+    # rejection message the way Tabby's pre-scoring returns one — per
+    # Tamara's own onboarding checklist: "If ineligible, the Tamara option
+    # should be greyed-out," no specific message required.
+    @tamara_eligible = Payments::Tamara::CheckEligibility.call(
+      amount_cents: current_cart.total_cents, email: current_user.email
+    )
   end
 
   def create
     case params[:payment_method]
     when "card" then create_redirect_order(:card)
     when "tabby" then create_redirect_order(:tabby)
+    when "tamara" then create_redirect_order(:tamara)
     else create_pay_on_delivery_order
     end
   rescue Order::InsufficientStock => e
@@ -105,6 +114,17 @@ class CheckoutsController < ApplicationController
         **common_args,
         cancel_url: checkout_url(tabby_outcome: "cancelled"),
         failure_url: checkout_url(tabby_outcome: "failed")
+      )
+    when :tamara
+      # Both point at the same checkout page — Payments::Tamara::CreateOrder
+      # itself tags each with tamara_recover/tamara_outcome (mirroring
+      # Payments::Tabby::SessionBuilder#with_recovery_param), which is what
+      # recover_from_incomplete_tamara_payment keys off below.
+      Payments::Tamara::CreateOrder.call(
+        **common_args,
+        cancel_url: checkout_url,
+        failure_url: checkout_url,
+        notification_url: tamara_webhooks_url
       )
     end
 
@@ -234,6 +254,72 @@ class CheckoutsController < ApplicationController
     # fixed the real bug Tabby's own QA caught: the Total staying AED 0
     # until a manual reload, because nothing had refreshed those ivars
     # after the restore.
+    set_cart
+  end
+
+  # Tamara's own equivalent of RECOVERY_MESSAGES above — not Tamara's own
+  # approved copy the way Tabby's is (no such requirement has surfaced for
+  # Tamara), just clear, honest merchant-voice text.
+  #
+  # One message, not split by outcome like Tabby's: a real live test (a
+  # genuine decline, using Tamara's own documented decline-test phone
+  # number) redirected through merchant_url.cancel, not merchant_url.
+  # failure — contradicting the Tabby-mirrored assumption this originally
+  # shipped with, that cancel==voluntary-abandon and failure==declined.
+  # Tamara's own docs don't define the distinction precisely enough to
+  # trust either slot as reliable proof of *why* the payment didn't
+  # happen, so this deliberately doesn't claim a specific reason ("you
+  # cancelled" would be actively wrong to tell a declined customer) —
+  # tamara_outcome is still tagged on the URL (kept for logging/debugging)
+  # but no longer decides which text shows.
+  TAMARA_RECOVERY_MESSAGE =
+    "Your Tamara payment wasn't completed. Your cart is unchanged, so you can retry or choose another payment method.".freeze
+
+  # Same shape as recover_from_incomplete_tabby_payment above, deliberately
+  # kept as its own separate method rather than merged/shared — Tabby's
+  # version is battle-tested against months of real QA findings, and
+  # touching it while adding Tamara risks regressing it. See that method's
+  # own comments for the full reasoning (webhook-vs-redirect race,
+  # cart_restored_at as the real idempotency key, refresh-persistence);
+  # this mirrors all of it for tamara_recover.
+  #
+  # The race is real here too: Tamara's decline decision happens
+  # synchronously during OTP/scoring (confirmed live — the browser lands
+  # back here within a couple seconds of entering the OTP), fast enough
+  # that Payments::Tamara::WebhookHandler#handle_failed can plausibly beat
+  # this redirect the same way Tabby's rejection webhook can.
+  def recover_from_incomplete_tamara_payment
+    return if params[:tamara_recover].blank?
+
+    order = current_user.orders.find_by(order_number: params[:tamara_recover], payment_method: "tamara")
+    return unless order
+
+    recovered = false
+
+    order.with_lock do
+      next if order.cart_restored_at.present?
+      next unless order.awaiting_payment? || order.cancelled?
+
+      recovered = true
+      cart = persisted_cart
+      order.line_items.includes(:product, :product_variant).each do |line_item|
+        existing = cart.cart_items.find_by(product: line_item.product, product_variant: line_item.product_variant)
+        if existing
+          existing.update!(quantity: existing.quantity + line_item.quantity)
+        else
+          cart.cart_items.create!(
+            product: line_item.product, product_variant: line_item.product_variant, quantity: line_item.quantity
+          )
+        end
+      end
+      order.restore_stock! if order.awaiting_payment?
+      order.update!(status: "cancelled", cart_restored_at: Time.current)
+    end
+
+    return unless recovered || order.cart_restored_at.present?
+
+    @recovered_order = order
+    flash.now[:alert] = TAMARA_RECOVERY_MESSAGE if recovered
     set_cart
   end
 

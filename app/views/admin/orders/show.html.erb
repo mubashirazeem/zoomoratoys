@@ -46,6 +46,10 @@
   <div role="alert" class="mt-4 rounded-[12px] bg-red-50 border border-red-200 px-4 py-3 text-body-sm text-red-700">
     This order has been paid via Tabby. Changing its status here — including to Cancelled — does <strong>not</strong> refund the customer. Use the Refund button below if money needs to go back.
   </div>
+<% elsif @order.tamara? && !@order.awaiting_payment? && !@order.cancelled? %>
+  <div role="alert" class="mt-4 rounded-[12px] bg-red-50 border border-red-200 px-4 py-3 text-body-sm text-red-700">
+    This order has been paid via Tamara. Changing its status here — including to Cancelled — does <strong>not</strong> refund the customer. Use the Refund button below if money needs to go back.
+  </div>
 <% end %>
 
 <div class="mt-8 grid grid-cols-1 lg:grid-cols-3 gap-6">

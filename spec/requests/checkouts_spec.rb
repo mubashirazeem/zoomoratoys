@@ -143,6 +143,48 @@ RSpec.describe "Checkouts", type: :request do
       expect(tabby_radio["disabled"]).to be_nil
     end
 
+    it "greys out Tamara as a selectable payment method when pre-checkout eligibility says no" do
+      user = create(:user)
+      sign_in user
+      product = create(:product, price_cents: 100_00)
+      post cart_items_path, params: { product_id: product.slug }
+      allow(Payments::Tamara).to receive(:post).and_return({ "is_eligible" => false })
+
+      get checkout_path
+
+      doc = Nokogiri::HTML::Document.parse(response.body)
+      tamara_radio = doc.at_css('input[name="payment_method"][value="tamara"]')
+      expect(tamara_radio["disabled"]).to be_present
+    end
+
+    it "still shows Tamara normally when pre-checkout eligibility says yes" do
+      user = create(:user)
+      sign_in user
+      product = create(:product, price_cents: 100_00)
+      post cart_items_path, params: { product_id: product.slug }
+      allow(Payments::Tamara).to receive(:post).and_return({ "is_eligible" => true })
+
+      get checkout_path
+
+      doc = Nokogiri::HTML::Document.parse(response.body)
+      tamara_radio = doc.at_css('input[name="payment_method"][value="tamara"]')
+      expect(tamara_radio["disabled"]).to be_nil
+    end
+
+    it "still shows Tamara normally if the eligibility check itself fails — must not block checkout rendering" do
+      user = create(:user)
+      sign_in user
+      product = create(:product, price_cents: 100_00)
+      post cart_items_path, params: { product_id: product.slug }
+      allow(Payments::Tamara).to receive(:post).and_raise(Payments::ProviderError, "simulated timeout")
+
+      get checkout_path
+
+      doc = Nokogiri::HTML::Document.parse(response.body)
+      tamara_radio = doc.at_css('input[name="payment_method"][value="tamara"]')
+      expect(tamara_radio["disabled"]).to be_nil
+    end
+
     it "restores the cart and releases the stock reservation when a customer bounces back from a cancelled/failed Tabby attempt" do
       user = create(:user)
       sign_in user
@@ -255,7 +297,14 @@ RSpec.describe "Checkouts", type: :request do
       get checkout_path, params: { tabby_recover: order.order_number }
       get checkout_path, params: { tabby_recover: order.order_number } # customer hits back/refresh on the same link
 
-      expect(user.cart.cart_items.sole.quantity).to eq(1)
+      # user.cart itself, and its cart_items association, are the test's
+      # own copy — never touched since `user` was created, so without an
+      # explicit reload this reads whatever the *first* real query happens
+      # to return and never requeries after that. Confirmed by
+      # deliberately breaking the guard being tested here and watching
+      # this exact assertion keep passing regardless, until this reload
+      # was added.
+      expect(user.reload.cart.cart_items.reload.sole.quantity).to eq(1)
       expect(product.reload.stock_quantity).to eq(5)
     end
 
@@ -281,6 +330,135 @@ RSpec.describe "Checkouts", type: :request do
       # The one-time flash message correctly does NOT repeat on a refresh —
       # only the underlying form/cart state must survive.
       expect(response.body).not_to include(CheckoutsController::RECOVERY_MESSAGES["failed"])
+    end
+
+    it "restores the cart and releases the stock reservation when a customer bounces back from a cancelled/failed Tamara attempt" do
+      user = create(:user)
+      sign_in user
+      product = create(:product, price_cents: 100_00, stock_quantity: 5)
+      order = create(:order, user: user, payment_method: "tamara", status: "awaiting_payment",
+                              total_cents: 100_00, subtotal_cents: 100_00, tamara_order_id: "order_abandoned")
+      create(:line_item, order: order, product: product, quantity: 1, price_cents: 100_00)
+      product.decrement!(:stock_quantity, 1)
+
+      get checkout_path, params: { tamara_recover: order.order_number }
+
+      expect(response).to have_http_status(:success)
+      expect(user.cart.cart_items.sole.product).to eq(product)
+      expect(user.cart.cart_items.sole.quantity).to eq(1)
+      expect(order.reload.status).to eq("cancelled")
+      expect(product.reload.stock_quantity).to eq(5)
+      expect(response.body).to include("AED 100")
+      expect(response.body).not_to include("AED 0")
+      expect(response.body).to include(order.shipping_phone)
+      expect(response.body).to include(CGI.escapeHTML(order.shipping_address_line1))
+    end
+
+    it "keeps gift wrap and Express Delivery selected (and in the displayed Total) after a Tamara cancel/failure" do
+      user = create(:user)
+      sign_in user
+      product = create(:product, price_cents: 100_00, stock_quantity: 5)
+      order = create(:order, user: user, payment_method: "tamara", status: "awaiting_payment",
+                              total_cents: 250_00, subtotal_cents: 100_00, gift_wrap_cents: 50_00,
+                              delivery_method: "express", delivery_fee_cents: 100_00, tamara_order_id: "order_abandoned")
+      create(:line_item, order: order, product: product, quantity: 1, price_cents: 100_00)
+
+      get checkout_path, params: { tamara_recover: order.order_number }
+
+      doc = Nokogiri::HTML::Document.parse(response.body)
+      expect(doc.at_css('input[name="gift_wrap"]')["checked"]).to be_present
+      expect(doc.at_css('input[name="delivery_method"][value="express"]')["checked"]).to be_present
+      expect(response.body).to include("AED 250")
+    end
+
+    it "shows the same honest message regardless of tamara_outcome — a real live decline redirected through the cancel slot, not the failure slot, so the two can't be trusted to distinguish 'you backed out' from 'you were declined'" do
+      user = create(:user)
+      sign_in user
+      order = create(:order, user: user, payment_method: "tamara", status: "awaiting_payment", tamara_order_id: "order_cancelled")
+      create(:line_item, order: order, product: create(:product), quantity: 1)
+
+      get checkout_path, params: { tamara_recover: order.order_number, tamara_outcome: "cancelled" }
+      expect(response.body).to include("wasn&#39;t completed")
+
+      order2 = create(:order, user: user, payment_method: "tamara", status: "awaiting_payment", tamara_order_id: "order_failed")
+      create(:line_item, order: order2, product: create(:product), quantity: 1)
+
+      get checkout_path, params: { tamara_recover: order2.order_number, tamara_outcome: "failed" }
+      expect(response.body).to include("wasn&#39;t completed")
+    end
+
+    it "leaves an already-resolved order alone — a redelivered/late bounce-back must not double-restore stock" do
+      user = create(:user)
+      sign_in user
+      product = create(:product, price_cents: 100_00, stock_quantity: 5)
+      order = create(:order, user: user, payment_method: "tamara", status: "processing",
+                              total_cents: 100_00, subtotal_cents: 100_00, tamara_order_id: "order_paid")
+      create(:line_item, order: order, product: product, quantity: 1, price_cents: 100_00)
+      cart_product = create(:product, price_cents: 50_00)
+      post cart_items_path, params: { product_id: cart_product.slug }
+
+      get checkout_path, params: { tamara_recover: order.order_number }
+
+      expect(user.cart.cart_items.count).to eq(1)
+      expect(user.cart.cart_items.sole.product).to eq(cart_product)
+      expect(order.reload.status).to eq("processing")
+      expect(product.reload.stock_quantity).to eq(5)
+    end
+
+    it "still restores the cart and shows the message when Tamara's declined/expired webhook already cancelled the order before the browser redirect arrives" do
+      user = create(:user)
+      sign_in user
+      product = create(:product, price_cents: 100_00, stock_quantity: 5)
+      order = create(:order, user: user, payment_method: "tamara", status: "awaiting_payment",
+                              total_cents: 100_00, subtotal_cents: 100_00, tamara_order_id: "order_raced")
+      create(:line_item, order: order, product: product, quantity: 1, price_cents: 100_00)
+      order.update!(status: "cancelled") # WebhookHandler#handle_failed won the race
+
+      get checkout_path, params: { tamara_recover: order.order_number, tamara_outcome: "failed" }
+
+      expect(user.cart.cart_items.sole.product).to eq(product)
+      expect(response.body).to include("wasn&#39;t completed")
+      expect(product.reload.stock_quantity).to eq(5)
+    end
+
+    it "does not double-add cart items on a second visit to the same recovery link" do
+      user = create(:user)
+      sign_in user
+      product = create(:product, price_cents: 100_00, stock_quantity: 5)
+      order = create(:order, user: user, payment_method: "tamara", status: "awaiting_payment",
+                              total_cents: 100_00, subtotal_cents: 100_00, tamara_order_id: "order_revisit")
+      create(:line_item, order: order, product: product, quantity: 1, price_cents: 100_00)
+      product.decrement!(:stock_quantity, 1)
+
+      get checkout_path, params: { tamara_recover: order.order_number }
+      get checkout_path, params: { tamara_recover: order.order_number }
+
+      # See the identical Tabby test above for why the explicit reload
+      # here is load-bearing, not decorative.
+      expect(user.reload.cart.cart_items.reload.sole.quantity).to eq(1)
+      expect(product.reload.stock_quantity).to eq(5)
+    end
+
+    it "still shows the preserved shipping details, delivery method, and gift wrap on a second visit to the same recovery link" do
+      user = create(:user)
+      sign_in user
+      product = create(:product, price_cents: 100_00, stock_quantity: 5)
+      order = create(:order, user: user, payment_method: "tamara", status: "awaiting_payment",
+        total_cents: 150_00, subtotal_cents: 100_00, gift_wrap_cents: 50_00, delivery_method: "express",
+        delivery_fee_cents: 0, tamara_order_id: "order_refresh",
+        shipping_name: "Layla", shipping_phone: "+971500000000", shipping_address_line1: "Villa 1",
+        shipping_city: "Dubai", shipping_emirate: "Dubai")
+      create(:line_item, order: order, product: product, quantity: 1, price_cents: 100_00)
+      product.decrement!(:stock_quantity, 1)
+
+      get checkout_path, params: { tamara_recover: order.order_number, tamara_outcome: "failed" }
+      get checkout_path, params: { tamara_recover: order.order_number, tamara_outcome: "failed" }
+
+      expect(response.body).to include("Layla")
+      expect(response.body).to include("Villa 1")
+      expect(response.body).to match(/name="delivery_method" value="express"[^>]*checked/)
+      expect(response.body).to match(/name="gift_wrap"[^>]*checked/)
+      expect(response.body).not_to include(CheckoutsController::TAMARA_RECOVERY_MESSAGE)
     end
 
     it "warns that an applied coupon isn't deducted from a Pay on Delivery order",
@@ -657,20 +835,52 @@ RSpec.describe "Checkouts", type: :request do
   end
 
   describe "POST /checkout with payment_method=tamara" do
-    # Tamara isn't offered in the UI (no radio for it, see checkouts/show)
-    # and its backend isn't part of this deploy — but nothing stops a
-    # hand-crafted request from still sending payment_method=tamara. This
-    # must degrade safely (Pay on Delivery, the same as any other
-    # unrecognized value) rather than error, since Payments::Tamara isn't
-    # guaranteed to even be loaded.
-    it "falls back to Pay on Delivery instead of erroring on an unrecognized payment method" do
+    it "creates an awaiting_payment order and redirects to Tamara's hosted page" do
+      user = create(:user)
+      sign_in user
+      product = create(:product, price_cents: 10_000, stock_quantity: 5)
+      post cart_items_path, params: { product_id: product.slug }
+      allow(Payments::Tamara).to receive(:post).and_return({
+        "order_id" => "order_123", "checkout_id" => "chk_123", "checkout_url" => "https://checkout-sandbox.tamara.co/chk_123", "status" => "new"
+      })
+
+      post checkout_path, params: {
+        payment_method: "tamara", shipping_name: "Layla Ahmed", shipping_phone: "+971501234567",
+        shipping_address_line1: "Villa 12, Al Wasl Road", shipping_city: "Dubai", shipping_emirate: "Dubai"
+      }
+
+      order = Order.last
+      expect(order.payment_method).to eq("tamara")
+      expect(order.status).to eq("awaiting_payment")
+      expect(order.tamara_order_id).to eq("order_123")
+      expect(response).to redirect_to("https://checkout-sandbox.tamara.co/chk_123")
+    end
+
+    it "shows a friendly error and creates nothing if Tamara can't be reached" do
+      user = create(:user)
+      sign_in user
+      product = create(:product, price_cents: 10_000, stock_quantity: 5)
+      post cart_items_path, params: { product_id: product.slug }
+      allow(Payments::Tamara).to receive(:post).and_raise(Payments::ProviderError, "simulated")
+
+      expect {
+        post checkout_path, params: {
+          payment_method: "tamara", shipping_name: "Layla Ahmed", shipping_phone: "+971501234567",
+          shipping_address_line1: "Villa 12, Al Wasl Road", shipping_city: "Dubai", shipping_emirate: "Dubai"
+        }
+      }.not_to change(Order, :count)
+
+      expect(response).to redirect_to(cart_path)
+    end
+
+    it "falls back to Pay on Delivery instead of erroring on a genuinely unrecognized payment method" do
       user = create(:user)
       sign_in user
       product = create(:product, price_cents: 10_000, stock_quantity: 5)
       post cart_items_path, params: { product_id: product.slug }
 
       post checkout_path, params: {
-        payment_method: "tamara", shipping_name: "Layla Ahmed", shipping_phone: "+971501234567",
+        payment_method: "some_future_provider", shipping_name: "Layla Ahmed", shipping_phone: "+971501234567",
         shipping_address_line1: "Villa 12, Al Wasl Road", shipping_city: "Dubai", shipping_emirate: "Dubai"
       }
 
