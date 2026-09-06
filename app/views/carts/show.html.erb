@@ -158,6 +158,14 @@
              data-tabby-promo-source-value="cart"
              data-tabby-promo-price-value="<%= format("%.2f", (current_cart.persisted? ? current_cart.total_after_discount_cents : @cart_subtotal_cents) / 100.0) %>"></div>
 
+        <%# Same full-page-reload reasoning as TabbyPromoCart above — the
+            <tamara-widget> custom element reads its own `amount` attribute
+            once at render time via window.tamaraWidgetConfig (see
+            layouts/_head.html.erb), no client-side re-init controller
+            needed here. %>
+        <tamara-widget type="tamara-summary"
+             amount="<%= format("%.2f", (current_cart.persisted? ? current_cart.total_after_discount_cents : @cart_subtotal_cents) / 100.0) %>"></tamara-widget>
+
         <% if @cart_items.any?(&:stock_shortfall?) %>
           <p class="text-[12px] text-red-600 text-center -mt-2">Resolve the stock issues above before checking out.</p>
           <%= render(Ui::ButtonComponent.new(variant: :secondary, size: :lg, full_width: true, disabled: true)) { "Proceed to Checkout" } %>

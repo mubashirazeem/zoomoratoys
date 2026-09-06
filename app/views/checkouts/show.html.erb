@@ -170,6 +170,39 @@
                  data-tabby-promo-source-value="checkout"
                  data-tabby-promo-price-value="<%= format("%.2f", current_cart.total_after_discount_cents / 100.0) %>"></div>
           <% end %>
+          <% if @tamara_eligible == false %>
+            <%# Tamara's own onboarding checklist: "If ineligible, the
+                Tamara option should be greyed-out." %>
+            <label class="flex items-center gap-3 rounded-[12px] border border-grey-200 p-4 opacity-50 cursor-not-allowed">
+              <input type="radio" name="payment_method" value="tamara" disabled class="accent-grey-400">
+              <span class="shrink-0 flex items-center justify-center h-10 px-3 rounded-[8px] bg-[#7C0FE0]/40 text-white font-display font-bold text-[15px] tracking-tight lowercase">tamara</span>
+              <span>
+                <span class="block text-body font-semibold text-ink-950">Pay later with Tamara</span>
+                <span class="block text-body-sm text-grey-600">Not available for this order.</span>
+              </span>
+            </label>
+          <% else %>
+            <label class="flex items-center gap-3 rounded-[12px] border border-grey-200 p-4 cursor-pointer has-[:checked]:border-red-600">
+              <input type="radio" name="payment_method" value="tamara" <%= "checked" if params[:payment_method] == "tamara" %> class="accent-red-600" data-action="change->payment-method#toggle" data-payment-method-target="radio">
+              <%# Text-styled wordmark badge, not their literal vector asset
+                  (this app doesn't have that file) — but the shape/color/
+                  treatment (white lowercase "tamara" wordmark on a solid
+                  purple pill) is confirmed directly from Tamara's own real
+                  Branding & Marketing Guidelines PDF (files.tamara.co
+                  merchant-kit), where this exact "Choose Tamara at
+                  checkout" pill appears throughout their POS stickers,
+                  banners, and wobblers — not a guess. Their gradient mark
+                  is explicitly reserved for the widget logo only ("ONLY
+                  use the gradient for our widget logo on black or white
+                  background"), so this deliberately does not attempt to
+                  replicate it. %>
+              <span class="shrink-0 flex items-center justify-center h-10 px-3 rounded-[8px] bg-[#7C0FE0] text-white font-display font-bold text-[15px] tracking-tight lowercase">tamara</span>
+              <span>
+                <span class="block text-body font-semibold text-ink-950">Pay later with Tamara</span>
+                <span class="block text-body-sm text-grey-600">Split into 4 interest-free payments.</span>
+              </span>
+            </label>
+          <% end %>
         </div>
       </div>
 
@@ -288,6 +321,7 @@
         <p class="text-[12px] text-grey-500 -mt-3">We process all orders in AED — you'll be charged using the most current exchange rate.</p>
       <% end %>
       <p data-payment-method-target="tabbyCurrencyNote" class="hidden text-[12px] text-grey-500 -mt-3">Tabby processes your payment in AED, regardless of the currency shown above.</p>
+      <p data-payment-method-target="tamaraCurrencyNote" class="hidden text-[12px] text-grey-500 -mt-3">Tamara processes your payment in AED, regardless of the currency shown above.</p>
 
       <%= render(Ui::ButtonComponent.new(variant: :primary, size: :lg, full_width: true, type: "submit")) { "Place Order" } %>
       <p class="text-[12px] text-grey-500 text-center">By placing your order, you agree to our <%= link_to "Terms & Conditions", terms_and_conditions_path, class: "text-red-600 hover:text-red-700" %>.</p>

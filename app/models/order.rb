@@ -319,6 +319,11 @@ class Order < ApplicationRecord
     return false unless refunded_cents.zero?
     return true if card? && stripe_payment_intent_id.present?
     return true if tabby? && tabby_payment_id.present? && !awaiting_payment? && !cancelled?
+    # tamara_order_id is set at the same point as tabby_payment_id — at
+    # session creation, before any payment is confirmed — so the same
+    # awaiting_payment?/cancelled? check is needed to prove this order was
+    # actually authorised, not just attempted.
+    return true if tamara? && tamara_order_id.present? && !awaiting_payment? && !cancelled?
 
     false
   end

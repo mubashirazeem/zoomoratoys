@@ -51,6 +51,21 @@ RSpec.describe Order, type: :model do
       expect(order.refundable?).to be false
     end
 
+    it "is true for a captured (past awaiting_payment) Tamara order" do
+      order = create(:order, payment_method: "tamara", status: "pending", tamara_order_id: "order_123")
+      expect(order.refundable?).to be true
+    end
+
+    it "is false for a Tamara order still awaiting_payment — tamara_order_id is set at session creation, before any payment is confirmed" do
+      order = create(:order, payment_method: "tamara", status: "awaiting_payment", tamara_order_id: "order_123")
+      expect(order.refundable?).to be false
+    end
+
+    it "is false for a cancelled Tamara order" do
+      order = create(:order, payment_method: "tamara", status: "cancelled", tamara_order_id: "order_123")
+      expect(order.refundable?).to be false
+    end
+
     it "is false once refunded_cents is non-zero, regardless of payment method" do
       order = create(:order, payment_method: "tabby", status: "refunded", tabby_payment_id: "pay_123", refunded_cents: 10_000)
       expect(order.refundable?).to be false

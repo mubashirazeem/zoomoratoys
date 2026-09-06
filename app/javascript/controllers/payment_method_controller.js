@@ -13,7 +13,7 @@ export default class extends Controller {
     "radio", "codTotal", "cardTotal",
     "deliveryRadio", "standardBadge", "expressBadge",
     "giftWrapCheckbox", "giftWrapNameWrap", "tabbyCheckoutPromo",
-    "totalAmount", "vatNote", "aedEquivalent", "tabbyCurrencyNote"
+    "totalAmount", "vatNote", "aedEquivalent", "tabbyCurrencyNote", "tamaraCurrencyNote"
   ]
 
   static values = {
@@ -40,6 +40,7 @@ export default class extends Controller {
     // tabby_promo_controller.js.
     this.tabbyCheckoutPromoTargets.forEach((el) => el.classList.toggle("hidden", selected !== "tabby"))
     this.tabbyCurrencyNoteTargets.forEach((el) => el.classList.toggle("hidden", selected !== "tabby"))
+    this.tamaraCurrencyNoteTargets.forEach((el) => el.classList.toggle("hidden", selected !== "tamara"))
   }
 
   toggleDelivery() {
