@@ -31,8 +31,11 @@ class CheckoutsController < ApplicationController
     # Tamara's own contract is a plain eligible/ineligible boolean, not a
     # rejection message the way Tabby's pre-scoring returns one — per
     # Tamara's own onboarding checklist: "If ineligible, the Tamara option
-    # should be greyed-out," no specific message required.
-    @tamara_eligible = Payments::Tamara::CheckEligibility.call(
+    # should be greyed-out," no specific message required. Reuses that
+    # same greyed-out treatment (rather than a separate UI state) when
+    # tamara_production_ready? is false — see that method's own comment —
+    # short-circuits before ever calling the real API in that case.
+    @tamara_eligible = tamara_production_ready? && Payments::Tamara::CheckEligibility.call(
       amount_cents: current_cart.total_cents, email: current_user.email
     )
   end
@@ -41,7 +44,21 @@ class CheckoutsController < ApplicationController
     case params[:payment_method]
     when "card" then create_redirect_order(:card)
     when "tabby" then create_redirect_order(:tabby)
-    when "tamara" then create_redirect_order(:tamara)
+    when "tamara"
+      # Guards the actual order-creation path, not just the #show radio's
+      # visibility — hiding the option in the view is a UX nicety, but a
+      # direct POST (bookmarked form, replayed request) would otherwise
+      # still reach Payments::Tamara::CreateOrder and complete a full
+      # checkout against whatever TAMARA_BASE_URL happens to be
+      # configured. In production with sandbox credentials still in place,
+      # that would let a real customer finish what looks like a normal,
+      # successful order — confirmed, webhook fires, admin sees "paid" —
+      # while no real money ever moves, because it hit Tamara's sandbox.
+      if tamara_production_ready?
+        create_redirect_order(:tamara)
+      else
+        redirect_to cart_path, alert: "Tamara isn't available right now. Please choose another payment method."
+      end
     else create_pay_on_delivery_order
     end
   rescue Order::InsufficientStock => e
@@ -79,6 +96,19 @@ class CheckoutsController < ApplicationController
   end
 
   private
+
+  # Tamara defaults to their sandbox host (see Payments::Tamara.base_url)
+  # unless TAMARA_BASE_URL is explicitly set to their real production
+  # host — a deliberate "safe direction" default. That default is exactly
+  # what makes it possible to configure Tamara credentials on a production
+  # server (stopping the checkout-page crash from missing credentials)
+  # without also, silently, letting real customers complete full orders
+  # against sandbox before real production credentials exist. Development/
+  # staging intentionally skip this check — sandbox is the expected,
+  # correct target there, not a stand-in for production being unready.
+  def tamara_production_ready?
+    !Rails.env.production? || Payments::Tamara.base_url == "https://api.tamara.co"
+  end
 
   # Card and Tabby both follow the exact same shape: create the order as
   # awaiting_payment, get back a URL to redirect the customer to, and let

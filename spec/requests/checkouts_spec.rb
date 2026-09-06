@@ -185,6 +185,38 @@ RSpec.describe "Checkouts", type: :request do
       expect(tamara_radio["disabled"]).to be_nil
     end
 
+    it "greys out Tamara in production if TAMARA_BASE_URL is still sandbox — real customers must never complete an order that looks successful but hit sandbox, where no real money moves" do
+      allow(Rails.env).to receive(:production?).and_return(true)
+      allow(Payments::Tamara).to receive(:base_url).and_return("https://api-sandbox.tamara.co")
+      user = create(:user)
+      sign_in user
+      product = create(:product, price_cents: 100_00)
+      post cart_items_path, params: { product_id: product.slug }
+      expect(Payments::Tamara).not_to receive(:post)
+
+      get checkout_path
+
+      doc = Nokogiri::HTML::Document.parse(response.body)
+      tamara_radio = doc.at_css('input[name="payment_method"][value="tamara"]')
+      expect(tamara_radio["disabled"]).to eq("disabled")
+    end
+
+    it "shows Tamara normally in production once TAMARA_BASE_URL is genuinely the production host" do
+      allow(Rails.env).to receive(:production?).and_return(true)
+      allow(Payments::Tamara).to receive(:base_url).and_return("https://api.tamara.co")
+      allow(Payments::Tamara).to receive(:post).and_return({ "is_eligible" => true })
+      user = create(:user)
+      sign_in user
+      product = create(:product, price_cents: 100_00)
+      post cart_items_path, params: { product_id: product.slug }
+
+      get checkout_path
+
+      doc = Nokogiri::HTML::Document.parse(response.body)
+      tamara_radio = doc.at_css('input[name="payment_method"][value="tamara"]')
+      expect(tamara_radio["disabled"]).to be_nil
+    end
+
     it "restores the cart and releases the stock reservation when a customer bounces back from a cancelled/failed Tabby attempt" do
       user = create(:user)
       sign_in user
@@ -835,6 +867,26 @@ RSpec.describe "Checkouts", type: :request do
   end
 
   describe "POST /checkout with payment_method=tamara" do
+    it "refuses to create a real order in production if TAMARA_BASE_URL is still sandbox — guards the direct POST, not just the #show radio's visibility" do
+      allow(Rails.env).to receive(:production?).and_return(true)
+      allow(Payments::Tamara).to receive(:base_url).and_return("https://api-sandbox.tamara.co")
+      user = create(:user)
+      sign_in user
+      product = create(:product, price_cents: 10_000, stock_quantity: 5)
+      post cart_items_path, params: { product_id: product.slug }
+      expect(Payments::Tamara).not_to receive(:post)
+
+      expect {
+        post checkout_path, params: {
+          payment_method: "tamara", shipping_name: "Layla Ahmed", shipping_phone: "+971501234567",
+          shipping_address_line1: "Villa 12, Al Wasl Road", shipping_city: "Dubai", shipping_emirate: "Dubai"
+        }
+      }.not_to change(Order, :count)
+
+      expect(response).to redirect_to(cart_path)
+      expect(flash[:alert]).to eq("Tamara isn't available right now. Please choose another payment method.")
+    end
+
     it "creates an awaiting_payment order and redirects to Tamara's hosted page" do
       user = create(:user)
       sign_in user
