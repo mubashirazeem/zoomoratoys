@@ -38,7 +38,16 @@ module Payments
 
       response = Net::HTTP.start(uri.host, uri.port, use_ssl: true, open_timeout: timeout, read_timeout: timeout) do |http|
         req = http_method_class.new(uri)
-        req["Authorization"] = "Bearer #{ENV.fetch('TAMARA_API_TOKEN')}"
+        # ENV[] (not ENV.fetch) deliberately — a missing token must still
+        # produce a real HTTP response from Tamara (a 401, wrapped below
+        # into Payments::ProviderError, which every caller already
+        # rescues), not a raw, unrescued KeyError. CheckEligibility runs
+        # unconditionally on every checkout page load regardless of
+        # payment method, so an unrescued exception here would 500 the
+        # whole checkout page for every customer, not just ones using
+        # Tamara — a real risk found by tracing this path the moment
+        # production briefly had no Tamara credentials configured at all.
+        req["Authorization"] = "Bearer #{ENV['TAMARA_API_TOKEN']}"
         req["Content-Type"] = "application/json"
         req.body = body.to_json if body
         http.request(req)
