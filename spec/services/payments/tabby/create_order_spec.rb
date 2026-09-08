@@ -140,7 +140,7 @@ RSpec.describe Payments::Tabby::CreateOrder, type: :model do
             shipping_address_line1: "Villa 1", shipping_city: "Dubai", shipping_emirate: "Dubai" },
           success_url_for: ->(order) { "x" }, cancel_url: "https://example.com/cancel", failure_url: "https://example.com/failure"
         )
-      }.to raise_error(Payments::SessionRejected, "Tabby isn't available for this order right now.")
+      }.to raise_error(Payments::SessionRejected, "Sorry, Tabby is unable to approve this purchase. Please use an alternative payment method for your order.")
     }.not_to change(Order, :count)
 
     expect(product.reload.stock_quantity).to eq(5)

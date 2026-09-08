@@ -24,5 +24,10 @@ export default class extends Controller {
     if (this.hasLine2Target) this.line2Target.value = address.line2 || ""
     if (this.hasCityTarget) this.cityTarget.value = address.city || ""
     if (this.hasEmirateTarget) this.emirateTarget.value = address.emirate || ""
+
+    // A programmatic .value set fires no event — dispatch one so
+    // payment_method_controller re-scores Tabby for the picked address's
+    // phone, same as if it had been typed.
+    if (this.hasPhoneTarget) this.phoneTarget.dispatchEvent(new Event("input", { bubbles: true }))
   }
 }

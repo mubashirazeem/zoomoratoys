@@ -44,10 +44,16 @@ module Payments
       # endpoint with a minimal payload purely to pre-score a customer
       # before Place Order — same response shape, same rejection_reason
       # values, so the same copy applies either way.
+      # Tabby's own approved customer-facing copy, verbatim — docs.tabby.ai/
+      # pay-in-4-custom-integration/checkout-flow#possible-rejection_reason-
+      # values. Not paraphrased: Tabby's QA expects the exact text, the same
+      # way the redirect messages (CheckoutsController::RECOVERY_MESSAGES) and
+      # the payment-method label had to be exact. "not_available" matches the
+      # redirect "failure" message word-for-word by design.
       REJECTION_MESSAGES = {
-        "order_amount_too_high" => "This order total is too high for Tabby — please choose a different payment method.",
-        "order_amount_too_low" => "This order total is too low for Tabby — please choose a different payment method.",
-        "not_available" => "Tabby isn't available for this order right now."
+        "order_amount_too_high" => "This purchase is above your current spending limit with Tabby, try a smaller cart or use another payment method",
+        "order_amount_too_low" => "The purchase amount is below the minimum amount required to use Tabby, try adding more items or use another payment method",
+        "not_available" => "Sorry, Tabby is unable to approve this purchase. Please use an alternative payment method for your order."
       }.freeze
 
       def self.rejection_message(response)

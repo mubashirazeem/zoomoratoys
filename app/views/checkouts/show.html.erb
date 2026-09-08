@@ -36,7 +36,8 @@
         "payment-method-gift-wrap-cents-value": @gift_wrap_cents,
         "payment-method-express-cents-value": @express_delivery_cents,
         "payment-method-display-currency-value": display_currency,
-        "payment-method-usd-per-aed-value": ExchangeRate.current_usd_per_aed
+        "payment-method-usd-per-aed-value": ExchangeRate.current_usd_per_aed,
+        "payment-method-tabby-eligibility-url-value": checkout_tabby_eligibility_path
       } do |f| %>
     <div class="lg:col-span-2 flex flex-col gap-6" data-controller="address-picker">
       <% if @addresses.present? %>
@@ -136,40 +137,41 @@
               <span class="block text-body-sm text-grey-600">Secure checkout hosted by Stripe.</span>
             </span>
           </label>
-          <% if @tabby_rejection_message %>
-            <%# Background pre-scoring rejected this customer/order — per
-                Tabby's own testing checklist: "hide Tabby or mark it
-                unavailable with the rejection message." %>
-            <label class="flex items-center gap-3 rounded-[12px] border border-grey-200 p-4 opacity-50 cursor-not-allowed">
-              <input type="radio" name="payment_method" value="tabby" disabled class="accent-grey-400">
-              <%= image_tag "tabby-badge.svg", alt: "Tabby", class: "shrink-0 h-10 w-auto rounded-[10px] grayscale opacity-70" %>
-              <span>
-                <span class="block text-body font-semibold text-ink-950">Pay later with Tabby</span>
-                <span class="block text-body-sm text-grey-600"><%= @tabby_rejection_message %></span>
-              </span>
-            </label>
-          <% else %>
-            <label class="flex items-center gap-3 rounded-[12px] border border-grey-200 p-4 cursor-pointer has-[:checked]:border-red-600">
-              <input type="radio" name="payment_method" value="tabby" <%= "checked" if params[:payment_method] == "tabby" %> class="accent-red-600" data-action="change->payment-method#toggle" data-payment-method-target="radio">
-              <%# Official Tabby badge (docs.tabby.ai brand assets, "For screen"
-                  pack) — replaces the earlier placeholder "t" text badge. %>
-              <%= image_tag "tabby-badge.svg", alt: "Tabby", class: "shrink-0 h-10 w-auto rounded-[10px]" %>
-              <span>
-                <span class="block text-body font-semibold text-ink-950">Pay later with Tabby</span>
-                <span class="block text-body-sm text-grey-600">Split into 4 interest-free payments.</span>
-              </span>
-            </label>
-            <%# Tabby's own checklist recommends this Checkout snippet under the
-                selected radio over hand-matching their dynamic description
-                copy — see payment_method_controller.js#toggle. Starts hidden;
-                only shown once Tabby is actually selected. %>
-            <div id="TabbyCheckoutPromo" data-payment-method-target="tabbyCheckoutPromo" class="hidden -mt-3 ml-[52px]"
-                 data-controller="tabby-promo"
-                 data-tabby-promo-public-key-value="<%= ENV["TABBY_PUBLIC_KEY"] %>"
-                 data-tabby-promo-merchant-code-value="<%= ENV["TABBY_MERCHANT_CODE"] %>"
-                 data-tabby-promo-source-value="checkout"
-                 data-tabby-promo-price-value="<%= format("%.2f", current_cart.total_after_discount_cents / 100.0) %>"></div>
-          <% end %>
+          <%# One block for both states (eligible / pre-scoring rejected),
+              because Tabby's QA also requires the option to come back to
+              life without a page reload once the customer edits their phone
+              in the Shipping form (buyer info changed => re-score) — see
+              payment_method_controller.js#refreshTabbyEligibility. The
+              server still renders the correct initial state:
+              @tabby_rejection_message is nil when eligible, or the approved
+              rejection copy when not. %>
+          <% tabby_ok = @tabby_rejection_message.nil? %>
+          <label data-payment-method-target="tabbyOption"
+                 class="flex items-center gap-3 rounded-[12px] border border-grey-200 p-4 has-[:checked]:border-red-600 <%= tabby_ok ? "cursor-pointer" : "opacity-50 cursor-not-allowed" %>">
+            <input type="radio" name="payment_method" value="tabby"
+                   data-action="change->payment-method#toggle"
+                   data-payment-method-target="radio tabbyRadio"
+                   <%= "disabled" unless tabby_ok %>
+                   <%= "checked" if tabby_ok && params[:payment_method] == "tabby" %>
+                   class="<%= tabby_ok ? "accent-red-600" : "accent-grey-400" %>">
+            <%# Official Tabby badge (docs.tabby.ai brand assets, "For screen" pack). %>
+            <%= image_tag "tabby-badge.svg", alt: "Tabby", data: { "payment-method-target": "tabbyBadge" },
+                  class: "shrink-0 h-10 w-auto rounded-[10px] #{"grayscale opacity-70" unless tabby_ok}" %>
+            <span>
+              <span class="block text-body font-semibold text-ink-950">Pay later with Tabby</span>
+              <span data-payment-method-target="tabbyDesc" class="block text-body-sm text-grey-600"><%= tabby_ok ? "Split into 4 interest-free payments." : @tabby_rejection_message %></span>
+            </span>
+          </label>
+          <%# Tabby's Checkout snippet (TabbyCard) under the selected radio,
+              rather than hand-matching their dynamic "4 payments of X" copy
+              in static text — see tabby_card_controller.js. Shown only while
+              Tabby is actually the selected method. %>
+          <div id="TabbyCheckoutCard" data-payment-method-target="tabbyCard"
+               class="<%= "hidden" unless tabby_ok && params[:payment_method] == "tabby" %> -mt-3 ml-[52px]"
+               data-controller="tabby-card"
+               data-tabby-card-public-key-value="<%= ENV["TABBY_PUBLIC_KEY"] %>"
+               data-tabby-card-merchant-code-value="<%= ENV["TABBY_MERCHANT_CODE"] %>"
+               data-tabby-card-price-value="<%= format("%.2f", current_cart.total_after_discount_cents / 100.0) %>"></div>
           <% if @tamara_eligible == false %>
             <%# Tamara's own onboarding checklist: "If ineligible, the
                 Tamara option should be greyed-out." %>
@@ -320,7 +322,10 @@
       <% if display_currency != "AED" %>
         <p class="text-[12px] text-grey-500 -mt-3">We process all orders in AED — you'll be charged using the most current exchange rate.</p>
       <% end %>
-      <p data-payment-method-target="tabbyCurrencyNote" class="hidden text-[12px] text-grey-500 -mt-3">Tabby processes your payment in AED, regardless of the currency shown above.</p>
+      <%# No Tabby-specific "processed in AED" line here: the general
+          "We process all orders in AED …" note above already covers it for
+          every method, and Tabby's QA flagged the duplicate. Tamara's note
+          stays until/unless Tamara's QA says otherwise. %>
       <p data-payment-method-target="tamaraCurrencyNote" class="hidden text-[12px] text-grey-500 -mt-3">Tamara processes your payment in AED, regardless of the currency shown above.</p>
 
       <%= render(Ui::ButtonComponent.new(variant: :primary, size: :lg, full_width: true, type: "submit")) { "Place Order" } %>

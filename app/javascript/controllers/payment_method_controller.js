@@ -8,12 +8,20 @@ import { Controller } from "@hotwired/stimulus"
 // display currency and its exchange rate — are still real server-computed
 // values passed in as data, never invented client-side; this only ever
 // sums/converts/formats them, the same way format_price does in Ruby.
+//
+// It also re-scores Tabby eligibility when the customer edits their phone
+// in the Shipping form: Tabby's QA requires the option to come back (or go
+// away) without a page reload once buyer info changes — see
+// #refreshTabbyEligibility. The score itself is still Tabby's, fetched
+// from CheckoutsController#tabby_eligibility (same call #show makes on the
+// first paint), never guessed here.
 export default class extends Controller {
   static targets = [
     "radio", "codTotal", "cardTotal",
     "deliveryRadio", "standardBadge", "expressBadge",
-    "giftWrapCheckbox", "giftWrapNameWrap", "tabbyCheckoutPromo",
-    "totalAmount", "vatNote", "aedEquivalent", "tabbyCurrencyNote", "tamaraCurrencyNote"
+    "giftWrapCheckbox", "giftWrapNameWrap", "tabbyCard",
+    "tabbyOption", "tabbyRadio", "tabbyDesc", "tabbyBadge",
+    "totalAmount", "vatNote", "aedEquivalent", "tamaraCurrencyNote"
   ]
 
   static values = {
@@ -22,11 +30,33 @@ export default class extends Controller {
     giftWrapCents: Number,
     expressCents: Number,
     displayCurrency: String,
-    usdPerAed: Number
+    usdPerAed: Number,
+    tabbyEligibilityUrl: String
   }
 
   connect() {
     this.recalculateTotal()
+
+    // The phone field lives in the Shipping card, a sibling subtree of the
+    // payment radios — but still inside this same <form>, which is this
+    // controller's element. Editing it (or picking a saved address, which
+    // dispatches a synthetic "input" — see address_picker_controller.js)
+    // re-scores Tabby.
+    this.phoneField = this.element.querySelector('[name="shipping_phone"]')
+    if (this.phoneField && this.hasTabbyEligibilityUrlValue) {
+      this._onPhoneInput = () => {
+        clearTimeout(this._phoneDebounce)
+        this._phoneDebounce = setTimeout(() => this.refreshTabbyEligibility(), 500)
+      }
+      this.phoneField.addEventListener("input", this._onPhoneInput)
+    }
+  }
+
+  disconnect() {
+    clearTimeout(this._phoneDebounce)
+    if (this.phoneField && this._onPhoneInput) {
+      this.phoneField.removeEventListener("input", this._onPhoneInput)
+    }
   }
 
   toggle() {
@@ -35,11 +65,10 @@ export default class extends Controller {
     this.codTotalTargets.forEach((el) => el.classList.toggle("hidden", isCard))
     this.cardTotalTargets.forEach((el) => el.classList.toggle("hidden", !isCard))
     // Tabby's own checklist recommends showing the real Checkout snippet
-    // under the selected Tabby radio, rather than hand-matching their
-    // dynamic "4 payments of X/mo" copy in static text — see
-    // tabby_promo_controller.js.
-    this.tabbyCheckoutPromoTargets.forEach((el) => el.classList.toggle("hidden", selected !== "tabby"))
-    this.tabbyCurrencyNoteTargets.forEach((el) => el.classList.toggle("hidden", selected !== "tabby"))
+    // (TabbyCard) under the selected Tabby radio, rather than hand-matching
+    // their dynamic "4 payments of X/mo" copy in static text — see
+    // tabby_card_controller.js.
+    this.tabbyCardTargets.forEach((el) => el.classList.toggle("hidden", selected !== "tabby"))
     this.tamaraCurrencyNoteTargets.forEach((el) => el.classList.toggle("hidden", selected !== "tamara"))
   }
 
@@ -75,6 +104,71 @@ export default class extends Controller {
       const baseCents = el.dataset.paymentMethodBase === "card" ? this.cardBaseCentsValue : this.codBaseCentsValue
       el.textContent = `(${this.formatAed(baseCents + addOnCents)})`
     })
+    // Keep the TabbyCard snippet's amount in step with the Total — Tabby is
+    // billed off the card base (coupon applies) plus the same add-ons, in
+    // AED. Writing the value attribute re-inits the widget (see
+    // tabby_card_controller.js#priceValueChanged).
+    this.tabbyCardTargets.forEach((el) => {
+      el.setAttribute("data-tabby-card-price-value", ((this.cardBaseCentsValue + addOnCents) / 100).toFixed(2))
+    })
+  }
+
+  // Re-runs Tabby's pre-scoring for the phone now in the form and flips the
+  // Tabby option between its live and greyed-out states in place. Anything
+  // other than an explicit reject (network error, too-short number, Tabby
+  // slow/unreachable) leaves the current state untouched — same
+  // graceful-degradation stance as the server-side CheckEligibility.
+  async refreshTabbyEligibility() {
+    if (!this.hasTabbyRadioTarget || !this.hasTabbyEligibilityUrlValue) return
+
+    const phone = (this.phoneField?.value || "").trim()
+    if ((phone.match(/\d/g) || []).length < 8) return // not a plausible number yet
+
+    let data
+    try {
+      const res = await fetch(`${this.tabbyEligibilityUrlValue}?phone=${encodeURIComponent(phone)}`, {
+        headers: { Accept: "application/json" }
+      })
+      if (!res.ok) return
+      data = await res.json()
+    } catch {
+      return
+    }
+    if (!data || typeof data.eligible !== "boolean") return
+
+    this.applyTabbyEligibility(data.eligible, data.message)
+  }
+
+  applyTabbyEligibility(eligible, message) {
+    const radio = this.tabbyRadioTarget
+    if (radio.disabled === !eligible) return // already in the right state
+
+    if (eligible) {
+      radio.disabled = false
+      radio.classList.remove("accent-grey-400")
+      radio.classList.add("accent-red-600")
+      this.tabbyOptionTarget.classList.remove("opacity-50", "cursor-not-allowed")
+      this.tabbyOptionTarget.classList.add("cursor-pointer")
+      this.tabbyBadgeTargets.forEach((el) => el.classList.remove("grayscale", "opacity-70"))
+      this.tabbyDescTarget.textContent = "Split into 4 interest-free payments."
+    } else {
+      if (radio.checked) {
+        radio.checked = false
+        const fallback = this.radioTargets.find((r) => r.value === "pay_on_delivery")
+        if (fallback) fallback.checked = true
+      }
+      radio.disabled = true
+      radio.classList.remove("accent-red-600")
+      radio.classList.add("accent-grey-400")
+      this.tabbyOptionTarget.classList.add("opacity-50", "cursor-not-allowed")
+      this.tabbyOptionTarget.classList.remove("cursor-pointer")
+      this.tabbyBadgeTargets.forEach((el) => el.classList.add("grayscale", "opacity-70"))
+      this.tabbyDescTarget.textContent =
+        message || "Sorry, Tabby is unable to approve this purchase. Please use an alternative payment method for your order."
+    }
+
+    this.toggle()
+    this.recalculateTotal()
   }
 
   // Same VAT-inclusive breakdown as Order.vat_portion_of / ApplicationHelper
