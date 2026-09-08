@@ -106,7 +106,10 @@ RSpec.describe "Checkouts", type: :request do
       # charge before they ever redirect.
       expect(response.body).to include("$27.23 USD")
       expect(response.body).to include("(AED 100)")
-      expect(response.body).to include("Tabby processes your payment in AED")
+      # The general "We process all orders in AED …" note covers every
+      # method; the old Tabby-specific duplicate was removed per Tabby's QA.
+      expect(response.body).to include("We process all orders in AED")
+      expect(response.body).not_to include("Tabby processes your payment in AED")
     end
 
     it "hides Tabby as a selectable payment method and shows the rejection message when background pre-scoring rejects the customer" do
@@ -125,7 +128,7 @@ RSpec.describe "Checkouts", type: :request do
       doc = Nokogiri::HTML::Document.parse(response.body)
       tabby_radio = doc.at_css('input[name="payment_method"][value="tabby"]')
       expect(tabby_radio["disabled"]).to be_present
-      expect(response.body).to include("Tabby isn&#39;t available for this order right now.")
+      expect(response.body).to include("Sorry, Tabby is unable to approve this purchase. Please use an alternative payment method for your order.")
     end
 
     it "still shows Tabby normally when background pre-scoring approves the customer" do
@@ -141,6 +144,57 @@ RSpec.describe "Checkouts", type: :request do
       doc = Nokogiri::HTML::Document.parse(response.body)
       tabby_radio = doc.at_css('input[name="payment_method"][value="tabby"]')
       expect(tabby_radio["disabled"]).to be_nil
+    end
+
+    describe "GET /checkout/tabby_eligibility (phone-change re-score)" do
+      it "returns eligible:true with no message when Tabby's pre-scoring approves the new phone" do
+        user = create(:user)
+        sign_in user
+        product = create(:product, price_cents: 100_00)
+        post cart_items_path, params: { product_id: product.slug }
+        allow(Payments::Tabby).to receive(:post).and_return({ "status" => "created" })
+
+        get checkout_tabby_eligibility_path, params: { phone: "+971501234567" }
+
+        expect(response).to have_http_status(:ok)
+        expect(response.parsed_body).to eq("eligible" => true, "message" => nil)
+      end
+
+      it "returns eligible:false with Tabby's approved message when the new phone is rejected" do
+        user = create(:user)
+        sign_in user
+        product = create(:product, price_cents: 100_00)
+        post cart_items_path, params: { product_id: product.slug }
+        allow(Payments::Tabby).to receive(:post).and_return({
+          "status" => "rejected",
+          "configuration" => { "products" => { "installments" => { "is_available" => false, "rejection_reason" => "order_amount_too_low" } } }
+        })
+
+        get checkout_tabby_eligibility_path, params: { phone: "+971509999999" }
+
+        expect(response.parsed_body).to eq(
+          "eligible" => false,
+          "message" => "The purchase amount is below the minimum amount required to use Tabby, try adding more items or use another payment method"
+        )
+      end
+
+      it "degrades to eligible:true (never 500s) when Tabby is unreachable" do
+        user = create(:user)
+        sign_in user
+        product = create(:product, price_cents: 100_00)
+        post cart_items_path, params: { product_id: product.slug }
+        allow(Payments::Tabby).to receive(:post).and_raise(Payments::ProviderError, "timeout")
+
+        get checkout_tabby_eligibility_path, params: { phone: "+971501234567" }
+
+        expect(response).to have_http_status(:ok)
+        expect(response.parsed_body).to eq("eligible" => true, "message" => nil)
+      end
+
+      it "requires sign-in" do
+        get checkout_tabby_eligibility_path, params: { phone: "+971501234567" }
+        expect(response).to have_http_status(:found)
+      end
     end
 
     it "greys out Tamara as a selectable payment method when pre-checkout eligibility says no" do
@@ -860,7 +914,7 @@ RSpec.describe "Checkouts", type: :request do
       }.not_to change(Order, :count)
 
       expect(response).to have_http_status(:unprocessable_content)
-      expect(response.body).to include("This order total is too high for Tabby")
+      expect(response.body).to include("This purchase is above your current spending limit with Tabby")
       expect(product.reload.stock_quantity).to eq(5)
       expect(user.cart.cart_items.count).to eq(1)
     end

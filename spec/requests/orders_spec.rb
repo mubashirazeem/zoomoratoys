@@ -243,7 +243,7 @@ RSpec.describe "Orders", type: :request do
 
       expect(response).to redirect_to(order_path(order))
       follow_redirect!
-      expect(response.body).to include("Tabby isn&#39;t available for this order right now.")
+      expect(response.body).to include("Sorry, Tabby is unable to approve this purchase. Please use an alternative payment method for your order.")
       expect(order.reload.status).to eq("awaiting_payment")
       expect(order.tabby_payment_id).to eq("pay_old")
     end

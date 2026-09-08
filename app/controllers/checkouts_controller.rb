@@ -95,6 +95,21 @@ class CheckoutsController < ApplicationController
     @order = current_user.orders.includes(line_items: :product).find_by!(order_number: params[:order_number])
   end
 
+  # JSON re-score for the phone currently typed into the checkout Shipping
+  # form. Uses the same inputs #show does on the first paint
+  # (current_cart.total_cents, the signed-in email) so the result the
+  # customer sees after editing their phone matches what a fresh page load
+  # would give. Never raises — CheckEligibility already degrades a
+  # slow/unreachable Tabby (or any malformed response) to nil = eligible.
+  def tabby_eligibility
+    message = Payments::Tabby::CheckEligibility.call(
+      amount_cents: current_cart.total_cents,
+      email: current_user.email,
+      phone: params[:phone].to_s.strip.presence
+    )
+    render json: { eligible: message.nil?, message: message }
+  end
+
   private
 
   # Tamara defaults to their sandbox host (see Payments::Tamara.base_url)

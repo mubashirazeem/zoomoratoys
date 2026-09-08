@@ -25,7 +25,7 @@ RSpec.describe Payments::Tabby::CheckEligibility, type: :model do
 
     result = described_class.call(amount_cents: 10_000, email: "layla@example.com", phone: "+971501234567")
 
-    expect(result).to eq("This order total is too high for Tabby — please choose a different payment method.")
+    expect(result).to eq("This purchase is above your current spending limit with Tabby, try a smaller cart or use another payment method")
   end
 
   it "degrades to eligible (nil), never raising, when Tabby is unreachable" do

@@ -51,6 +51,10 @@ Rails.application.routes.draw do
 
   resource :checkout, only: [ :show, :create ]
   get "checkout/confirmation/:order_number", to: "checkouts#confirmation", as: :checkout_confirmation
+  # Re-scores Tabby for a phone edited in the checkout Shipping form, so the
+  # Tabby option can be re-enabled/greyed without a page reload — see
+  # payment_method_controller.js#refreshTabbyEligibility.
+  get "checkout/tabby_eligibility", to: "checkouts#tabby_eligibility", as: :checkout_tabby_eligibility
   resource :billing_portal, only: :create, controller: "billing_portal"
 
   get "account", to: "account#show", as: :account
