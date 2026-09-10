@@ -32,4 +32,43 @@ RSpec.describe Payments::Tamara do
 
     expect(sent_header).to eq("Bearer ")
   end
+
+  describe ".production? and .widget_script_url" do
+    it "is sandbox by default (no TAMARA_BASE_URL), and the widget loads from the sandbox CDN" do
+      allow(described_class).to receive(:base_url).and_return("https://api-sandbox.tamara.co")
+
+      expect(described_class.production?).to be(false)
+      expect(described_class.widget_script_url).to eq("https://cdn-sandbox.tamara.co/widget-v2/tamara-widget.js")
+    end
+
+    it "is production only when TAMARA_BASE_URL is the real host, and the widget then loads from the production CDN" do
+      allow(described_class).to receive(:base_url).and_return("https://api.tamara.co")
+
+      expect(described_class.production?).to be(true)
+      expect(described_class.widget_script_url).to eq("https://cdn.tamara.co/widget-v2/tamara-widget.js")
+    end
+  end
+
+  describe ".available?" do
+    it "is true on dev/staging regardless of which host TAMARA_BASE_URL points at (sandbox is correct there)" do
+      allow(Rails).to receive(:env).and_return(ActiveSupport::StringInquirer.new("staging"))
+      allow(described_class).to receive(:base_url).and_return("https://api-sandbox.tamara.co")
+
+      expect(described_class.available?).to be(true)
+    end
+
+    it "is false in production while still on a sandbox host — no sandbox key on the live site" do
+      allow(Rails).to receive(:env).and_return(ActiveSupport::StringInquirer.new("production"))
+      allow(described_class).to receive(:base_url).and_return("https://api-sandbox.tamara.co")
+
+      expect(described_class.available?).to be(false)
+    end
+
+    it "is true in production once TAMARA_BASE_URL is genuinely the production host" do
+      allow(Rails).to receive(:env).and_return(ActiveSupport::StringInquirer.new("production"))
+      allow(described_class).to receive(:base_url).and_return("https://api.tamara.co")
+
+      expect(described_class.available?).to be(true)
+    end
+  end
 end

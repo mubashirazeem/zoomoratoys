@@ -75,14 +75,21 @@
     <%# config once at script-load time — see %>
     <%# app/javascript/controllers/tamara_promo_controller.js for how a %>
     <%# later amount change (e.g. a variant switch) re-renders it. %>
-    <script>
-      var tamaraWidgetConfig = {
-        lang: "en",
-        country: "AE",
-        publicKey: "<%= ENV["TAMARA_PUBLIC_KEY"] %>"
-      }
-    </script>
-    <script defer src="https://cdn.tamara.co/widget-v2/tamara-widget.js"></script>
+    <%# Only loaded where Tamara may be surfaced (dev/staging always;
+        production only with real Tamara credentials) — never a sandbox key
+        on the live site. See Payments::Tamara.available?. The sandbox and
+        production widget scripts are different CDN hosts and must match the
+        key's environment or merchant_widget_config 404s (#widget_script_url). %>
+    <% if Payments::Tamara.available? %>
+      <script>
+        var tamaraWidgetConfig = {
+          lang: "en",
+          country: "AE",
+          publicKey: "<%= ENV["TAMARA_PUBLIC_KEY"] %>"
+        }
+      </script>
+      <script defer src="<%= Payments::Tamara.widget_script_url %>"></script>
+    <% end %>
 
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
