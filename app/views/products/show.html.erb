@@ -69,9 +69,11 @@
                data-tabby-promo-source-value="product"
                data-tabby-promo-price-value="<%= format("%.2f", @product.price_cents / 100.0) %>"></div>
 
-          <tamara-widget type="tamara-summary" data-controller="tamara-promo" data-product-variant-picker-target="tamaraPromo"
-               data-tamara-promo-price-value="<%= format("%.2f", @product.price_cents / 100.0) %>"
-               amount="<%= format("%.2f", @product.price_cents / 100.0) %>"></tamara-widget>
+          <% if Payments::Tamara.available? %>
+            <tamara-widget type="tamara-summary" data-controller="tamara-promo" data-product-variant-picker-target="tamaraPromo"
+                 data-tamara-promo-price-value="<%= format("%.2f", @product.price_cents / 100.0) %>"
+                 amount="<%= format("%.2f", @product.price_cents / 100.0) %>"></tamara-widget>
+          <% end %>
 
           <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3" data-controller="quantity">
             <div class="inline-flex items-center rounded-full border border-grey-300 overflow-hidden shrink-0 self-start sm:self-auto">

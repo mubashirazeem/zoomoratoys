@@ -122,7 +122,7 @@ class CheckoutsController < ApplicationController
   # staging intentionally skip this check — sandbox is the expected,
   # correct target there, not a stand-in for production being unready.
   def tamara_production_ready?
-    !Rails.env.production? || Payments::Tamara.base_url == "https://api.tamara.co"
+    Payments::Tamara.available?
   end
 
   # Card and Tabby both follow the exact same shape: create the order as

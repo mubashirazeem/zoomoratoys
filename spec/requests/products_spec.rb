@@ -155,6 +155,32 @@ RSpec.describe "Products", type: :request do
       expect(response.body).to include("Ember Trail Dirt Bike 125")
     end
 
+    it "loads the Tamara Summary widget from the CDN host that matches the key's environment" do
+      product = create(:product, name: "Ember Trail Dirt Bike 125")
+
+      allow(Payments::Tamara).to receive(:base_url).and_return("https://api-sandbox.tamara.co")
+      get product_path(product)
+      expect(response.body).to include("https://cdn-sandbox.tamara.co/widget-v2/tamara-widget.js")
+      expect(response.body).not_to include("https://cdn.tamara.co/widget-v2/tamara-widget.js")
+
+      allow(Payments::Tamara).to receive(:base_url).and_return("https://api.tamara.co")
+      get product_path(product)
+      expect(response.body).to include("https://cdn.tamara.co/widget-v2/tamara-widget.js")
+      expect(response.body).not_to include("cdn-sandbox.tamara.co")
+    end
+
+    it "does not render the Tamara widget at all in production while still on a sandbox host" do
+      product = create(:product, name: "Ember Trail Dirt Bike 125")
+      allow(Rails).to receive(:env).and_return(ActiveSupport::StringInquirer.new("production"))
+      allow(Payments::Tamara).to receive(:base_url).and_return("https://api-sandbox.tamara.co")
+
+      get product_path(product)
+
+      expect(response.body).not_to include("tamara-widget")
+      expect(response.body).not_to include("tamaraWidgetConfig")
+      expect(response.body).not_to include("cdn.tamara.co")
+    end
+
     it "returns 404 for an unknown slug" do
       get product_path("not-a-real-product")
 
