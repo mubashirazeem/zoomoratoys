@@ -918,6 +918,23 @@ RSpec.describe "Checkouts", type: :request do
       expect(product.reload.stock_quantity).to eq(5)
       expect(user.cart.cart_items.count).to eq(1)
     end
+
+    it "keeps the real cart total (and TabbyCard price) on the re-rendered page after a rejected session — Order.create_from_cart! calls cart.cart_items.destroy_all before the reject is known, and a DB rollback undoes that DELETE but not the in-memory association it already emptied, so naively reusing current_cart here would show AED 0 even though the cart genuinely still has its item (Tabby's own QA caught this: TabbyCard submitted price: 0 after eligibility was restored)" do
+      user = create(:user)
+      sign_in user
+      product = create(:product, price_cents: 10_000, stock_quantity: 5)
+      post cart_items_path, params: { product_id: product.slug }
+      allow(Payments::Tabby).to receive(:post).and_return({
+        "status" => "rejected",
+        "configuration" => { "products" => { "installments" => { "is_available" => false, "rejection_reason" => "order_amount_too_high" } } }
+      })
+
+      post checkout_path, params: { payment_method: "tabby", **shipping_params }
+
+      expect(response.body).to include('data-tabby-card-price-value="100.00"')
+      expect(response.body).to include('data-payment-method-card-base-cents-value="10000"')
+      expect(response.body).not_to include('data-tabby-card-price-value="0.00"')
+    end
   end
 
   describe "POST /checkout with payment_method=tamara" do

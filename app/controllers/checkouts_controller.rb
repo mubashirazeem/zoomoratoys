@@ -83,6 +83,24 @@ class CheckoutsController < ApplicationController
     # outcome, not a failure (see Payments::SessionRejected). No web_url
     # exists to redirect to, so this re-renders checkout in place instead
     # of bouncing anywhere, with the provider's own message.
+    #
+    # current_cart.cart_items.reset is required here, not optional: by the
+    # time this rescue runs, Order.create_from_cart! (inside the now-rolled-
+    # back transaction) already called cart.cart_items.destroy_all on this
+    # exact cart object. The DB rollback undoes the DELETE, but Rails does
+    # not revert an in-memory association's cache when a transaction rolls
+    # back — current_cart.cart_items stays loaded-and-empty in memory even
+    # though the row is genuinely still there. Every view expression that
+    # calls current_cart.total_cents/total_after_discount_cents fresh (the
+    # TabbyCard price and the card-base-cents total on this very re-render)
+    # would otherwise compute off that stale empty association and show
+    # AED 0 — confirmed live: this is what Tabby's QA caught as the
+    # TabbyCard snippet submitting price: 0 right after eligibility was
+    # restored. @cart_items/@cart_subtotal_cents (used for the Order Summary
+    # and the Pay on Delivery total) don't need this — set_cart already
+    # captured them, correctly, before create_from_cart! ever ran. Same
+    # fix Cart#merge_guest_into_user! already uses for the same reason.
+    current_cart.cart_items.reset
     @gift_wrap_cents = CartsController::GIFT_WRAP_CENTS
     @express_delivery_cents = CartsController::EXPRESS_DELIVERY_CENTS
     @addresses = current_user.addresses.ordered
